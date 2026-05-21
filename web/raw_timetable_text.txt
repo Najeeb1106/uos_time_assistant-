@@ -1,0 +1,1190 @@
+Weekly Class Timetable for Department of Software Engineering
+Show All Classes
+BS in Software Engineering
+Regular 1 ( 2026-2030 )
+Semester#1
+BS in Software Engineering
+Self Support 1 ( 2026-2030 )
+Semester#1
+MS Software Engineering
+Self Support 1 ( 2026-2028 )
+Semester#1
+MS Software Engineering
+(Weekend) Self Support 1 (
+2026-2028 ) Semester#1
+BS in Software Engineering
+Regular 1 ( 2025-2029 )
+Semester#2
+BS in Software Engineering
+Self Support 1 ( 2025-2029 )
+Semester#2
+BS in Software Engineering
+Self Support 2 ( 2025-2029 )
+Semester#2
+MS Software Engineering
+Self Support 1 ( 2025-2027 )
+Semester#2
+MS Software Engineering
+(Weekend) Self Support 1 (
+2025-2027 ) Semester#2
+BS in Software Engineering
+Regular 1 ( 2025-2029 )
+Semester#3
+BS in Software Engineering
+Self Support 1 ( 2025-2029 )
+Semester#3
+BS in Software Engineering
+Regular 1 ( 2024-2028 )
+Semester#4
+BS in Software Engineering
+Self Support 2 ( 2024-2028 )
+Semester#4
+BS in Software Engineering
+Self Support 1 ( 2024-2028 )
+Semester#4
+BS in Software Engineering
+Regular 1 ( 2024-2028 )
+Semester#5
+BS in Software Engineering
+Regular 1 ( 2023-2027 )
+Semester#6
+BS in Software Engineering
+Self Support 1 ( 2023-2027 )
+Semester#6
+BS in Software Engineering
+Self Support 2 ( 2023-2027 )
+Semester#6
+BS in Software Engineering
+Regular 1 ( 2022-2026 )
+Semester#8
+BS in Software Engineering
+Self Support 1 ( 2022-2026 )
+Semester#8
+BS in Software Engineering
+Self Support 2 ( 2022-2026 )
+Semester#8
+Show All Teachers
+Naveed Ahmad
+Regular
+Asad Nazar Awan
+Visiting
+Abid Rafique
+Regular
+Quasira Ramzan
+Regular
+Dr. Muhammad Ramzan
+Regular
+Dr. Syed Ali Haider shah
+Regular
+Areeba Shahzad
+Visiting
+Muhammad Umar Nissar Malik
+Visiting
+Khuram Shahzad
+Visiting
+Zulfiqar Ali
+Visiting
+Saud Bin Tahir
+Regular
+Ehsan Zakaullah
+Visiting
+Muhammad Azeem
+Visiting
+Abdul Satar
+Visiting
+Asif ur Rehman
+Visiting
+Rahat khan
+Visiting
+Ameer Hamza
+Visiting
+Javed Iqbal
+Visiting
+Anoosha Maryem
+Visiting
+Dr. Muhammad Summair Raza
+Regular
+Afia Tariq
+Visiting
+Abu Sufyan
+Visiting
+Hussain Akram mohayyodin
+Visiting
+muhammad umer farooq
+Visiting
+Dr. Ahmad Mustafa
+Regular
+Dr. Afzal Badshah
+Regular
+Taimoor Ali Mehndi
+Visiting
+Usman Sagheer
+Visiting
+Sana Batool
+Visiting
+Khalil Shah
+Visiting
+Aftab Haider Naqvi
+Visiting
+Saima Aslam
+Visiting
+Kashaf Hassan
+Visiting
+Ms Hafiza Anila Sajid
+Visiting
+Hadia Abu Bakar
+Visiting
+Mehwish Samad
+Visiting
+Ms. Usma
+Visiting
+Iqra Mushtaq
+Visiting
+Umme Aeman
+Visiting
+Khadija Malik
+Visiting
+Saima Riaz
+Visiting
+Dr. Muhammad Manazir
+Regular
+Laiba Ghafoor
+Visiting
+Mr. Mudassar Iqbal
+Visiting
+Atia Bajwa
+Visiting
+Hasnain Abid
+Visiting
+Muhammad Umer Iqbal
+Regular
+Ayesha Mahmood
+Visiting
+Ahsan Abdullah Malik
+Visiting
+Okasha Sarwar
+Visiting
+Nazia Abbas
+Visiting
+Mavra Abbas
+Visiting
+Fatima Masood
+Visiting
+Areeba Zarnab
+Visiting
+Memoona Ashraf
+Visiting
+Kinza Hanif
+Visiting
+Muhammad Aamir Khan
+Visiting
+Room / Lab 	Monday 	Tuesday 	Wednesday 	Thursday 	Friday 	Saturday 	Sunday
+College of Pharmacy
+ARB CR-
+218
+Translation of Holy Quran - I #URCQ-5111	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Muhammad Umar Nissar Malik (11:00 - 12:00)
+College of Pharmacy
+ARB CR-
+219
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Kashaf Hassan (13:00 - 14:00)
+Software Quality Engineering #SECC-302	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Quasira Ramzan (14:00 - 15:30)
+College of Pharmacy
+ARB CR-
+221
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Mavra Abbas (15:00 - 16:00)
+Translation of Holy Quran - IV #URCQ-5111	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Muhammad Umar Nissar Malik (13:00 - 14:00)
+College of Pharmacy
+ARB CR-
+222
+Database Systems #CMPC-5203	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2 …	
+Saud Bin Tahir (14:00 - 15:30)
+Information Security #CMPC-5206	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3 …	
+Ms Hafiza Anila Sajid (15:30 - 17:00)
+
+-- 1 of 6 --
+
+Room / Lab 	Monday 	Tuesday 	Wednesday 	Thursday 	Friday 	Saturday 	Sunday
+College of Pharmacy
+ARB CR-
+223
+Information Security #CMPC-5206	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Ms Hafiza Anila Sajid (10:00 - 11:00)
+Translation of Holy Quran - IV #URCQ-5111	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Rahat khan (11:00 - 12:00)
+Department of
+Software
+Engineering
+NAB CR-
+224
+Software Engineering #CMPC-5101	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Areeba Zarnab (08:00 - 09:30)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Naveed Ahmad (09:30 - 11:00)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Naveed Ahmad (11:00 - 12:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Mavra Abbas (13:30 - 14:30)
+Introduction to Marketing #BUSB-6101	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Dr. Muhammad Manazir (08:00 - 09:30)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Naveed Ahmad (09:30 - 11:00)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Naveed Ahmad (11:00 - 12:30)
+Introduction to Marketing #BUSB-6101	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Dr. Muhammad Manazir (12:30 - 14:00)
+Introduction to Marketing #BUSB-6101	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Dr. Muhammad Manazir (14:00 - 15:30)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Muhammad Aamir Khan (15:30 - 16:30)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Muhammad Aamir Khan (16:30 - 17:30)
+Software Project Management #SECC-401	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Abid Rafique (08:00 - 09:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Dr. Afzal Badshah (09:30 - 11:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Kashaf Hassan (11:00 - 12:00)
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Afia Tariq (12:30 - 14:00)
+Software Quality Engineering #SECC-302	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Quasira Ramzan (14:00 - 15:30)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1 …	
+Naveed Ahmad (09:30 - 11:00)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1 …	
+Naveed Ahmad (11:00 - 12:30)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1 …	
+Muhammad Aamir Khan (14:30 - 16:00)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1 …	
+Muhammad Aamir Khan (16:00 - 17:30)
+Software Design & Architecture #SEDC-5101	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Kinza Hanif (08:00 - 09:30)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1 …	
+Naveed Ahmad (11:00 - 12:30)
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Afia Tariq (12:30 - 14:00)
+Professional Practice #SESC-306	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Saima Aslam (14:00 - 15:30)
+Advanced Software System Architecture #SECC-703	
+MS Software Engineering (Weekend) Self Support 1 ( 2026-2028 ) S…	
+Dr. Muhammad Summair Raza (10:00 - 13:00)
+Research Methdology #SEEC-705	
+MS Software Engineering (Weekend) Self Support 1 ( 2026	
+Dr. Muhammad Ramzan (10:00 - 13:00)
+Advanced Requirements Engineering #SECC-70	
+MS Software Engineering (Weekend) Self Support 1 ( 2026	
+Dr. Ahmad Mustafa (16:00 - 19:00)
+Department of
+Software
+Engineering
+NAB CR-
+225
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2…	
+Kashaf Hassan (08:00 - 09:30)
+Discrete Structures #URCQ-5101	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Hadia Abu Bakar (09:30 - 11:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2…	
+Saud Bin Tahir (11:00 - 12:30)
+Information Security #CMPC-302	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Mehwish Samad (12:30 - 14:00)
+Calculus and Analytic Geometry #URCQ-5102	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Javed Iqbal (14:00 - 15:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Umme Aeman (15:30 - 16:30)
+Information Security #CMPC-5206	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Ms Hafiza Anila Sajid (16:30 - 17:30)
+Software Re-Engineering #SECC-403	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Abid Rafique (09:30 - 11:00)
+Information Security #CMPC-5206	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Ms Hafiza Anila Sajid (12:00 - 13:00)
+Software Engineering #CMPC-5101	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Ms. Usma (13:30 - 15:00)
+Software Design & Architecture #SEDC-5101	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Nazia Abbas (16:00 - 17:30)
+Business Process Engineering #SESC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Hadia Abu Bakar (08:00 - 09:30)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1 …	
+Saima Aslam (09:30 - 11:00)
+Software Quality Engineering #SECC-302	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Quasira Ramzan (11:00 - 12:30)
+Artificial Intelligence #SEEC-301	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Umme Aeman (12:30 - 14:00)
+Web Engineering #SECC-304	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Dr. Ahmad Mustafa (14:00 - 15:30)
+Discrete Structures #URCQ-5101	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Hadia Abu Bakar (08:00 - 09:30)
+Linear Algebra #MATH-5102	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Ehsan Zakaullah (09:30 - 11:00)
+Information Security #CMPC-5206	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Ms Hafiza Anila Sajid (11:00 - 12:00)
+Software Construction & Development #SEDC-5201	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Okasha Sarwar (13:30 - 15:00)
+Artificial Intelligence #SEEC-301	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Umme Aeman (15:30 - 17:00)
+Information Security #CMPC-302	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Mehwish Samad (08:00 - 09:30)
+Professional Practice #SESC-306	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Saud Bin Tahir (09:30 - 11:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2…	
+Saud Bin Tahir (12:30 - 14:00)
+Cloud Computing #SEEC-409	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Ms Hafiza Anila Sajid (14:00 - 15:30)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Iqra Mushtaq (15:30 - 16:30)
+Advanced Artificial Intelligence #CSEC-717	
+MS Software Engineering (Weekend) Self Support 1 ( 2025-2027 ) S…	
+Dr. Afzal Badshah (10:00 - 13:00)
+Software Testing and Quality Assurance #SECC-702	
+MS Software Engineering (Weekend) Self Support 1 ( 2025-2027 ) S…	
+Dr. Muhammad Summair Raza (13:00 - 16:00)
+Understanding of Quran - II #URCG-5130	
+MS Software Engineering (Weekend) Self Support 1 ( 2025	
+muhammad umer farooq (11:00 - 14:00)
+Advanced Software Project Management #SECC-	
+MS Software Engineering (Weekend) Self Support 1 ( 2025	
+Dr. Muhammad Ramzan (14:00 - 17:00)
+
+-- 2 of 6 --
+
+Room / Lab 	Monday 	Tuesday 	Wednesday 	Thursday 	Friday 	Saturday 	Sunday
+Department of
+Software
+Engineering
+NAB CR-
+226
+Mathematics I #URCM-5107	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Laiba Ghafoor (08:00 - 09:30)
+Web Engineering #SECC-304	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Dr. Ahmad Mustafa (09:30 - 11:00)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Iqra Mushtaq (11:00 - 12:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3…	
+Umme Aeman (12:00 - 13:30)
+Artificial Intelligence #SEEC-301	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Umme Aeman (13:30 - 15:00)
+Professional Practice #SESC-306	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Saima Aslam (15:00 - 16:30)
+Mathematics II #URCM-5108	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Dr. Syed Ali Haider shah (08:00 - 09:30)
+Mathematics II #URCM-5108	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Dr. Syed Ali Haider shah (08:00 - 09:30)
+Mathematics II #URCM-5108	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Dr. Syed Ali Haider shah (08:00 - 09:30)
+Mathematics II #URCM-5108	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Dr. Syed Ali Haider shah (09:30 - 11:00)
+Mathematics II #URCM-5108	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Dr. Syed Ali Haider shah (09:30 - 11:00)
+Mathematics II #URCM-5108	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Dr. Syed Ali Haider shah (09:30 - 11:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Kashaf Hassan (11:00 - 12:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Mavra Abbas (12:00 - 13:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Umme Aeman (13:00 - 14:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (14:00 - 15:30)
+Software Quality Engineering #SECC-302	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Quasira Ramzan (15:30 - 17:00)
+Software Re-Engineering #SECC-403	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Abid Rafique (09:30 - 11:00)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Saima Aslam (11:00 - 12:00)
+Software Quality Engineering #SECC-302	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Quasira Ramzan (12:30 - 14:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2 …	
+Saud Bin Tahir (16:00 - 17:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Aftab Haider Naqvi (08:00 - 09:30)
+Calculus and Analytic Geometry #URCQ-5102	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Javed Iqbal (09:30 - 11:00)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1 …	
+Saima Aslam (11:00 - 12:30)
+Software Re-Engineering #SECC-403	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Abid Rafique (12:30 - 14:00)
+Artificial Intelligence #SEEC-301	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Iqra Mushtaq (14:00 - 15:30)
+Cloud Computing #SEEC-409	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Okasha Sarwar (15:30 - 17:00)
+Web Engineering #SECC-304	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Dr. Ahmad Mustafa (08:00 - 09:30)
+Software Project Management #SECC-401	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Abid Rafique (09:30 - 11:00)
+Information Security #CMPC-302	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Mehwish Samad (11:00 - 12:30)
+Linear Algebra #MATH-5102	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Saima Riaz (13:30 - 15:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2…	
+Saud Bin Tahir (15:30 - 17:00)
+Department of
+Software
+Engineering
+NAB CR-
+227
+Professional Practice #SESC-306	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Saud Bin Tahir (08:00 - 09:30)
+Calculus and Analytic Geometry #URCQ-5102	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Javed Iqbal (09:30 - 11:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Mavra Abbas (11:00 - 12:00)
+Software Re-Engineering #SECC-403	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Abid Rafique (12:00 - 13:30)
+Software Design & Architecture #SEDC-5101	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Nazia Abbas (14:00 - 15:30)
+Entrepreneurship #URCG-5124	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Hasnain Abid (15:30 - 17:00)
+Software Construction & Development #SEDC-5201	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Memoona Ashraf (08:00 - 09:30)
+Web Engineering #SECC-304	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Dr. Ahmad Mustafa (09:30 - 11:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Saud Bin Tahir (11:00 - 12:30)
+Software Project Management #SECC-401	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Abid Rafique (12:30 - 14:00)
+Cloud Computing #SEEC-409	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Okasha Sarwar (14:00 - 15:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4 …	
+Mavra Abbas (16:00 - 17:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Dr. Afzal Badshah (08:00 - 09:30)
+Computer Networks #CMPC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Hadia Abu Bakar (09:30 - 11:00)
+Calculus and Analytic Geometry #URCQ-5102	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Javed Iqbal (11:00 - 12:30)
+Information Security #CMPC-5206	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Ms Hafiza Anila Sajid (12:30 - 14:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Umme Aeman (14:00 - 15:00)
+Web Engineering #SECC-304	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Dr. Ahmad Mustafa (15:30 - 17:00)
+Professional Practice #SESC-306	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Saud Bin Tahir (08:00 - 09:30)
+Software Project Management #SECC-401	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Abid Rafique (09:30 - 11:00)
+Applications of Information and Communication Technologies (ICT) #U…	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Saima Aslam (12:30 - 13:30)
+Information Security #CMPC-302	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Mehwish Samad (14:00 - 15:30)
+Information Security #CMPC-302	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Mehwish Samad (15:30 - 17:00)
+Software Design & Architecture #SEDC-5101	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Kinza Hanif (09:30 - 11:00)
+Translation of Holy Quran - I #URCQ-5111	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Rahat khan (11:00 - 12:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2…	
+Kashaf Hassan (14:00 - 15:30)
+Multivariable Calculus #MATH-5101	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Ayesha Mahmood (15:30 - 17:00)
+Department of
+Communication and
+Media Studies
+NAB CR-
+232
+Computer Networks #CMPC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Hadia Abu Bakar (08:00 - 09:30)
+Software Construction and Development #SECC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Iqra Mushtaq (08:00 - 09:30)
+Technical and Business Writing #ENGL-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Asad Nazar Awan (12:30 - 14:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Mavra Abbas (14:00 - 15:00)
+Multivariable Calculus #MATH-5101	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Muhammad Umer Iqbal (14:00 - 15:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Umme Aeman (15:30 - 16:30)
+Department of
+Communication and
+Media Studies
+NAB CR-
+233
+Cloud Computing #SEEC-409	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Ms Hafiza Anila Sajid (14:00 - 15:30)
+Information Security #CMPC-302	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Mehwish Samad (14:00 - 15:30)
+Multivariable Calculus #MATH-5101	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Ayesha Mahmood (08:00 - 09:30)
+Human Resource Management #BUSB-201	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Areeba Shahzad (11:00 - 12:30)
+Department of
+Communication and
+Media Studies
+NAB CR-
+234
+Software Re-Engineering #SECC-403	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Abid Rafique (09:00 - 10:30)
+Software Design & Architecture #SEDC-5101	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Memoona Ashraf (14:00 - 15:30)
+Linear Algebra #MATH-5102	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Ehsan Zakaullah (14:00 - 15:30)
+Linear Algebra #MATH-5102	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Saima Riaz (09:30 - 11:00)
+Mathematics I #URCM-5107	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Mr. Mudassar Iqbal (11:00 - 12:30)
+
+-- 3 of 6 --
+
+Room / Lab 	Monday 	Tuesday 	Wednesday 	Thursday 	Friday 	Saturday 	Sunday
+Department of
+Communication and
+Media Studies
+NAB CR-
+235
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Khuram Shahzad (12:30 - 14:00)
+Multivariable Calculus #MATH-5101	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Muhammad Umer Iqbal (13:30 - 15:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3…	
+Umme Aeman (08:00 - 09:30)
+Programming Fundamentals #CMPC-5201	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1…	
+Naveed Ahmad (09:30 - 11:00)
+Business Process Engineering #SESC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Hadia Abu Bakar (14:00 - 15:30)
+Introduction to Marketing #BUSB-6101	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Dr. Muhammad Manazir (15:30 - 17:00)
+Department of
+Communication and
+Media Studies
+NAB CR-
+236
+Computer Networks #CMPC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5 …	
+Kinza Hanif (09:30 - 11:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Kashaf Hassan (14:00 - 15:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Saud Bin Tahir (08:00 - 09:30)
+Functional English #URCG-5118	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Khadija Malik (09:30 - 11:00)
+Discrete Structures #URCQ-5101	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Hadia Abu Bakar (09:30 - 11:00)
+Department of
+Communication and
+Media Studies
+NAB CR-
+237
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Ms. Usma (14:00 - 15:30)
+Data Mining #SEEC-419	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Saima Aslam (14:00 - 15:30)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Saud Bin Tahir (16:00 - 17:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Dr. Afzal Badshah (11:00 - 12:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Mavra Abbas (13:00 - 14:00)
+Technical and Business Writing #ENGL-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Asad Nazar Awan (14:00 - 15:30)
+Department of
+Communication and
+Media Studies
+NAB CR-
+238
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Khuram Shahzad (14:00 - 15:30)
+Formal Methods in Software Engineering #SESC-305	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Quasira Ramzan (09:30 - 11:00)
+Artificial Intelligence #SEEC-301	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Iqra Mushtaq (14:00 - 15:30)
+Translation of Holy Quran - I #URCQ-5111	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Abu Sufyan (14:00 - 15:00)
+Software Engineering #CMPC-5101	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Ms. Usma (14:30 - 16:00)
+Linear Algebra #MATH-5102	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Saima Riaz (08:00 - 09:30)
+Data Mining #SEEC-419	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Fatima Masood (12:30 - 14:00)
+Department of
+Communication and
+Media Studies
+NAB CR-
+239
+Software Construction & Development #SEDC-5201	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Iqra Mushtaq (14:00 - 15:30)
+Software Construction & Development #SEDC-5201	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Iqra Mushtaq (15:30 - 17:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4 …	
+Mavra Abbas (14:00 - 15:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Umme Aeman (14:00 - 15:30)
+Linear Algebra #MATH-5102	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Saima Riaz (15:30 - 17:00)
+Department of
+Communication and
+Media Studies
+NAB CR-
+241
+Discrete Structures #URCQ-5101	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Hadia Abu Bakar (11:00 - 12:30)
+Formal Methods in Software Engineering #SESC-305	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Quasira Ramzan (15:30 - 17:00)
+Mathematics I #URCM-5107	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Laiba Ghafoor (08:00 - 09:30)
+Multivariable Calculus #MATH-5101	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Ehsan Zakaullah (09:30 - 11:00)
+Entrepreneurship #URCG-5124	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Hasnain Abid (14:00 - 15:30)
+Functional English #URCG-5118	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Khadija Malik (15:30 - 17:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Saud Bin Tahir (11:00 - 12:30)
+Software Construction and Development #SECC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Iqra Mushtaq (12:30 - 14:00)
+Multivariable Calculus #MATH-5101	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Ehsan Zakaullah (12:30 - 14:00)
+Department of
+Software
+Engineering
+MAB L-03
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Kashaf Hassan (10:00 - 11:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (11:00 - 12:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2…	
+Kashaf Hassan (12:30 - 14:00)
+Software Quality Engineering #SECC-302	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Quasira Ramzan (14:00 - 15:30)
+Software Engineering #CMPC-5101	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Areeba Zarnab (08:00 - 09:30)
+Information Security #CMPC-5206	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3 …	
+Ms Hafiza Anila Sajid (09:30 - 11:00)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (12:00 - 13:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (15:30 - 17:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Umme Aeman (08:00 - 09:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Aftab Haider Naqvi (09:30 - 11:00)
+Human Resource Management #BUSB-201	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5	
+Areeba Shahzad (11:00 - 12:30)
+Computer Networks #CMPC-301	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#5 …	
+Kinza Hanif (12:30 - 14:00)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3 …	
+Iqra Mushtaq (15:00 - 16:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Aftab Haider Naqvi (09:30 - 11:00)
+Data Structures #CMPC-5205	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3 …	
+Aftab Haider Naqvi (11:00 - 12:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Aftab Haider Naqvi (13:00 - 14:30)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3 …	
+Iqra Mushtaq (16:00 - 17:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Aftab Haider Naqvi (08:00 - 09:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3…	
+Aftab Haider Naqvi (09:30 - 11:00)
+Database Systems #CMPC-5203	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2 …	
+Saud Bin Tahir (14:00 - 15:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2…	
+Kashaf Hassan (15:30 - 17:00)
+
+-- 4 of 6 --
+
+Room / Lab 	Monday 	Tuesday 	Wednesday 	Thursday 	Friday 	Saturday 	Sunday
+Department of
+Software
+Engineering
+NAB L-02
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Dr. Afzal Badshah (09:30 - 11:00)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Dr. Afzal Badshah (11:00 - 12:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Dr. Afzal Badshah (12:30 - 14:00)
+Research Methdology #SEEC-705	
+MS Software Engineering Self Support 1 ( 2026-2028 ) Semester#1	
+Dr. Muhammad Ramzan (14:00 - 17:00)
+Advanced Artificial Intelligence #CSEC-717	
+MS Software Engineering Self Support 1 ( 2025-2027 ) Semester#2	
+Dr. Afzal Badshah (11:00 - 14:00)
+Advanced Requirements Engineering #SECC-701	
+MS Software Engineering Self Support 1 ( 2026-2028 ) Semester#1	
+Dr. Ahmad Mustafa (14:00 - 17:00)
+Software Testing and Quality Assurance #SECC-702	
+MS Software Engineering Self Support 1 ( 2025-2027 ) Semester#2	
+Dr. Muhammad Summair Raza (09:00 - 12:00)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Ms. Usma (13:00 - 14:00)
+Advanced Software System Architecture #SECC-703	
+MS Software Engineering Self Support 1 ( 2026-2028 ) Semester#1	
+Dr. Muhammad Summair Raza (14:00 - 17:00)
+Information Security #CMPC-5206	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Ms Hafiza Anila Sajid (09:30 - 11:00)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3 …	
+Ms. Usma (11:00 - 12:30)
+Artificial Intelligence #CMPC-5207	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#3	
+Ms. Usma (13:00 - 14:00)
+Advanced Software Project Management #SECC-704	
+MS Software Engineering Self Support 1 ( 2025-2027 ) Semester#2	
+Abid Rafique (14:00 - 17:00)
+College of Pharmacy
+ARB L-10
+(Computer
+Lab)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4…	
+Mavra Abbas (14:30 - 16:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (08:00 - 09:30)
+Data Structures #CMPC-5205	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#3	
+Aftab Haider Naqvi (11:00 - 12:30)
+Artificial Intelligence #SEEC-301	
+BS in Software Engineering Regular 1 ( 2023-2027 ) Semester#6	
+Umme Aeman (15:30 - 17:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4 …	
+Mavra Abbas (09:30 - 11:00)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (08:00 - 09:30)
+Object Oriented Programming #CMPC-5202	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2 …	
+Kashaf Hassan (09:30 - 11:00)
+Department of
+Sociology and
+Criminology JHB
+CR-VCR
+(sociology)
+Data Mining #SEEC-419	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Saima Aslam (09:30 - 11:00)
+Final Year Project II #CMPC-402	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Dr. Muhammad Ramzan (08:00 - 09:30)
+Final Year Project II #CMPC-402	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Dr. Muhammad Ramzan (08:00 - 09:30)
+Final Year Project II #CMPC-402	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Dr. Ahmad Mustafa (09:30 - 11:00)
+Cloud Computing #SEEC-409	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Ms Hafiza Anila Sajid (11:00 - 12:30)
+Final Year Project II #CMPC-402	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Dr. Ahmad Mustafa (08:00 - 09:30)
+Final Year Project II #CMPC-402	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Dr. Muhammad Ramzan (09:30 - 11:00)
+Software Re-Engineering #SECC-403	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Abid Rafique (08:00 - 09:30)
+Final Year Project II #CMPC-402	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Dr. Muhammad Ramzan (09:30 - 11:00)
+Department of
+Software
+Engineering
+NAB CR-
+240
+Software Project Management #SECC-401	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Abid Rafique (10:30 - 12:00)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4 …	
+Mavra Abbas (12:00 - 13:30)
+Data Mining #SEEC-419	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Fatima Masood (13:30 - 15:00)
+Translation of Holy Quran - IV #URCQ-5111	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Rahat khan (15:00 - 16:00)
+Software Construction & Development #SEDC-5201	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Memoona Ashraf (09:30 - 11:00)
+Software Project Management #SECC-401	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Abid Rafique (11:00 - 12:30)
+Database Systems #CMPC-5203	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Saud Bin Tahir (12:30 - 14:00)
+Cloud Computing #SEEC-409	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Ms Hafiza Anila Sajid (14:00 - 15:30)
+Data Mining #SEEC-419	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Fatima Masood (15:30 - 17:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Kashaf Hassan (09:30 - 10:30)
+Database Systems #CMPC-5203	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Saud Bin Tahir (11:00 - 12:30)
+Software Design & Architecture #SEDC-5101	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Memoona Ashraf (13:30 - 15:00)
+Software Construction & Development #SEDC-5201	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Okasha Sarwar (15:00 - 16:30)
+Computer Organization & Assembly Language #CMPC-5209	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4 …	
+Mavra Abbas (08:00 - 09:30)
+Professional Practice #SESC-306	
+BS in Software Engineering Self Support 1 ( 2023-2027 ) Semester#6	
+Saud Bin Tahir (09:30 - 11:00)
+Web Engineering #SECC-304	
+BS in Software Engineering Self Support 2 ( 2023-2027 ) Semester#6	
+Dr. Ahmad Mustafa (11:00 - 12:30)
+Mathematics I #URCM-5107	
+BS in Software Engineering Self Support 1 ( 2026-2030 ) Semester#1	
+Mr. Mudassar Iqbal (12:30 - 14:00)
+Digital Logic Design #CMPC-5204	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2…	
+Kashaf Hassan (11:30 - 13:00)
+Data Mining #SEEC-419	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Fatima Masood (15:30 - 17:00)
+NAB Hall-
+2 Second
+Floor
+Combined Class (514)	
+Citizenship Education and Community Engagement #URCC-5110	
+BS in Software Engineering Regular 1 ( 2022-2026 ) Semester#8	
+Anoosha Maryem (13:00 - 16:00)
+Combined Class (514)	
+Citizenship Education and Community Engagement #URCC-5110	
+BS in Software Engineering Self Support 1 ( 2022-2026 ) Semester#8	
+Anoosha Maryem (13:00 - 16:00)
+Combined Class (514)	
+Citizenship Education and Community Engagement #URCC-5110	
+BS in Software Engineering Self Support 2 ( 2022-2026 ) Semester#8	
+Anoosha Maryem (13:00 - 16:00)
+
+-- 5 of 6 --
+
+Room / Lab 	Monday 	Tuesday 	Wednesday 	Thursday 	Friday 	Saturday 	Sunday
+Physics
+Hall
+Combined Class (455)	
+Entrepreneurship #URCG-5124	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Atia Bajwa (11:00 - 13:00)
+Combined Class (434)	
+Translation of Holy Quran-II #URCG-5111	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Asif ur Rehman (11:00 - 12:00)
+Combined Class (449)	
+Understanding of Quran - II #URCG-5130	
+MS Software Engineering Self Support 1 ( 2025-2027 ) Semester#2	
+Muhammad Azeem (12:00 - 15:00)
+Combined Class (432)	
+Expository Writing #URCG-5119	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Sana Batool (08:00 - 11:00)
+Combined Class (454)	
+Ideology and Constitution of Pakistan #URCG-5122	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Usman Sagheer (11:00 - 13:00)
+Combined Class (454)	
+Ideology and Constitution of Pakistan #URCG-5122	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Usman Sagheer (11:00 - 13:00)
+Combined Class (430)	
+Pakistan Studies #URCG-5128	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Khalil Shah (13:00 - 15:00)
+Combined Class (430)	
+Pakistan Studies #URCG-5128	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Khalil Shah (13:00 - 15:00)
+Combined Class (430)	
+Pakistan Studies #URCG-5128	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Khalil Shah (13:00 - 15:00)
+Combined Class (426)	
+Ideology and Constitution of Pakistan #URCG-5122	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Ahsan Abdullah Malik (15:00 - 17:00)
+Combined Class (431)	
+Functional English #URCG-5118	
+BS in Software Engineering Regular 1 ( 2026-2030 ) Semester#1	
+Taimoor Ali Mehndi (08:00 - 11:00)
+Combined Class (441)	
+Translation of Holy Quran-II #URCG-5111	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Khuram Shahzad (12:00 - 13:00)
+Combined Class (441)	
+Translation of Holy Quran-II #URCG-5111	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Khuram Shahzad (12:00 - 13:00)
+Pharmacy
+Hall
+Combined Class (528)	
+Islamic Studies #URCG-5105	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Hussain Akram mohayyodin (08:00 - 10:00)
+Combined Class (528)	
+Islamic Studies #URCG-5105	
+BS in Software Engineering Regular 1 ( 2024-2028 ) Semester#4	
+Hussain Akram mohayyodin (08:00 - 10:00)
+Combined Class (445)	
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Regular 1 ( 2025-2029 ) Semester#2	
+Ameer Hamza (13:00 - 16:00)
+Combined Class (445)	
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Ameer Hamza (13:00 - 16:00)
+Combined Class (445)	
+Understanding of Quran - I #URCG-5129	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Ameer Hamza (13:00 - 16:00)
+Combined Class (425)	
+Expository Writing #URCG-5119	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Sana Batool (15:00 - 18:00)
+Combined Class (425)	
+Expository Writing #URCG-5119	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Sana Batool (15:00 - 18:00)
+Education
+Hall
+Combined Class (525)	
+Islamic Studies #URCG-5105	
+BS in Software Engineering Self Support 1 ( 2024-2028 ) Semester#4	
+Muhammad Umar Nissar Malik (11:00 - 13:00)
+Combined Class (525)	
+Islamic Studies #URCG-5105	
+BS in Software Engineering Self Support 2 ( 2024-2028 ) Semester#4	
+Muhammad Umar Nissar Malik (11:00 - 13:00)
+Combined Class (524)	
+Islamic Studies #URCG-5105	
+BS in Software Engineering Self Support 1 ( 2025-2029 ) Semester#2	
+Zulfiqar Ali (11:00 - 13:00)
+Combined Class (524)	
+Islamic Studies #URCG-5105	
+BS in Software Engineering Self Support 2 ( 2025-2029 ) Semester#2	
+Zulfiqar Ali (11:00 - 13:00)
+Combined Class (444)	
+Understanding of Quran - I #URCG-5129	
+MS Software Engineering Self Support 1 ( 2026-2028 ) Semester#1	
+Abdul Satar (14:00 - 17:00)
+Combined Class (444)	
+Understanding of Quran - I #URCG-5129	
+MS Software Engineering (Weekend) Self Support 1 ( 2026-2028 ) Se…	
+Abdul Satar (14:00 - 17:00)
+IAH CR-
+175
+(Chemistry
+Hall)
+Jinnah
+Block Hall
+MPH
+Seminar
+Hall
+NAB Hall-
+1 First
+Floor
+Maryam
+Hall CR-1
+Online
+Hall 1
+Online
+Hall 2
+
+-- 6 of 6 --
+
