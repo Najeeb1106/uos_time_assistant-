@@ -7,6 +7,7 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student');
   const [program, setProgram] = useState('BS in Software Engineering');
   const [type, setType] = useState('Regular');
   const [batch, setBatch] = useState('2024-2028');
@@ -34,7 +35,7 @@ export default function Register() {
       return;
     }
 
-    if (!/^\d{4}-\d{4}$/.test(batch)) {
+    if (role === 'student' && !/^\d{4}-\d{4}$/.test(batch)) {
       setError('Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028)');
       return;
     }
@@ -47,14 +48,20 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      await register(email, {
+      const payload = {
         fullName,
-        program,
-        type,
-        batch,
-        semester: Number(semester),
-        password
-      });
+        password,
+        role
+      };
+
+      if (role === 'student') {
+        payload.program = program;
+        payload.type = type;
+        payload.batch = batch;
+        payload.semester = Number(semester);
+      }
+
+      await register(email, payload);
       setIsLoading(false);
       navigate('/dashboard');
     } catch (err) {
@@ -117,14 +124,74 @@ export default function Register() {
         background: 'var(--auth-panel-bg)'
       }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img src="/uos.png" alt="UOS Logo" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '1rem' }} />
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <img src="/uos.png" alt="UOS Logo" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '0.75rem' }} />
           <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.35rem', background: 'linear-gradient(135deg, var(--text-primary), var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>
-            Create Student Profile
+            {role === 'student' ? 'Create Student Profile' : 'Create Teacher Profile'}
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Establish your academic details to align your parsed timetable
+            {role === 'student' 
+              ? 'Establish your academic details to align your parsed timetable' 
+              : 'Enter your name and official UOS email to custom filter your teaching schedule'}
           </p>
+        </div>
+
+        {/* Role Selector Segmented Control */}
+        <div style={{
+          display: 'flex',
+          background: 'var(--bg-tertiary)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: '12px',
+          padding: '0.25rem',
+          marginBottom: '1.5rem',
+          position: 'relative'
+        }}>
+          <button
+            type="button"
+            style={{
+              flex: 1,
+              padding: '0.65rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'student' ? 'var(--accent-primary)' : 'transparent',
+              color: role === 'student' ? '#ffffff' : 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+            onClick={() => setRole('student')}
+          >
+            <GraduationCap size={16} />
+            Student
+          </button>
+          <button
+            type="button"
+            style={{
+              flex: 1,
+              padding: '0.65rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'teacher' ? 'var(--accent-primary)' : 'transparent',
+              color: role === 'teacher' ? '#ffffff' : 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+            onClick={() => setRole('teacher')}
+          >
+            <User size={16} />
+            Teacher
+          </button>
         </div>
 
         {error && (
@@ -152,7 +219,7 @@ export default function Register() {
                 type="email" 
                 className="input-field" 
                 style={{ paddingLeft: '2.75rem' }}
-                placeholder="name@uos.edu.pk"
+                placeholder={role === 'student' ? "name@uos.edu.pk" : "teacher@uos.edu.pk"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -169,7 +236,7 @@ export default function Register() {
                 type="text" 
                 className="input-field" 
                 style={{ paddingLeft: '2.75rem' }}
-                placeholder="Ahmed Ali"
+                placeholder={role === 'student' ? "Ahmed Ali" : "Dr. Afzal Badshah"}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -193,125 +260,127 @@ export default function Register() {
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid var(--glass-border)', padding: '1rem 0', margin: '0.5rem 0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* Program & Support Type */}
-            <div className="register-row-grid-2col">
-              <div className="input-group" style={{ marginBottom: 0 }}>
-                <label className="input-label" htmlFor="program">Degree Program</label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <GraduationCap size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', zIndex: 10 }} />
+          {role === 'student' && (
+            <div className="animate-fade-in" style={{ borderTop: '1px solid var(--glass-border)', padding: '1rem 0', margin: '0.5rem 0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Program & Support Type */}
+              <div className="register-row-grid-2col">
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="program">Degree Program</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <GraduationCap size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', zIndex: 10 }} />
+                    <select 
+                      id="program"
+                      className="input-field select-field" 
+                      style={{ paddingLeft: '2.75rem' }}
+                      value={program}
+                      onChange={(e) => setProgram(e.target.value)}
+                    >
+                      <option value="BS in Software Engineering">BS Software Eng.</option>
+                      <option value="BS in Computer Science">BS Computer Sci.</option>
+                      <option value="BS in Information Technology">BS Info. Tech.</option>
+                      <option value="MS in Software Engineering">MS Software Eng.</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Support Type</label>
+                  <div style={{ display: 'flex', gap: '0.35rem', height: '100%', alignItems: 'center' }}>
+                    <button 
+                      type="button"
+                      className="btn"
+                      style={{ 
+                        flex: 1.2, 
+                        padding: '0.65rem 0.25rem', 
+                        fontSize: '0.8rem',
+                        background: type === 'Regular' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        color: type === 'Regular' ? '#ffffff' : 'var(--text-secondary)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => setType('Regular')}
+                    >
+                      Regular
+                    </button>
+                    <button 
+                      type="button"
+                      className="btn"
+                      style={{ 
+                        flex: 1, 
+                        padding: '0.65rem 0.25rem', 
+                        fontSize: '0.8rem',
+                        background: type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        color: type === 'Self Support 1' ? '#ffffff' : 'var(--text-secondary)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => setType('Self Support 1')}
+                    >
+                      Self 1
+                    </button>
+                    <button 
+                      type="button"
+                      className="btn"
+                      style={{ 
+                        flex: 1, 
+                        padding: '0.65rem 0.25rem', 
+                        fontSize: '0.8rem',
+                        background: type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        color: type === 'Self Support 2' ? '#ffffff' : 'var(--text-secondary)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => setType('Self Support 2')}
+                    >
+                      Self 2
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Batch & Semester */}
+              <div className="register-row-grid-equal">
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="batch">Session / Batch</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <CalendarDays size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', zIndex: 10 }} />
+                    <input 
+                      id="batch"
+                      type="text" 
+                      className="input-field" 
+                      style={{ paddingLeft: '2.75rem' }}
+                      placeholder="e.g. 2024-2028"
+                      value={batch}
+                      onChange={(e) => setBatch(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="semester">Active Semester</label>
                   <select 
-                    id="program"
+                    id="semester"
                     className="input-field select-field" 
-                    style={{ paddingLeft: '2.75rem' }}
-                    value={program}
-                    onChange={(e) => setProgram(e.target.value)}
+                    value={semester}
+                    onChange={(e) => setSemester(e.target.value)}
                   >
-                    <option value="BS in Software Engineering">BS Software Eng.</option>
-                    <option value="BS in Computer Science">BS Computer Sci.</option>
-                    <option value="BS in Information Technology">BS Info. Tech.</option>
-                    <option value="MS in Software Engineering">MS Software Eng.</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                      <option key={s} value={s}>Semester {s}</option>
+                    ))}
                   </select>
                 </div>
               </div>
-
-              <div className="input-group" style={{ marginBottom: 0 }}>
-                <label className="input-label">Support Type</label>
-                <div style={{ display: 'flex', gap: '0.35rem', height: '100%', alignItems: 'center' }}>
-                  <button 
-                    type="button"
-                    className="btn"
-                    style={{ 
-                      flex: 1.2, 
-                      padding: '0.65rem 0.25rem', 
-                      fontSize: '0.8rem',
-                      background: type === 'Regular' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                      color: type === 'Regular' ? '#ffffff' : 'var(--text-secondary)',
-                      border: '1px solid var(--glass-border)',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onClick={() => setType('Regular')}
-                  >
-                    Regular
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn"
-                    style={{ 
-                      flex: 1, 
-                      padding: '0.65rem 0.25rem', 
-                      fontSize: '0.8rem',
-                      background: type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                      color: type === 'Self Support 1' ? '#ffffff' : 'var(--text-secondary)',
-                      border: '1px solid var(--glass-border)',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onClick={() => setType('Self Support 1')}
-                  >
-                    Self 1
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn"
-                    style={{ 
-                      flex: 1, 
-                      padding: '0.65rem 0.25rem', 
-                      fontSize: '0.8rem',
-                      background: type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                      color: type === 'Self Support 2' ? '#ffffff' : 'var(--text-secondary)',
-                      border: '1px solid var(--glass-border)',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onClick={() => setType('Self Support 2')}
-                  >
-                    Self 2
-                  </button>
-                </div>
-              </div>
             </div>
-
-            {/* Batch & Semester */}
-            <div className="register-row-grid-equal">
-              <div className="input-group" style={{ marginBottom: 0 }}>
-                <label className="input-label" htmlFor="batch">Session / Batch</label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <CalendarDays size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', zIndex: 10 }} />
-                  <input 
-                    id="batch"
-                    type="text" 
-                    className="input-field" 
-                    style={{ paddingLeft: '2.75rem' }}
-                    placeholder="e.g. 2024-2028"
-                    value={batch}
-                    onChange={(e) => setBatch(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="input-group" style={{ marginBottom: 0 }}>
-                <label className="input-label" htmlFor="semester">Active Semester</label>
-                <select 
-                  id="semester"
-                  className="input-field select-field" 
-                  value={semester}
-                  onChange={(e) => setSemester(e.target.value)}
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                    <option key={s} value={s}>Semester {s}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          )}
 
           <button 
             type="submit" 

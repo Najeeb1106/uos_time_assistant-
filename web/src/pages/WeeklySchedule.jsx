@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 export default function WeeklySchedule() {
-  const { classes } = useStore();
+  const { classes, user } = useStore();
   
   const [selectedClass, setSelectedClass] = useState(null);
   const [currentTimeString, setCurrentTimeString] = useState('');
@@ -124,7 +124,7 @@ export default function WeeklySchedule() {
                     </span>
                   )}
                 </div>
-
+ 
                 {/* Column items */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', flex: 1 }}>
                   {dayClasses.length === 0 ? (
@@ -179,7 +179,7 @@ export default function WeeklySchedule() {
                               background: 'var(--success)'
                             }}></span>
                           )}
-
+ 
                           <span style={{ 
                             fontSize: '0.65rem', 
                             color: ongoing ? 'var(--accent-secondary)' : 'var(--text-muted)', 
@@ -217,7 +217,7 @@ export default function WeeklySchedule() {
           })}
         </div>
       )}
-
+ 
       {/* Class detail modal */}
       {selectedClass && (
         <div style={{
@@ -260,7 +260,7 @@ export default function WeeklySchedule() {
             >
               <X size={20} />
             </button>
-
+ 
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-primary)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                 {selectedClass.code}
@@ -269,11 +269,11 @@ export default function WeeklySchedule() {
                 {selectedClass.type}
               </span>
             </div>
-
+ 
             <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>
               {selectedClass.name}
             </h3>
-
+ 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
                 <Clock size={18} color="var(--accent-primary)" />
@@ -282,7 +282,7 @@ export default function WeeklySchedule() {
                   <strong>{selectedClass.day} • {selectedClass.startTime} - {selectedClass.endTime}</strong>
                 </div>
               </div>
-
+ 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
                 <MapPin size={18} color="var(--accent-secondary)" />
                 <div>
@@ -290,20 +290,32 @@ export default function WeeklySchedule() {
                   <strong>Lecture Hall {selectedClass.room}</strong>
                 </div>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <UserIcon size={18} color="var(--text-secondary)" />
-                <div>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Instructor</span>
-                  <strong>{selectedClass.teacher}</strong>
+ 
+              {user?.role === 'teacher' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
+                  <BookOpen size={18} color="var(--accent-secondary)" style={{ transform: 'none' }} />
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Target Cohort</span>
+                    <strong>{selectedClass.program}</strong>
+                  </div>
                 </div>
-              </div>
-
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
+                  <UserIcon size={18} color="var(--text-secondary)" />
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Instructor</span>
+                    <strong>{selectedClass.teacher}</strong>
+                  </div>
+                </div>
+              )}
+ 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
                 <BookOpen size={18} color="var(--text-muted)" />
                 <div>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Batch & Target</span>
-                  <strong>{selectedClass.batch} • Semester {selectedClass.semester}</strong>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                    {user?.role === 'teacher' ? 'Session & Semester' : 'Batch & Target'}
+                  </span>
+                  <strong>{selectedClass.batch ? `${selectedClass.batch} • ` : ''}Semester {selectedClass.semester}</strong>
                 </div>
               </div>
             </div>

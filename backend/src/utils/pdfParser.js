@@ -35,8 +35,8 @@ const ROOM_GROUP_DY = 8;
 const LECTURE_BLOCK_DY = 12;
 
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
-const RE_BATCH_BSSE = /BS\s+in\s+Software\s+Engineering\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
-const RE_BATCH_MS = /MS\s+Software\s+Engineering\s*\(?(Weekend)?\)?\s*(Self\s+Support)?\s*\d*\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
+const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*\(?(Weekend)?\)?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 const RE_SEMESTER = /Semester#(\d+)/i;
 const RE_TIME = /\((\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\)/;
 
@@ -63,25 +63,32 @@ function parseEntry(text) {
   let code = codeMatch ? codeMatch[1].trim() : '';
   code = code.replace(/[\u2026]+$/, '').trim();
 
-  let type = 'Regular', section = '', batch = '', semester = 0;
-  const bsseMatch = text.match(RE_BATCH_BSSE);
+  let type = 'Regular', section = '', batch = '', semester = 0, program = 'Unknown';
+  const bsMatch = text.match(RE_BATCH_BS);
   const msMatch = text.match(RE_BATCH_MS);
   const semMatch = text.match(RE_SEMESTER);
 
-  if (bsseMatch) {
-    type = bsseMatch[1].trim(); section = bsseMatch[2].trim();
-    batch = bsseMatch[3].trim(); semester = parseInt(bsseMatch[4]);
+  if (bsMatch) {
+    program = "BS in " + bsMatch[1].trim();
+    type = bsMatch[2].trim();
+    if (type.toLowerCase() === 'self') type = 'Self Support';
+    section = bsMatch[3].trim();
+    batch = bsMatch[4].trim();
+    semester = parseInt(bsMatch[5]);
   } else if (msMatch) {
-    type = msMatch[1] ? 'Weekend Self Support' : (msMatch[2] ? 'Self Support' : 'Regular');
-    batch = msMatch[3] ? msMatch[3].trim() : '';
-    semester = msMatch[4] && msMatch[4].length > 0 ? parseInt(msMatch[4]) : 0;
-    if (semester === 0 && text.includes('MS Software Engineering')) {
+    program = msMatch[1].trim() + " in " + msMatch[2].trim();
+    type = msMatch[3] ? 'Weekend Self Support' : (msMatch[4] ? msMatch[4].trim() : 'Regular');
+    if (type.toLowerCase() === 'self') type = 'Self Support';
+    section = msMatch[5].trim();
+    batch = msMatch[6] ? msMatch[6].trim() : '';
+    semester = msMatch[7] && msMatch[7].length > 0 ? parseInt(msMatch[7]) : 0;
+    if (semester === 0 && (text.includes('MS ') || text.includes('PhD '))) {
       const msSemMatch = text.match(/Semester#(\d+)/i);
       semester = msSemMatch ? parseInt(msSemMatch[1]) : 0;
     }
   } else if (semMatch) {
     semester = parseInt(semMatch[1]);
-    if (text.toLowerCase().includes('self support')) {
+    if (text.toLowerCase().includes('self support') || text.toLowerCase().includes('self')) {
       type = text.toLowerCase().includes('weekend') ? 'Weekend Self Support' : 'Self Support';
     }
   }
@@ -100,8 +107,8 @@ function parseEntry(text) {
     } else {
       teacher = lastSeg;
     }
-    teacher = teacher.replace(/BS\s+in\s+Software\s+Engineering.*$/i, '').trim();
-    teacher = teacher.replace(/MS\s+Software\s+Engineering.*$/i, '').trim();
+    teacher = teacher.replace(/BS\s+in\s+[A-Za-z\s]+.*$/i, '').trim();
+    teacher = teacher.replace(/(MS|PhD)\s+[A-Za-z\s]+.*$/i, '').trim();
     teacher = teacher.replace(/Semester#\d+.*/i, '').trim();
     if (teacher.includes('#') || teacher.length === 0) teacher = 'Unknown';
   }
@@ -126,13 +133,13 @@ function parseEntry(text) {
     if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) name = 'Unknown Course';
   }
 
-  return { name, code, type, section, batch, semester, startTime, endTime, teacher };
+  return { name, code, type, section, batch, semester, startTime, endTime, teacher, program };
 }
 
 function dedup(lectures) {
   const seen = new Set();
   return lectures.filter(l => {
-    const key = `${l.name}|${l.code}|${l.day}|${l.startTime}|${l.endTime}|${l.semester}|${l.type}|${l.section}|${l.teacher}`;
+    const key = `${l.name}|${l.code}|${l.day}|${l.startTime}|${l.endTime}|${l.semester}|${l.type}|${l.section}|${l.teacher}|${l.program}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -147,7 +154,7 @@ function dedup(lectures) {
  * @param {string} userType - User's support type e.g., 'Regular' or 'Self Support'
  * @returns {Promise<Array>} List of filtered classes
  */
-async function extractSchedule(pdfBuffer, userBatch, userSemester, userType) {
+async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, userProgram, userRole = 'student', userFullName = '') {
   try {
     const parser = new pdfImport.PDFParse({ data: new Uint8Array(pdfBuffer) });
     await parser.load();
@@ -246,11 +253,14 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType) {
         const entries = splitBlockIntoEntries(block.text);
         for (const entry of entries) {
           const parsed = parseEntry(entry);
+          if (!parsed.startTime || !parsed.endTime) {
+            continue; // Filter out empty headers and noise blocks that don't have valid start/end times
+          }
           allLectures.push({
             name: parsed.name, code: parsed.code, room: roomName,
             day: block.day, startTime: parsed.startTime, endTime: parsed.endTime,
             teacher: parsed.teacher, batch: parsed.batch, semester: parsed.semester,
-            type: parsed.type, section: parsed.section, page: pageNum
+            type: parsed.type, section: parsed.section, program: parsed.program, page: pageNum
           });
         }
       }
@@ -258,9 +268,40 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType) {
 
     const final = dedup(allLectures);
 
+    if (userRole === 'teacher') {
+      const normalizeTeacher = (name) => {
+        if (!name) return '';
+        return name.toLowerCase()
+          .replace(/\b(dr|prof|mr|ms|mrs|engr)\b\.?/gi, '')
+          .replace(/[^a-z0-9]/gi, '')
+          .trim();
+      };
+      const normUser = normalizeTeacher(userFullName);
+      return final.filter(cls => {
+        const normCls = normalizeTeacher(cls.teacher);
+        if (normUser.length >= 3 && normCls.length >= 3) {
+          return normCls.includes(normUser) || normUser.includes(normCls);
+        }
+        return false;
+      });
+    }
+
     // Filter results specifically for the user
     const targetSemester = Number(userSemester);
     const targetType = (userType || 'Regular').toLowerCase();
+    
+    // Robust normalizer for program names
+    const normalizeProgramName = (name) => {
+      if (!name) return '';
+      return name
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/\bin\b/gi, '')
+        .replace(/[().…\-\s]+/g, '')
+        .trim();
+    };
+
+    const targetProgramNorm = normalizeProgramName(userProgram);
     
     const filtered = final.filter(cls => {
       const clsSemester = Number(cls.semester);
@@ -287,10 +328,24 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType) {
         }
       }
 
-      // If user specified batch, filter by batch too, or match loosely
-      const batchMatch = !userBatch || !cls.batch || cls.batch === userBatch;
+      // Cohort match logic:
+      // If both userBatch and cls.batch are defined, they must match.
+      // If they match, they represent the same cohort, so they pass (bypassing semester delay mismatches like 7 vs 8).
+      // Otherwise, if batch information is missing or not applicable, we fall back to semester matching.
+      let cohortMatch = false;
+      if (userBatch && cls.batch) {
+        cohortMatch = (cls.batch === userBatch);
+      } else {
+        cohortMatch = semMatch;
+      }
 
-      return semMatch && typeMatch && batchMatch;
+      // Filter by degree program
+      let programMatch = true;
+      if (targetProgramNorm && cls.program && cls.program !== 'Unknown') {
+        programMatch = normalizeProgramName(cls.program) === targetProgramNorm;
+      }
+
+      return cohortMatch && typeMatch && programMatch;
     });
 
     return filtered;

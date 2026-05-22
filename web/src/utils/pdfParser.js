@@ -108,10 +108,9 @@ const LECTURE_BLOCK_DY = 12;
 // Code must be at least 4 chars to avoid truncated PDF artifacts like "#U…"
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
 
-const RE_BATCH_BSSE = /BS\s+in\s+Software\s+Engineering\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
+const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
 
-// MS batch lines often get truncated by PDF renderer (e.g. "MS Software Engineering (Weekend) Self Support 1 ( 2026-2028 ) S…")
-const RE_BATCH_MS = /MS\s+Software\s+Engineering\s*\(?(Weekend)?\)?\s*(Self\s+Support)?\s*\d*\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*\(?(Weekend)?\)?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 
 const RE_SEMESTER = /Semester#(\d+)/i;
 
@@ -272,6 +271,9 @@ export async function parseTimetablePdf(arrayBuffer, onProgress = () => {}) {
 
       for (const entry of entries) {
         const parsed = parseEntry(entry);
+        if (!parsed.startTime || !parsed.endTime) {
+          continue; // Filter out empty headers and noise blocks that don't have valid start/end times
+        }
         allLectures.push({
           classId: 'p_' + Math.random().toString(36).substring(2, 9),
           name: parsed.name,
@@ -285,6 +287,7 @@ export async function parseTimetablePdf(arrayBuffer, onProgress = () => {}) {
           semester: parsed.semester,
           type: parsed.type,
           section: parsed.section,
+          program: parsed.program,
           page: pageNum,
         });
       }
@@ -337,70 +340,60 @@ function splitBlockIntoEntries(text) {
 // ── Entry Parser ───────────────────────────────────────────────────────────
 
 function parseEntry(text) {
-  // Code: first #CODE occurrence (must be 4+ chars to avoid truncated artifacts)
   const codeMatch = text.match(RE_CODE);
   let code = codeMatch ? codeMatch[1].trim() : '';
-  // Strip trailing ellipsis or truncation markers
-  code = code.replace(/[…]+$/, '').trim();
+  code = code.replace(/[\u2026]+$/, '').trim();
 
-  // Batch & semester
-  let type = 'Regular', section = '', batch = '', semester = 0;
-
-  const bsseMatch = text.match(RE_BATCH_BSSE);
+  let type = 'Regular', section = '', batch = '', semester = 0, program = 'Unknown';
+  const bsMatch = text.match(RE_BATCH_BS);
   const msMatch = text.match(RE_BATCH_MS);
   const semMatch = text.match(RE_SEMESTER);
 
-  if (bsseMatch) {
-    type = bsseMatch[1].trim();
-    section = bsseMatch[2].trim();
-    batch = bsseMatch[3].trim();
-    semester = parseInt(bsseMatch[4]);
+  if (bsMatch) {
+    program = "BS in " + bsMatch[1].trim();
+    type = bsMatch[2].trim();
+    if (type.toLowerCase() === 'self') type = 'Self Support';
+    section = bsMatch[3].trim();
+    batch = bsMatch[4].trim();
+    semester = parseInt(bsMatch[5]);
   } else if (msMatch) {
-    type = msMatch[1] ? 'Weekend Self Support' : (msMatch[2] ? 'Self Support' : 'Regular');
-    batch = msMatch[3] ? msMatch[3].trim() : '';
-    semester = msMatch[4] && msMatch[4].length > 0 ? parseInt(msMatch[4]) : 0;
-    // MS programs are typically semester 1 or 2; if truncated, try harder
-    if (semester === 0 && text.includes('MS Software Engineering')) {
+    program = msMatch[1].trim() + " in " + msMatch[2].trim();
+    type = msMatch[3] ? 'Weekend Self Support' : (msMatch[4] ? msMatch[4].trim() : 'Regular');
+    if (type.toLowerCase() === 'self') type = 'Self Support';
+    section = msMatch[5].trim();
+    batch = msMatch[6] ? msMatch[6].trim() : '';
+    semester = msMatch[7] && msMatch[7].length > 0 ? parseInt(msMatch[7]) : 0;
+    if (semester === 0 && (text.includes('MS ') || text.includes('PhD '))) {
       const msSemMatch = text.match(/Semester#(\d+)/i);
       semester = msSemMatch ? parseInt(msSemMatch[1]) : 0;
     }
   } else if (semMatch) {
     semester = parseInt(semMatch[1]);
-    if (text.toLowerCase().includes('self support')) {
+    if (text.toLowerCase().includes('self support') || text.toLowerCase().includes('self')) {
       type = text.toLowerCase().includes('weekend') ? 'Weekend Self Support' : 'Self Support';
     }
   }
 
-  // Time
   const timeMatch = text.match(RE_TIME);
   const startTime = timeMatch ? timeMatch[1] : '';
   const endTime = timeMatch ? timeMatch[2] : '';
 
-  // Teacher: the text immediately before the time parenthesis, on the same "line"
   let teacher = 'Unknown';
   if (timeMatch) {
     const beforeTime = text.substring(0, timeMatch.index).trim();
-    // The teacher name is the last logical segment before the time.
-    // It can span after a newline or after the semester line.
     const segments = beforeTime.split('\n');
     const lastSeg = segments[segments.length - 1].trim();
-    // If the last segment looks like a batch description, look one more back
     if (lastSeg.match(/Semester#\d+/i) || lastSeg.match(/^\d{4}-\d{4}$/)) {
       teacher = segments.length >= 2 ? segments[segments.length - 2].trim() : lastSeg;
     } else {
       teacher = lastSeg;
     }
-    // Clean: remove trailing batch fragments that might be stuck
-    teacher = teacher.replace(/BS\s+in\s+Software\s+Engineering.*$/i, '').trim();
-    teacher = teacher.replace(/MS\s+Software\s+Engineering.*$/i, '').trim();
+    teacher = teacher.replace(/BS\s+in\s+[A-Za-z\s]+.*$/i, '').trim();
+    teacher = teacher.replace(/(MS|PhD)\s+[A-Za-z\s]+.*$/i, '').trim();
     teacher = teacher.replace(/Semester#\d+.*/i, '').trim();
-    // If teacher still looks like a course name or contains #, it's wrong
-    if (teacher.includes('#') || teacher.length === 0) {
-      teacher = 'Unknown';
-    }
+    if (teacher.includes('#') || teacher.length === 0) teacher = 'Unknown';
   }
 
-  // Course name: text before the first '#'
   let name = 'Unknown Course';
   const hashIdx = text.indexOf('#');
   if (hashIdx !== -1) {
@@ -408,27 +401,20 @@ function parseEntry(text) {
     const nameParts = beforeHash.split('\n');
     name = nameParts[nameParts.length - 1].trim();
   } else {
-    // No hash at all — take the first line as name
-    const firstLine = text.split('\n')[0].trim();
-    name = firstLine || 'Unknown Course';
+    name = text.split('\n')[0].trim() || 'Unknown Course';
   }
 
-  // Validate name: if it looks like "Teacher (time)" instead of a course name, skip
   if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) {
-    // The "name" is actually a teacher+time line, meaning the course info is missing
-    // Try to extract from full text
     const altCode = text.match(/#([A-Z0-9][\w-]+)/i);
     if (altCode) {
       const altIdx = text.indexOf('#' + altCode[1]);
       const altBefore = text.substring(0, altIdx).trim().split('\n');
       name = altBefore[altBefore.length - 1].trim();
     }
-    if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) {
-      name = 'Unknown Course';
-    }
+    if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) name = 'Unknown Course';
   }
 
-  return { name, code, type, section, batch, semester, startTime, endTime, teacher };
+  return { name, code, type, section, batch, semester, startTime, endTime, teacher, program };
 }
 
 // ── Deduplication ──────────────────────────────────────────────────────────
@@ -436,7 +422,7 @@ function parseEntry(text) {
 function deduplicateLectures(lectures) {
   const seen = new Set();
   return lectures.filter(l => {
-    const key = `${l.name}|${l.code}|${l.day}|${l.startTime}|${l.endTime}|${l.semester}|${l.type}|${l.section}|${l.teacher}`;
+    const key = `${l.name}|${l.code}|${l.day}|${l.startTime}|${l.endTime}|${l.semester}|${l.type}|${l.section}|${l.teacher}|${l.program}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

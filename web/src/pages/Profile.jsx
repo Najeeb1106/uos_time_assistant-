@@ -49,7 +49,7 @@ export default function Profile() {
 
   // Calculate live alignment warnings
   const isAlignmentChanged = 
-    user && (
+    user && user.role !== 'teacher' && (
       semester !== String(user.semester) ||
       batch !== user.batch ||
       type !== user.type
@@ -63,11 +63,11 @@ export default function Profile() {
     cls.type === user?.type
   ).length || 0;
 
-  const isFullyAligned = totalClassesCount === 0 || alignedClassesCount === totalClassesCount;
+  const isFullyAligned = user?.role === 'teacher' || totalClassesCount === 0 || alignedClassesCount === totalClassesCount;
 
   // Retrieve user initials for avatar
   const getInitials = (name) => {
-    if (!name) return 'ST';
+    if (!name) return user?.role === 'teacher' ? 'TR' : 'ST';
     return name
       .split(' ')
       .map(n => n[0])
@@ -83,13 +83,20 @@ export default function Profile() {
 
     // Field Validations
     if (activeTab === 'academic') {
-      if (!fullName.trim() || !batch.trim()) {
-        setErrorMsg('Please fill in all required academic parameters.');
-        return;
-      }
-      if (!/^\d{4}-\d{4}$/.test(batch.trim())) {
-        setErrorMsg('Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).');
-        return;
+      if (user?.role === 'teacher') {
+        if (!fullName.trim()) {
+          setErrorMsg('Please specify your full instructor name.');
+          return;
+        }
+      } else {
+        if (!fullName.trim() || !batch.trim()) {
+          setErrorMsg('Please fill in all required academic parameters.');
+          return;
+        }
+        if (!/^\d{4}-\d{4}$/.test(batch.trim())) {
+          setErrorMsg('Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).');
+          return;
+        }
       }
     } else {
       if (!newPassword) {
@@ -110,12 +117,15 @@ export default function Profile() {
 
     try {
       const payload = {
-        fullName,
-        program,
-        type,
-        batch,
-        semester: Number(semester)
+        fullName
       };
+
+      if (user?.role !== 'teacher') {
+        payload.program = program;
+        payload.type = type;
+        payload.batch = batch;
+        payload.semester = Number(semester);
+      }
 
       if (activeTab === 'security') {
         payload.password = newPassword;
@@ -125,7 +135,9 @@ export default function Profile() {
       if (res.success) {
         setSuccessMsg(activeTab === 'security' 
           ? 'Security credentials successfully synchronized!' 
-          : 'Student academic profile updated successfully!'
+          : user?.role === 'teacher'
+            ? 'Instructor profile updated successfully!'
+            : 'Student academic profile updated successfully!'
         );
         // Clear passwords if security tab was active
         if (activeTab === 'security') {
@@ -217,28 +229,44 @@ export default function Profile() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '2rem' }}>
-            <div style={{
-              background: 'rgba(99, 102, 241, 0.08)',
-              border: '1px solid rgba(99, 102, 241, 0.15)',
-              borderRadius: '8px',
-              padding: '0.5rem',
-              fontSize: '0.8rem',
-              color: 'var(--accent-primary)',
-              fontWeight: 600
-            }}>
-              {user?.program}
-            </div>
-            <div style={{
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--glass-border)',
-              borderRadius: '8px',
-              padding: '0.5rem',
-              fontSize: '0.8rem',
-              color: 'var(--text-secondary)',
-              fontWeight: 500
-            }}>
-              {user?.type} • Semester {user?.semester}
-            </div>
+            {user?.role === 'teacher' ? (
+              <div style={{
+                background: 'rgba(99, 102, 241, 0.08)',
+                border: '1px solid rgba(99, 102, 241, 0.15)',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                fontSize: '0.8rem',
+                color: 'var(--accent-primary)',
+                fontWeight: 600
+              }}>
+                Official UOS Faculty Member
+              </div>
+            ) : (
+              <>
+                <div style={{
+                  background: 'rgba(99, 102, 241, 0.08)',
+                  border: '1px solid rgba(99, 102, 241, 0.15)',
+                  borderRadius: '8px',
+                  padding: '0.5rem',
+                  fontSize: '0.8rem',
+                  color: 'var(--accent-primary)',
+                  fontWeight: 600
+                }}>
+                  {user?.program}
+                </div>
+                <div style={{
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  padding: '0.5rem',
+                  fontSize: '0.8rem',
+                  color: 'var(--text-secondary)',
+                  fontWeight: 500
+                }}>
+                  {user?.type} • Semester {user?.semester}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Database Synchronization Status Indicator */}
@@ -253,40 +281,67 @@ export default function Profile() {
             </h4>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Parsed Lectures:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{totalClassesCount} classes</span>
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Aligned Classes:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{alignedClassesCount} classes</span>
-              </div>
-
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem', 
-                fontSize: '0.8rem',
-                marginTop: '0.5rem',
-                padding: '0.6rem 0.85rem',
-                borderRadius: '8px',
-                background: isFullyAligned ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)',
-                border: `1px solid ${isFullyAligned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
-                color: isFullyAligned ? 'var(--success)' : 'var(--warning)'
-              }}>
-                {isFullyAligned ? (
-                  <>
+              {user?.role === 'teacher' ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Teaching Lectures:</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{totalClassesCount} classes</span>
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: '8px',
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    border: '1px solid rgba(16, 185, 129, 0.15)',
+                    color: 'var(--success)'
+                  }}>
                     <ShieldCheck size={16} />
-                    <span>Healthy & Fully Aligned</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle size={16} />
-                    <span>Coordinate Mismatch</span>
-                  </>
-                )}
-              </div>
+                    <span>Auto-filtered by Instructor Name</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Parsed Lectures:</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{totalClassesCount} classes</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Aligned Classes:</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{alignedClassesCount} classes</span>
+                  </div>
+
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: '8px',
+                    background: isFullyAligned ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                    border: `1px solid ${isFullyAligned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
+                    color: isFullyAligned ? 'var(--success)' : 'var(--warning)'
+                  }}>
+                    {isFullyAligned ? (
+                      <>
+                        <ShieldCheck size={16} />
+                        <span>Healthy & Fully Aligned</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle size={16} />
+                        <span>Coordinate Mismatch</span>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -320,7 +375,7 @@ export default function Profile() {
                 transition: 'all var(--transition-fast)'
               }}
             >
-              Academic Coordinates
+              {user?.role === 'teacher' ? 'Instructor Profile' : 'Academic Coordinates'}
             </button>
             
             <button
@@ -353,7 +408,9 @@ export default function Profile() {
                 
                 {/* Full Name */}
                 <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label className="input-label" htmlFor="prof-name">Full Student Name</label>
+                  <label className="input-label" htmlFor="prof-name">
+                    {user?.role === 'teacher' ? 'Full Instructor Name' : 'Full Student Name'}
+                  </label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                     <User size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem' }} />
                     <input 
@@ -367,128 +424,132 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* Degree Program */}
-                <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label className="input-label" htmlFor="prof-program">Degree Program</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <GraduationCap size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', zIndex: 10 }} />
-                    <select 
-                      id="prof-program"
-                      className="input-field select-field" 
-                      style={{ paddingLeft: '2.75rem' }}
-                      value={program}
-                      onChange={(e) => setProgram(e.target.value)}
-                    >
-                      <option value="BS in Software Engineering">BS Software Eng.</option>
-                      <option value="BS in Computer Science">BS Computer Sci.</option>
-                      <option value="BS in Information Technology">BS Info. Tech.</option>
-                      <option value="MS in Software Engineering">MS Software Eng.</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Session / Batch Text Input (Self-type, not dropdown) */}
-                <div className="input-row-grid">
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label className="input-label" htmlFor="prof-batch">Session / Batch</label>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <CalendarDays size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem' }} />
-                      <input 
-                        id="prof-batch"
-                        type="text" 
-                        className="input-field" 
-                        style={{ paddingLeft: '2.75rem' }}
-                        placeholder="e.g. 2024-2028"
-                        value={batch}
-                        onChange={(e) => setBatch(e.target.value)}
-                      />
+                {user?.role !== 'teacher' && (
+                  <>
+                    {/* Degree Program */}
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label className="input-label" htmlFor="prof-program">Degree Program</label>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <GraduationCap size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', zIndex: 10 }} />
+                        <select 
+                          id="prof-program"
+                          className="input-field select-field" 
+                          style={{ paddingLeft: '2.75rem' }}
+                          value={program}
+                          onChange={(e) => setProgram(e.target.value)}
+                        >
+                          <option value="BS in Software Engineering">BS Software Eng.</option>
+                          <option value="BS in Computer Science">BS Computer Sci.</option>
+                          <option value="BS in Information Technology">BS Info. Tech.</option>
+                          <option value="MS in Software Engineering">MS Software Eng.</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Active Semester */}
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label className="input-label" htmlFor="prof-semester">Active Semester</label>
-                    <select 
-                      id="prof-semester"
-                      className="input-field select-field" 
-                      value={semester}
-                      onChange={(e) => setSemester(e.target.value)}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                        <option key={s} value={s}>Semester {s}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                    {/* Session / Batch Text Input (Self-type, not dropdown) */}
+                    <div className="input-row-grid">
+                      <div className="input-group" style={{ marginBottom: 0 }}>
+                        <label className="input-label" htmlFor="prof-batch">Session / Batch</label>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <CalendarDays size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem' }} />
+                          <input 
+                            id="prof-batch"
+                            type="text" 
+                            className="input-field" 
+                            style={{ paddingLeft: '2.75rem' }}
+                            placeholder="e.g. 2024-2028"
+                            value={batch}
+                            onChange={(e) => setBatch(e.target.value)}
+                          />
+                        </div>
+                      </div>
 
-                {/* Support Type selector buttons */}
-                <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label className="input-label">Academic Support Cohort</label>
-                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                    <button 
-                      type="button"
-                      style={{ 
-                        flex: 1.2, 
-                        padding: '0.8rem 0.5rem', 
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        background: type === 'Regular' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                        color: type === 'Regular' ? '#ffffff' : 'var(--text-secondary)',
-                        border: `1px solid ${type === 'Regular' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        boxShadow: type === 'Regular' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => setType('Regular')}
-                    >
-                      Regular
-                    </button>
-                    
-                    <button 
-                      type="button"
-                      style={{ 
-                        flex: 1, 
-                        padding: '0.8rem 0.5rem', 
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        background: type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                        color: type === 'Self Support 1' ? '#ffffff' : 'var(--text-secondary)',
-                        border: `1px solid ${type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        boxShadow: type === 'Self Support 1' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => setType('Self Support 1')}
-                    >
-                      Self 1
-                    </button>
-                    
-                    <button 
-                      type="button"
-                      style={{ 
-                        flex: 1, 
-                        padding: '0.8rem 0.5rem', 
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        background: type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                        color: type === 'Self Support 2' ? '#ffffff' : 'var(--text-secondary)',
-                        border: `1px solid ${type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        boxShadow: type === 'Self Support 2' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={() => setType('Self Support 2')}
-                    >
-                      Self 2
-                    </button>
-                  </div>
-                </div>
+                      {/* Active Semester */}
+                      <div className="input-group" style={{ marginBottom: 0 }}>
+                        <label className="input-label" htmlFor="prof-semester">Active Semester</label>
+                        <select 
+                          id="prof-semester"
+                          className="input-field select-field" 
+                          value={semester}
+                          onChange={(e) => setSemester(e.target.value)}
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                            <option key={s} value={s}>Semester {s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Support Type selector buttons */}
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label className="input-label">Academic Support Cohort</label>
+                      <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                        <button 
+                          type="button"
+                          style={{ 
+                            flex: 1.2, 
+                            padding: '0.8rem 0.5rem', 
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            background: type === 'Regular' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                            color: type === 'Regular' ? '#ffffff' : 'var(--text-secondary)',
+                            border: `1px solid ${type === 'Regular' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            boxShadow: type === 'Regular' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onClick={() => setType('Regular')}
+                        >
+                          Regular
+                        </button>
+                        
+                        <button 
+                          type="button"
+                          style={{ 
+                            flex: 1, 
+                            padding: '0.8rem 0.5rem', 
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            background: type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                            color: type === 'Self Support 1' ? '#ffffff' : 'var(--text-secondary)',
+                            border: `1px solid ${type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            boxShadow: type === 'Self Support 1' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onClick={() => setType('Self Support 1')}
+                        >
+                          Self 1
+                        </button>
+                        
+                        <button 
+                          type="button"
+                          style={{ 
+                            flex: 1, 
+                            padding: '0.8rem 0.5rem', 
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            background: type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                            color: type === 'Self Support 2' ? '#ffffff' : 'var(--text-secondary)',
+                            border: `1px solid ${type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            boxShadow: type === 'Self Support 2' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onClick={() => setType('Self Support 2')}
+                        >
+                          Self 2
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
 
               </div>
             )}
@@ -619,7 +680,13 @@ export default function Profile() {
               ) : (
                 <>
                   <Sparkles size={18} />
-                  <span>{activeTab === 'security' ? 'Update Credentials' : 'Save Academic Changes'}</span>
+                  <span>
+                    {activeTab === 'security' 
+                      ? 'Update Credentials' 
+                      : user?.role === 'teacher' 
+                        ? 'Save Instructor Profile' 
+                        : 'Save Academic Changes'}
+                  </span>
                 </>
               )}
             </button>

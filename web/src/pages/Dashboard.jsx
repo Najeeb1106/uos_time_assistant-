@@ -10,7 +10,8 @@ import {
   FileText,
   Upload,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  GraduationCap
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -70,9 +71,11 @@ export default function Dashboard() {
       {/* Upper Welcomer Grid */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ marginBottom: '0.25rem' }}>Assalam-o-Alaikum, {user?.fullName || 'Student'}!</h1>
+          <h1 style={{ marginBottom: '0.25rem' }}>
+            Assalam-o-Alaikum, {user?.role === 'teacher' ? 'Prof. ' : ''}{user?.fullName || 'User'}!
+          </h1>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
-            Here is your personalized lecture schedule alignment for today.
+            Here is your personalized lecture schedule coordination for today.
           </p>
         </div>
 
@@ -170,10 +173,17 @@ export default function Dashboard() {
                             <MapPin size={14} color="var(--accent-primary)" />
                             <span>Room: <strong style={{ color: 'var(--text-primary)' }}>{cls.room}</strong></span>
                           </div>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <UserIcon size={14} color="var(--accent-secondary)" />
-                            <span>Teacher: <strong>{cls.teacher}</strong></span>
-                          </div>
+                          {user?.role === 'teacher' ? (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <GraduationCap size={14} color="var(--accent-secondary)" />
+                              <span>Cohort: <strong>{cls.program} • {cls.type} (Sem {cls.semester})</strong></span>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <UserIcon size={14} color="var(--accent-secondary)" />
+                              <span>Teacher: <strong>{cls.teacher}</strong></span>
+                            </div>
+                          )}
                           {ongoing && (
                             <span style={{ marginLeft: 'auto', background: 'var(--success)', color: '#ffffff', fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.5rem', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Sparkles size={10} /> Active Now
@@ -215,10 +225,17 @@ export default function Dashboard() {
                       <MapPin size={16} style={{ color: 'var(--accent-primary)' }} />
                       <span>Location: <strong>{nextClass.room}</strong></span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                      <UserIcon size={16} style={{ color: 'var(--accent-secondary)' }} />
-                      <span>Instructor: <strong>{nextClass.teacher}</strong></span>
-                    </div>
+                    {user?.role === 'teacher' ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <GraduationCap size={16} style={{ color: 'var(--accent-secondary)' }} />
+                        <span>Class: <strong>{nextClass.program} • {nextClass.type} (Sem {nextClass.semester})</strong></span>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <UserIcon size={16} style={{ color: 'var(--accent-secondary)' }} />
+                        <span>Instructor: <strong>{nextClass.teacher}</strong></span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -252,8 +269,14 @@ export default function Dashboard() {
                   <span style={{ fontWeight: 600, color: 'var(--accent-primary)' }}>{classes.length} classes</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Academic Path:</span>
-                  <span>BSSE (Sem {user?.semester})</span>
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    {user?.role === 'teacher' ? 'Designation:' : 'Academic Path:'}
+                  </span>
+                  <span>
+                    {user?.role === 'teacher' 
+                      ? 'Official Faculty Member' 
+                      : `${user?.program || 'BSSE'} (Sem ${user?.semester || 1})`}
+                  </span>
                 </div>
               </div>
 

@@ -159,6 +159,7 @@ export const useStore = create((set, get) => ({
   user: safeParse('uos_user', {
     email: 'student@uos.edu.pk',
     fullName: 'Ahmed Ali',
+    role: 'student',
     program: 'BS in Software Engineering',
     type: 'Regular',
     batch: '2024-2028',

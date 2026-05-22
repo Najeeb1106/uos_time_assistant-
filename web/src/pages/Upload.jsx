@@ -397,7 +397,7 @@ export default function UploadPage() {
                 Parser Workspace
               </span>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>
-                Found {parsedClasses.length} courses matching BSSE (Sem {user.semester})
+                Found {parsedClasses.length} courses matching {user?.program || 'your program'} (Sem {user?.semester})
               </h3>
             </div>
             

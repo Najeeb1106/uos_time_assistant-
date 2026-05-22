@@ -15,7 +15,7 @@ async function testSelfSupportIsolation() {
 
     // 1. Extract Self Support 1
     console.log('\n--- 1. Extracting Self Support 1 (Semester 4, Batch 2024-2028) ---');
-    const self1Classes = await extractSchedule(pdfBuffer, '2024-2028', 4, 'Self Support 1');
+    const self1Classes = await extractSchedule(pdfBuffer, '2024-2028', 4, 'Self Support 1', 'BS in Software Engineering');
     console.log(`Found ${self1Classes.length} classes for Self Support 1.`);
     console.table(self1Classes.map(c => ({
       name: c.name,
@@ -28,7 +28,7 @@ async function testSelfSupportIsolation() {
 
     // 2. Extract Self Support 2
     console.log('\n--- 2. Extracting Self Support 2 (Semester 4, Batch 2024-2028) ---');
-    const self2Classes = await extractSchedule(pdfBuffer, '2024-2028', 4, 'Self Support 2');
+    const self2Classes = await extractSchedule(pdfBuffer, '2024-2028', 4, 'Self Support 2', 'BS in Software Engineering');
     console.log(`Found ${self2Classes.length} classes for Self Support 2.`);
     console.table(self2Classes.map(c => ({
       name: c.name,

@@ -83,7 +83,7 @@ export default function Layout({ children }) {
       case '/dashboard': return 'Dashboard Overview';
       case '/schedule': return 'Weekly timetable Grid';
       case '/upload': return 'Timetable Parsing engine';
-      case '/profile': return 'Student Profile Settings';
+      case '/profile': return user?.role === 'teacher' ? 'Instructor Profile Settings' : 'Student Profile Settings';
       default: return 'UOS Timetable';
     }
   };
@@ -216,7 +216,7 @@ export default function Layout({ children }) {
                   {user.fullName}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                  {user.semester} Semester • {user.type}
+                  {user.role === 'teacher' ? 'UOS Faculty Member' : `${user.semester} Semester • ${user.type}`}
                 </div>
               </div>
             </div>
@@ -342,16 +342,16 @@ export default function Layout({ children }) {
 
             {!isMobile && (
               <div style={{
-                background: 'rgba(99, 102, 241, 0.1)',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
+                background: user.role === 'teacher' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+                border: user.role === 'teacher' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(99, 102, 241, 0.2)',
                 borderRadius: '20px',
                 padding: '0.25rem 0.85rem',
                 fontSize: '0.75rem',
                 fontWeight: 600,
-                color: 'var(--accent-primary)',
+                color: user.role === 'teacher' ? 'var(--success)' : 'var(--accent-primary)',
                 letterSpacing: '0.02em'
               }}>
-                {user.program}
+                {user.role === 'teacher' ? 'Faculty' : user.program}
               </div>
             )}
           </div>

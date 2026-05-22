@@ -5,13 +5,22 @@ const { db, auth, isFirebaseMode } = require('../config/firebase');
  */
 exports.register = async (req, res) => {
   try {
-    const { email, password, fullName, program, type, batch, semester } = req.body;
+    const { email, password, fullName, program, type, batch, semester, role = 'student' } = req.body;
 
-    if (!email || !password || !fullName || !program || !type || !batch || !semester) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please fill in all required fields.'
-      });
+    if (role === 'student') {
+      if (!email || !password || !fullName || !program || !type || !batch || !semester) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please fill in all required fields.'
+        });
+      }
+    } else {
+      if (!email || !password || !fullName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please fill in all required fields.'
+        });
+      }
     }
 
     if (!email.endsWith('@uos.edu.pk')) {
@@ -28,7 +37,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    if (!/^\d{4}-\d{4}$/.test(batch)) {
+    if (role === 'student' && !/^\d{4}-\d{4}$/.test(batch)) {
       return res.status(400).json({
         success: false,
         message: 'Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).'
@@ -63,14 +72,18 @@ exports.register = async (req, res) => {
       uid,
       email,
       fullName,
-      program,
-      type,
-      batch,
-      semester: Number(semester),
+      role,
       // Store password metadata in database for unified server login verification across modes
       passwordHash: password, 
       createdAt: new Date().toISOString()
     };
+
+    if (role === 'student') {
+      userProfile.program = program;
+      userProfile.type = type;
+      userProfile.batch = batch;
+      userProfile.semester = Number(semester);
+    }
 
     // Save profile to database (Firestore or Local JSON fallback)
     await db.collection('users').doc(uid).set(userProfile);
@@ -83,7 +96,7 @@ exports.register = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Student account created successfully.',
+      message: `${role === 'teacher' ? 'Teacher' : 'Student'} account created successfully.`,
       token,
       user: cleanProfile
     });
@@ -162,7 +175,7 @@ exports.login = async (req, res) => {
     if (!userRecord) {
       return res.status(401).json({
         success: false,
-        message: 'No student record found corresponding to this email.'
+        message: 'No user record found corresponding to this email.'
       });
     }
 
@@ -207,7 +220,7 @@ exports.getMe = async (req, res) => {
     if (!userDoc.exists) {
       return res.status(404).json({
         success: false,
-        message: 'Student profile not found.'
+        message: 'Profile not found.'
       });
     }
 
@@ -235,26 +248,38 @@ exports.updateProfile = async (req, res) => {
     const uid = req.user.uid;
     const { fullName, program, type, batch, semester, password } = req.body;
 
-    if (!fullName || !program || !type || !batch || !semester) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please fill in all required academic parameters.'
-      });
-    }
-
-    if (!/^\d{4}-\d{4}$/.test(batch)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).'
-      });
-    }
-
     const userDoc = await db.collection('users').doc(uid).get();
     if (!userDoc.exists) {
       return res.status(404).json({
         success: false,
-        message: 'Student profile not found.'
+        message: 'Profile not found.'
       });
+    }
+
+    const existingUser = userDoc.data();
+    const role = existingUser.role || 'student';
+
+    if (role === 'student') {
+      if (!fullName || !program || !type || !batch || !semester) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please fill in all required academic parameters.'
+        });
+      }
+
+      if (!/^\d{4}-\d{4}$/.test(batch)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).'
+        });
+      }
+    } else {
+      if (!fullName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please fill in your full name.'
+        });
+      }
     }
 
     if (password) {
@@ -279,12 +304,15 @@ exports.updateProfile = async (req, res) => {
     }
 
     const updateData = {
-      fullName,
-      program,
-      type,
-      batch,
-      semester: Number(semester)
+      fullName
     };
+
+    if (role === 'student') {
+      updateData.program = program;
+      updateData.type = type;
+      updateData.batch = batch;
+      updateData.semester = Number(semester);
+    }
 
     if (password) {
       updateData.passwordHash = password;
@@ -297,7 +325,7 @@ exports.updateProfile = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Student profile updated successfully.',
+      message: `${role === 'teacher' ? 'Teacher' : 'Student'} profile updated successfully.`,
       user: cleanProfile
     });
 

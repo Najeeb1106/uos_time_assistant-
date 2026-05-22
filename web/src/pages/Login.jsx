@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Mail, Lock, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Sun, Moon, GraduationCap, User } from 'lucide-react';
 
 export default function Login() {
+  const [role, setRole] = useState('student');
   const [email, setEmail] = useState('student@uos.edu.pk');
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
@@ -13,6 +14,15 @@ export default function Login() {
   const themeMode = useStore((state) => state.themeMode);
   const toggleTheme = useStore((state) => state.toggleTheme);
   const navigate = useNavigate();
+
+  const handleRoleChange = (selectedRole) => {
+    setRole(selectedRole);
+    if (selectedRole === 'student') {
+      setEmail('student@uos.edu.pk');
+    } else {
+      setEmail('teacher@uos.edu.pk');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,9 +110,67 @@ export default function Login() {
         <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem', background: 'linear-gradient(135deg, var(--text-primary), var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>
           Welcome Back
         </h2>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
           Sign in to access your UOS schedule
         </p>
+
+        {/* Role Selector Segmented Control */}
+        <div style={{
+          display: 'flex',
+          background: 'var(--bg-tertiary)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: '12px',
+          padding: '0.25rem',
+          marginBottom: '1.5rem',
+          position: 'relative'
+        }}>
+          <button
+            type="button"
+            style={{
+              flex: 1,
+              padding: '0.65rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'student' ? 'var(--accent-primary)' : 'transparent',
+              color: role === 'student' ? '#ffffff' : 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+            onClick={() => handleRoleChange('student')}
+          >
+            <GraduationCap size={16} />
+            Student
+          </button>
+          <button
+            type="button"
+            style={{
+              flex: 1,
+              padding: '0.65rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'teacher' ? 'var(--accent-primary)' : 'transparent',
+              color: role === 'teacher' ? '#ffffff' : 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+            onClick={() => handleRoleChange('teacher')}
+          >
+            <User size={16} />
+            Teacher
+          </button>
+        </div>
 
         {error && (
           <div style={{
@@ -129,7 +197,7 @@ export default function Login() {
                 type="email" 
                 className="input-field" 
                 style={{ paddingLeft: '2.75rem' }}
-                placeholder="student@uos.edu.pk"
+                placeholder={role === 'student' ? "student@uos.edu.pk" : "teacher@uos.edu.pk"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
