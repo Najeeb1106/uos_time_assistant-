@@ -7,9 +7,21 @@ const scheduleRoutes = require('./routes/schedule');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for frontend client
+// Enable CORS for frontend + mobile clients
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || '*',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow localhost origins (web dev server) and private network IPs (mobile on LAN)
+    if (
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      /^https?:\/\/(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(origin)
+    ) {
+      return callback(null, true);
+    }
+    callback(null, true); // permissive in dev — tighten for production
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -67,10 +79,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Boot listening socket
-app.listen(PORT, () => {
+// Boot listening socket — bind to 0.0.0.0 so mobile devices on LAN can reach us
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`==================================================`);
   console.log(` UOS Timetable backend listening on port ${PORT} `);
+  console.log(` Bound to: 0.0.0.0 (all interfaces)              `);
   console.log(` Base API Url: http://localhost:${PORT}/api      `);
   console.log(` Status check: http://localhost:${PORT}/api/status`);
   console.log(`==================================================`);

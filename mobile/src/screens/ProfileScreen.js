@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMobileStore } from '../store/useMobileStore';
@@ -40,6 +41,11 @@ export default function ProfileScreen() {
   const [semester, setSemester] = useState(String(user?.semester || '2'));
 
   const [saving, setSaving] = useState(false);
+
+  // Dropdown open states
+  const [programDropdownOpen, setProgramDropdownOpen] = useState(false);
+  const [semesterDropdownOpen, setSemesterDropdownOpen] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const programs = [
     'BS in Software Engineering',
@@ -182,26 +188,19 @@ export default function ProfileScreen() {
 
         {user?.role === 'student' && (
           <View style={{ width: '100%' }}>
-            {/* Program selection */}
+            {/* Program selection Dropdown */}
             <View style={s.inputGroup}>
               <Text style={s.inputLabel}>Degree Program Coordinates</Text>
-              <View style={styles.chipGrid}>
-                {programs.map((p) => (
-                  <TouchableOpacity
-                    key={p}
-                    style={[
-                      styles.chip,
-                      { backgroundColor: c.bgTertiary, borderColor: c.glassBorder },
-                      program === p && { backgroundColor: c.accentGlow, borderColor: c.accentPrimary }
-                    ]}
-                    onPress={() => setProgram(p)}
-                  >
-                    <Text style={[styles.chipText, { color: program === p ? c.accentPrimary : c.textSecondary }]}>
-                      {getProgramLabel(p)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <TouchableOpacity
+                style={[styles.dropdownSelect, { backgroundColor: c.inputBg, borderColor: c.glassBorder }]}
+                onPress={() => setProgramDropdownOpen(true)}
+              >
+                <Ionicons name="school" size={16} color={c.textMuted} style={{ marginRight: 8 }} />
+                <Text style={[s.bodyText, { flex: 1, fontSize: 13, color: program ? c.textPrimary : c.textMuted }]}>
+                  {program ? getProgramLabel(program) : 'Select Degree Program'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={c.textSecondary} />
+              </TouchableOpacity>
             </View>
 
             {/* Batch session */}
@@ -217,26 +216,19 @@ export default function ProfileScreen() {
               />
             </View>
 
-            {/* Semester selector */}
+            {/* Semester selector Dropdown */}
             <View style={s.inputGroup}>
               <Text style={s.inputLabel}>Current Academic Semester</Text>
-              <View style={styles.semRow}>
-                {semesters.map((sem) => (
-                  <TouchableOpacity
-                    key={sem}
-                    style={[
-                      styles.semBadge,
-                      { backgroundColor: c.bgTertiary },
-                      semester === sem && { backgroundColor: c.accentPrimary }
-                    ]}
-                    onPress={() => setSemester(sem)}
-                  >
-                    <Text style={[styles.semText, { color: semester === sem ? '#ffffff' : c.textSecondary }]}>
-                      {sem}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <TouchableOpacity
+                style={[styles.dropdownSelect, { backgroundColor: c.inputBg, borderColor: c.glassBorder }]}
+                onPress={() => setSemesterDropdownOpen(true)}
+              >
+                <Ionicons name="calendar" size={16} color={c.textMuted} style={{ marginRight: 8 }} />
+                <Text style={[s.bodyText, { flex: 1, fontSize: 13, color: semester ? c.textPrimary : c.textMuted }]}>
+                  {semester ? `Semester ${semester}` : 'Select Semester'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={c.textSecondary} />
+              </TouchableOpacity>
             </View>
 
             {/* Admission Type (Support Category) */}
@@ -272,60 +264,100 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Network Configuration IP customization */}
-      <View style={s.glassCard}>
-        <Text style={[s.inputLabel, { marginBottom: 12 }]}>Physical Device API Loopback</Text>
-        <Text style={[s.mutedText, { fontSize: 12, marginBottom: 12 }]}>
-          When deploying to an actual phone, enter your laptop's Local IP address (e.g. http://192.168.1.100:3000/api) to sync live.
-        </Text>
-        <TextInput
-          style={[s.inputField, s.bodyText, { marginBottom: 12 }]}
-          value={localApiUrl}
-          onChangeText={setLocalApiUrl}
-          placeholder="http://10.0.2.2:3000/api"
-          placeholderTextColor={c.textMuted}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={[s.btn, s.btnSecondary]}
-          onPress={handleSaveProfile}
-        >
-          <Text style={s.btnTextSecondary}>UPDATE SERVER GATEWAY</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Storage & Local Cache Controls Card */}
-      <View style={[s.glassCard, { borderColor: c.danger + '40' }]}>
-        <Text style={[s.inputLabel, { color: c.danger, marginBottom: 16 }]}>Offline SQLite Cache Controls</Text>
-        
-        <View style={styles.dbStatRow}>
-          <Text style={s.bodyText}>Synchronized Lectures</Text>
-          <View style={[styles.statBadge, { backgroundColor: c.bgTertiary }]}>
-            <Text style={[s.bodyText, { fontWeight: '700', fontSize: 13 }]}>{classes.length} entries</Text>
-          </View>
-        </View>
-
-        <View style={styles.dbStatRow}>
-          <Text style={s.bodyText}>Zustand Storage Model</Text>
-          <Text style={s.mutedText}>AsyncStorage Persist</Text>
-        </View>
-
-        <View style={styles.dbStatRow}>
-          <Text style={s.bodyText}>Last Sync Timestamp</Text>
-          <Text style={[s.mutedText, { fontSize: 12 }]} numberOfLines={1}>
-            {syncTimestamp ? new Date(syncTimestamp).toLocaleTimeString() : 'Never'}
+      {/* Advanced Settings Expandable Header */}
+      <TouchableOpacity
+        style={[
+          s.glassCard,
+          {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+            backgroundColor: c.bgSecondary,
+            borderColor: c.glassBorder,
+            marginBottom: 16,
+          }
+        ]}
+        onPress={() => setShowAdvanced(!showAdvanced)}
+        activeOpacity={0.8}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons 
+            name="settings-outline" 
+            size={18} 
+            color={showAdvanced ? c.accentPrimary : c.textSecondary} 
+            style={{ marginRight: 10 }} 
+          />
+          <Text style={[s.bodyText, { fontWeight: '700', fontSize: 14 }]}>
+            Advanced Settings
           </Text>
         </View>
+        <Ionicons 
+          name={showAdvanced ? "chevron-up" : "chevron-down"} 
+          size={18} 
+          color={c.textSecondary} 
+        />
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[s.btn, s.btnSecondary, { borderColor: c.danger, marginTop: 12 }]}
-          onPress={handleClearCache}
-        >
-          <Ionicons name="trash" size={16} color={c.danger} style={{ marginRight: 6 }} />
-          <Text style={[s.btnTextSecondary, { color: c.danger }]}>RESET LOCAL CACHE</Text>
-        </TouchableOpacity>
-      </View>
+      {showAdvanced && (
+        <>
+          {/* Network Configuration IP customization */}
+          <View style={s.glassCard}>
+            <Text style={[s.inputLabel, { marginBottom: 10 }]}>Physical Device API Loopback</Text>
+            <Text style={[s.mutedText, { fontSize: 11, marginBottom: 12 }]}>
+              When deploying to an actual phone, enter your laptop's Local IP address (e.g. http://192.168.1.100:3000/api) to sync live.
+            </Text>
+            <TextInput
+              style={[s.inputField, s.bodyText, { marginBottom: 12 }]}
+              value={localApiUrl}
+              onChangeText={setLocalApiUrl}
+              placeholder="http://10.0.2.2:3000/api"
+              placeholderTextColor={c.textMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              style={[s.btn, s.btnSecondary]}
+              onPress={handleSaveProfile}
+            >
+              <Text style={s.btnTextSecondary}>UPDATE SERVER GATEWAY</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Storage & Local Cache Controls Card */}
+          <View style={[s.glassCard, { borderColor: c.danger + '40', marginBottom: 16 }]}>
+            <Text style={[s.inputLabel, { color: c.danger, marginBottom: 12 }]}>Offline SQLite Cache Controls</Text>
+            
+            <View style={styles.dbStatRow}>
+              <Text style={s.bodyText}>Synchronized Lectures</Text>
+              <View style={[styles.statBadge, { backgroundColor: c.bgTertiary }]}>
+                <Text style={[s.bodyText, { fontWeight: '700', fontSize: 12 }]}>{classes.length} entries</Text>
+              </View>
+            </View>
+
+            <View style={styles.dbStatRow}>
+              <Text style={s.bodyText}>Zustand Storage Model</Text>
+              <Text style={s.mutedText}>AsyncStorage Persist</Text>
+            </View>
+
+            <View style={styles.dbStatRow}>
+              <Text style={s.bodyText}>Last Sync Timestamp</Text>
+              <Text style={[s.mutedText, { fontSize: 11 }]} numberOfLines={1}>
+                {syncTimestamp ? new Date(syncTimestamp).toLocaleTimeString() : 'Never'}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[s.btn, s.btnSecondary, { borderColor: c.danger, marginTop: 12 }]}
+              onPress={handleClearCache}
+            >
+              <Ionicons name="trash" size={16} color={c.danger} style={{ marginRight: 6 }} />
+              <Text style={[s.btnTextSecondary, { color: c.danger }]}>RESET LOCAL CACHE</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* Log Out action */}
       <TouchableOpacity
@@ -335,15 +367,91 @@ export default function ProfileScreen() {
         <Ionicons name="log-out" size={18} color="#ffffff" style={{ marginRight: 8 }} />
         <Text style={s.btnTextPrimary}>LOG OUT SESSION</Text>
       </TouchableOpacity>
+
+      {/* Program Dropdown Modal Overlay */}
+      <Modal
+        visible={programDropdownOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setProgramDropdownOpen(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setProgramDropdownOpen(false)}
+        >
+          <View style={[styles.modalCard, { backgroundColor: c.bgSecondary, borderColor: c.glassBorder }]}>
+            <Text style={[styles.modalTitle, { color: c.textPrimary }]}>Select Degree Program</Text>
+            {programs.map((p) => (
+              <TouchableOpacity
+                key={p}
+                style={[
+                  styles.modalItem,
+                  { borderBottomColor: c.glassBorder },
+                  program === p && { backgroundColor: c.accentGlow }
+                ]}
+                onPress={() => {
+                  setProgram(p);
+                  setProgramDropdownOpen(false);
+                }}
+              >
+                <Text style={[s.bodyText, { color: program === p ? c.accentPrimary : c.textPrimary, fontWeight: program === p ? '700' : '400' }]}>
+                  {p}
+                </Text>
+                {program === p && <Ionicons name="checkmark" size={18} color={c.accentPrimary} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Semester Dropdown Modal Overlay */}
+      <Modal
+        visible={semesterDropdownOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSemesterDropdownOpen(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSemesterDropdownOpen(false)}
+        >
+          <View style={[styles.modalCard, { backgroundColor: c.bgSecondary, borderColor: c.glassBorder }]}>
+            <Text style={[styles.modalTitle, { color: c.textPrimary }]}>Select Active Semester</Text>
+            <ScrollView style={{ maxHeight: 220 }} showsVerticalScrollIndicator={false}>
+              {semesters.map((sem) => (
+                <TouchableOpacity
+                  key={sem}
+                  style={[
+                    styles.modalItem,
+                    { borderBottomColor: c.glassBorder },
+                    semester === sem && { backgroundColor: c.accentGlow }
+                  ]}
+                  onPress={() => {
+                    setSemester(sem);
+                    setSemesterDropdownOpen(false);
+                  }}
+                >
+                  <Text style={[s.bodyText, { color: semester === sem ? c.accentPrimary : c.textPrimary, fontWeight: semester === sem ? '700' : '400' }]}>
+                    Semester {sem}
+                  </Text>
+                  {semester === sem && <Ionicons name="checkmark" size={18} color={c.accentPrimary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 45,
-    paddingBottom: 110,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 90,
   },
   avatarCard: {
     alignItems: 'center',
@@ -463,5 +571,48 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 6,
+  },
+  dropdownSelect: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    height: 48,
+    width: '100%',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
   }
 });

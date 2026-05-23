@@ -53,7 +53,7 @@ export default function WeeklyScheduleScreen() {
   };
 
   return (
-    <View style={[s.container, { paddingTop: 45 }]}>
+    <View style={[s.container, { paddingTop: 20 }]}>
       {/* Title Header */}
       <View style={styles.header}>
         <Text style={s.title}>Weekly Grid</Text>
@@ -131,9 +131,9 @@ export default function WeeklyScheduleScreen() {
             </Text>
           </View>
         ) : (
-          filteredClasses.map((cls) => (
+          filteredClasses.map((cls, index) => (
             <TouchableOpacity
-              key={cls.classId}
+              key={cls.classId || `cls-${index}`}
               style={[s.glassCard, styles.classItem, { borderColor: c.glassBorder }]}
               onPress={() => handleOpenDetail(cls)}
             >
@@ -264,12 +264,12 @@ export default function WeeklyScheduleScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    marginBottom: 10,
   },
   searchContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    marginBottom: 10,
   },
   searchWrapper: {
     flexDirection: 'row',
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 12,
-    height: 46,
+    height: 44,
   },
   searchIcon: {
     marginRight: 8,
@@ -288,22 +288,22 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   tabsContainer: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   scrollTabs: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     gap: 8,
   },
   tabButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
     borderWidth: 1,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     marginRight: 6,
   },
@@ -319,8 +319,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   scrollList: {
-    paddingHorizontal: 20,
-    paddingBottom: 110,
+    paddingHorizontal: 16,
+    paddingBottom: 90,
   },
   emptyStateCard: {
     alignItems: 'center',

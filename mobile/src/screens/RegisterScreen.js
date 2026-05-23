@@ -12,7 +12,8 @@ import {
   StyleSheet,
   Alert,
   Image,
-  Keyboard
+  Keyboard,
+  Modal
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,6 +40,10 @@ export default function RegisterScreen({ onToggleAuth }) {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passFocused, setPassFocused] = useState(false);
   const [batchFocused, setBatchFocused] = useState(false);
+
+  // Dropdown menus open state
+  const [programDropdownOpen, setProgramDropdownOpen] = useState(false);
+  const [semesterDropdownOpen, setSemesterDropdownOpen] = useState(false);
 
   // Keyboard scrolling control (Layout does not scroll when keyboard is closed)
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -254,26 +259,19 @@ export default function RegisterScreen({ onToggleAuth }) {
             {/* Conditionally render student fields */}
             {role === 'student' && (
               <View style={styles.studentFieldsContainer}>
-                {/* Program Selector */}
+                {/* Degree Program Dropdown */}
                 <View style={[s.inputGroup, { marginBottom: 6 }]}>
                   <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Degree Program</Text>
-                  <View style={styles.pickerToggleContainer}>
-                    {programs.map((p) => (
-                      <TouchableOpacity
-                        key={p}
-                        style={[
-                          styles.chip,
-                          { backgroundColor: c.bgTertiary, borderColor: c.glassBorder },
-                          program === p && { backgroundColor: c.accentGlow, borderColor: c.accentPrimary }
-                        ]}
-                        onPress={() => setProgram(p)}
-                      >
-                        <Text style={[styles.chipText, { color: program === p ? c.accentPrimary : c.textSecondary }]}>
-                          {getProgramLabel(p)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                  <TouchableOpacity
+                    style={[styles.dropdownSelect, { backgroundColor: c.inputBg, borderColor: c.glassBorder }]}
+                    onPress={() => setProgramDropdownOpen(true)}
+                  >
+                    <Ionicons name="school" size={16} color={c.textMuted} style={styles.inputIcon} />
+                    <Text style={[s.bodyText, { flex: 1, fontSize: 13, color: program ? c.textPrimary : c.textMuted }]}>
+                      {program ? getProgramLabel(program) : 'Select Degree Program'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={c.textSecondary} />
+                  </TouchableOpacity>
                 </View>
 
                 {/* 2-Column Row for Batch & Semester to save vertical space */}
@@ -300,26 +298,19 @@ export default function RegisterScreen({ onToggleAuth }) {
                     </View>
                   </View>
 
-                  {/* Active Semester */}
-                  <View style={{ flex: 1.25 }}>
+                  {/* Active Semester Dropdown */}
+                  <View style={{ flex: 1 }}>
                     <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Active Semester</Text>
-                    <View style={styles.semesterList}>
-                      {semesters.slice(0, 8).map((sem) => (
-                        <TouchableOpacity
-                          key={sem}
-                          style={[
-                            styles.semBadge,
-                            { backgroundColor: c.bgTertiary },
-                            semester === sem && { backgroundColor: c.accentPrimary }
-                          ]}
-                          onPress={() => setSemester(sem)}
-                        >
-                          <Text style={[styles.semText, { color: semester === sem ? '#ffffff' : c.textSecondary }]}>
-                            {sem}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
+                    <TouchableOpacity
+                      style={[styles.dropdownSelect, { backgroundColor: c.inputBg, borderColor: c.glassBorder }]}
+                      onPress={() => setSemesterDropdownOpen(true)}
+                    >
+                      <Ionicons name="calendar" size={16} color={c.textMuted} style={styles.inputIcon} />
+                      <Text style={[s.bodyText, { flex: 1, fontSize: 13, color: semester ? c.textPrimary : c.textMuted }]}>
+                        {semester ? `Semester ${semester}` : 'Select Semester'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={c.textSecondary} />
+                    </TouchableOpacity>
                   </View>
                 </View>
 
@@ -383,6 +374,82 @@ export default function RegisterScreen({ onToggleAuth }) {
             </Text>
           </TouchableOpacity>
         </ScrollView>
+
+      {/* Program Dropdown Modal Overlay */}
+      <Modal
+        visible={programDropdownOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setProgramDropdownOpen(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setProgramDropdownOpen(false)}
+        >
+          <View style={[styles.modalCard, { backgroundColor: c.bgSecondary, borderColor: c.glassBorder }]}>
+            <Text style={[styles.modalTitle, { color: c.textPrimary }]}>Select Degree Program</Text>
+            {programs.map((p) => (
+              <TouchableOpacity
+                key={p}
+                style={[
+                  styles.modalItem,
+                  { borderBottomColor: c.glassBorder },
+                  program === p && { backgroundColor: c.accentGlow }
+                ]}
+                onPress={() => {
+                  setProgram(p);
+                  setProgramDropdownOpen(false);
+                }}
+              >
+                <Text style={[s.bodyText, { color: program === p ? c.accentPrimary : c.textPrimary, fontWeight: program === p ? '700' : '400' }]}>
+                  {p}
+                </Text>
+                {program === p && <Ionicons name="checkmark" size={18} color={c.accentPrimary} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Semester Dropdown Modal Overlay */}
+      <Modal
+        visible={semesterDropdownOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSemesterDropdownOpen(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSemesterDropdownOpen(false)}
+        >
+          <View style={[styles.modalCard, { backgroundColor: c.bgSecondary, borderColor: c.glassBorder }]}>
+            <Text style={[styles.modalTitle, { color: c.textPrimary }]}>Select Active Semester</Text>
+            <ScrollView style={{ maxHeight: 220 }} showsVerticalScrollIndicator={false}>
+              {semesters.map((sem) => (
+                <TouchableOpacity
+                  key={sem}
+                  style={[
+                    styles.modalItem,
+                    { borderBottomColor: c.glassBorder },
+                    semester === sem && { backgroundColor: c.accentGlow }
+                  ]}
+                  onPress={() => {
+                    setSemester(sem);
+                    setSemesterDropdownOpen(false);
+                  }}
+                >
+                  <Text style={[s.bodyText, { color: semester === sem ? c.accentPrimary : c.textPrimary, fontWeight: semester === sem ? '700' : '400' }]}>
+                    Semester {sem}
+                  </Text>
+                  {semester === sem && <Ionicons name="checkmark" size={18} color={c.accentPrimary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
       </LinearGradient>
     </KeyboardAvoidingView>
   );
@@ -451,6 +518,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     height: 38,
   },
+  dropdownSelect: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    height: 38,
+    width: '100%',
+  },
   inputIcon: {
     marginRight: 8,
   },
@@ -462,39 +538,6 @@ const styles = StyleSheet.create({
   studentFieldsContainer: {
     width: '100%',
     marginTop: 2,
-  },
-  pickerToggleContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginVertical: 2,
-  },
-  chip: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  chipText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  semesterList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 3,
-    marginTop: 2,
-  },
-  semBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  semText: {
-    fontSize: 11,
-    fontWeight: '700',
   },
   typeBadgeRow: {
     flexDirection: 'row',
@@ -515,5 +558,40 @@ const styles = StyleSheet.create({
   },
   registerToggle: {
     marginTop: 10,
+  },
+  // Modal Picker Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
   }
 });

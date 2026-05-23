@@ -165,6 +165,38 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
       const page = await parser.doc.getPage(pageNum);
       const textContent = await page.getTextContent();
 
+      // Premium Performance Pre-Flight Check:
+      // Join all text items on the page and verify if it's relevant to the current query.
+      // This reduces processing time by skipping unrelated pages, preventing client-side network timeouts.
+      const pageText = textContent.items.map(item => item.str).join(' ');
+      let isPageRelevant = false;
+
+      if (userRole === 'teacher') {
+        const normUser = userFullName.toLowerCase().replace(/[^a-z0-9]/gi, '');
+        const normPage = pageText.toLowerCase().replace(/[^a-z0-9]/gi, '');
+        if (normUser.length >= 3 && normPage.includes(normUser)) {
+          isPageRelevant = true;
+        }
+      } else {
+        const hasBatch = userBatch ? pageText.includes(userBatch) : true;
+        let hasProgram = true;
+        if (userProgram) {
+          const progKeywords = userProgram.toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/\bin\b/gi, '')
+            .split(' ')
+            .filter(w => w.length > 2);
+          hasProgram = progKeywords.some(keyword => pageText.toLowerCase().includes(keyword));
+        }
+        if (hasBatch && hasProgram) {
+          isPageRelevant = true;
+        }
+      }
+
+      if (!isPageRelevant) {
+        continue; // Instantly skip this page!
+      }
+
       const items = textContent.items
         .map(item => ({ str: item.str.trim(), x: item.transform[4], y: item.transform[5], width: item.width }))
         .filter(item => item.str !== '');
@@ -256,7 +288,9 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
           if (!parsed.startTime || !parsed.endTime) {
             continue; // Filter out empty headers and noise blocks that don't have valid start/end times
           }
+          const classId = `cls_${pageNum}_${block.day.substring(0, 3)}_${parsed.startTime.replace(':', '')}_${parsed.code.replace(/[^a-zA-Z0-9]/g, '')}_${allLectures.length}`;
           allLectures.push({
+            classId,
             name: parsed.name, code: parsed.code, room: roomName,
             day: block.day, startTime: parsed.startTime, endTime: parsed.endTime,
             teacher: parsed.teacher, batch: parsed.batch, semester: parsed.semester,

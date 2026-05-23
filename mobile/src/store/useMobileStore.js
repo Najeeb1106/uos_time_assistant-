@@ -4,6 +4,24 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+const getDevApiUrl = () => {
+  try {
+    // expo-constants reliably exposes the Metro bundler host in Expo Go
+    const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
+    if (hostUri) {
+      const host = hostUri.split(':')[0]; // strip the port (e.g. "192.168.1.3:8082" → "192.168.1.3")
+      console.log('Autodetected Expo dev host IP:', host);
+      return `http://${host}:3000/api`;
+    }
+  } catch (e) {
+    console.log('Error reading Expo Constants for dev API endpoint:', e);
+  }
+  // Fallback: emulator loopback on Android, localhost on iOS
+  return Platform.OS === 'android' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+};
 
 // High-Fidelity Mock Timetable Data matching our web version for premium immediate UI preview
 const mockClasses = [
@@ -153,7 +171,7 @@ export const useMobileStore = create(
   persist(
     (set, get) => ({
       // Base API endpoint - customizable for direct debugging on actual physical devices
-      apiUrl: 'http://192.168.100.79:3000/api', // default host IP for physical devices
+      apiUrl: getDevApiUrl(),
       isOnline: true,
       themeMode: 'dark',
       activeTab: 'dashboard', // Custom tab navigation selector: 'dashboard' | 'schedule' | 'profile'
@@ -186,10 +204,8 @@ export const useMobileStore = create(
         const { apiUrl, isOnline } = get();
         
         if (!isOnline) {
-          // Robust Offline Validation Fallback
           const cachedUser = get().user;
           if (cachedUser && cachedUser.email === email) {
-            // Permit launching into app using cached session if email matches
             return { success: true, offline: true, message: 'Welcome back! Running in offline mode.' };
           }
           throw new Error('Network offline. Please connect to the internet to perform your initial login.');
@@ -210,11 +226,10 @@ export const useMobileStore = create(
             syncTimestamp: new Date().toISOString()
           });
 
-          // Pre-fetch timetable classes
           await get().fetchCurrentSchedule();
           return { success: true };
         } catch (error) {
-          console.error('Mobile Login API Error:', error);
+          console.error('Login Error:', error);
           throw error;
         }
       },
@@ -318,6 +333,65 @@ export const useMobileStore = create(
         }
       },
 
+      uploadPdf: async (fileUri, fileName, mimeType) => {
+        const { apiUrl, token, isOnline } = get();
+        if (!isOnline) {
+          throw new Error('PDF upload requires an active internet connection.');
+        }
+        if (!token) {
+          throw new Error('You must be logged in to upload a timetable.');
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append('file', {
+            uri: Platform.OS === 'android' ? decodeURIComponent(fileUri) : fileUri,
+            name: fileName || 'timetable.pdf',
+            type: mimeType || 'application/pdf'
+          });
+
+          // 1. Upload and parse the PDF file
+          const res = await fetch(`${apiUrl}/schedule/upload`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              // Do NOT set Content-Type — fetch sets multipart boundary automatically
+            },
+            body: formData
+          });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message);
+
+          // 2. Immediately save the parsed classes to the user's account database
+          const saveRes = await fetch(`${apiUrl}/schedule`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              classes: data.classes || [],
+              pdfFileName: fileName || 'timetable.pdf'
+            })
+          });
+          const saveData = await saveRes.json();
+          if (!saveData.success) throw new Error(saveData.message || 'Failed to save parsed timetable to database.');
+
+          // 3. Update the local store state
+          set({
+            classes: data.classes || [],
+            pdfFileName: fileName,
+            uploadedAt: new Date().toISOString(),
+            syncTimestamp: new Date().toISOString()
+          });
+
+          return { success: true, classCount: data.classes?.length || 0 };
+        } catch (error) {
+          console.error('PDF Upload Error:', error);
+          throw error;
+        }
+      },
+
       forceSync: async () => {
         const { isOnline } = get();
         if (!isOnline) {
@@ -330,6 +404,17 @@ export const useMobileStore = create(
     {
       name: 'uos-mobile-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => {
+        // Exclude apiUrl from persistence so it always resolves to the active platform code default
+        const { apiUrl, ...rest } = state;
+        return rest;
+      },
+      // Force apiUrl to always be freshly computed — never use a stale cached value
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState || {}),
+        apiUrl: getDevApiUrl()
+      })
     }
   )
 );

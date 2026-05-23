@@ -7,9 +7,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
-  Dimensions
+  Dimensions,
+  StatusBar as RNStatusBar
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -96,7 +96,7 @@ export default function App() {
 
   // Active theme main dashboard
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: c.bgPrimary }]}>
+    <View style={[s.container, { backgroundColor: c.bgPrimary, paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 28) : 0 }]}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} translucent />
       
       {/* Dynamic Offline Toast Indicator at top */}
@@ -188,7 +188,7 @@ export default function App() {
           )}
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
