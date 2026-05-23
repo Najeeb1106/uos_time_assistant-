@@ -153,7 +153,7 @@ export const useMobileStore = create(
   persist(
     (set, get) => ({
       // Base API endpoint - customizable for direct debugging on actual physical devices
-      apiUrl: 'http://10.0.2.2:3000/api', // default host loopback for Android Emulators
+      apiUrl: 'http://192.168.100.79:3000/api', // default host IP for physical devices
       isOnline: true,
       themeMode: 'dark',
       activeTab: 'dashboard', // Custom tab navigation selector: 'dashboard' | 'schedule' | 'profile'

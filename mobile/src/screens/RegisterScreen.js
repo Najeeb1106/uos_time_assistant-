@@ -1,5 +1,5 @@
 // High-Fidelity Glassmorphic Register Screen for UOS Timetable
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
-  Image
+  Image,
+  Keyboard
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,6 +39,18 @@ export default function RegisterScreen({ onToggleAuth }) {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passFocused, setPassFocused] = useState(false);
   const [batchFocused, setBatchFocused] = useState(false);
+
+  // Keyboard scrolling control (Layout does not scroll when keyboard is closed)
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const register = useMobileStore((state) => state.register);
   const theme = useMobileStore((state) => state.themeMode);
@@ -81,7 +94,7 @@ export default function RegisterScreen({ onToggleAuth }) {
     }
 
     if (password.length < 6) {
-      Alert.alert('Password Criteria', 'For standard account security, your password must be at least 6 characters.');
+      Alert.alert('Password Criteria', 'For account security, your password must be at least 6 characters.');
       return;
     }
 
@@ -118,12 +131,17 @@ export default function RegisterScreen({ onToggleAuth }) {
         colors={[c.gradientStart, c.gradientEnd]}
         style={styles.gradient}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={keyboardVisible} // Fixed single-screen layout, scrolls ONLY when keyboard is open
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Header */}
           <View style={styles.header}>
             <Image
               source={require('../../assets/uos.png')}
-              style={{ width: 52, height: 52, resizeMode: 'contain', marginBottom: 12 }}
+              style={{ width: 44, height: 44, resizeMode: 'contain', marginBottom: 6 }}
             />
             <Text style={[s.title, styles.titleText]}>
               {role === 'student' ? 'Create Student Profile' : 'Create Teacher Profile'}
@@ -159,18 +177,18 @@ export default function RegisterScreen({ onToggleAuth }) {
           </View>
 
           {/* Form fields */}
-          <View style={s.glassCard}>
-            {/* 1. Official UOS Email (Matches Web Field Ordering) */}
-            <View style={s.inputGroup}>
-              <Text style={s.inputLabel}>Official UOS Email</Text>
+          <View style={[s.glassCard, { padding: 12, marginBottom: 8 }]}>
+            {/* 1. Official UOS Email */}
+            <View style={[s.inputGroup, { marginBottom: 6 }]}>
+              <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Official UOS Email</Text>
               <View style={[
                 styles.inputWrapper,
                 { backgroundColor: c.inputBg, borderColor: c.glassBorder },
                 emailFocused && { borderColor: role === 'student' ? c.accentPrimary : c.accentSecondary }
               ]}>
-                <Ionicons name="mail" size={18} color={c.textMuted} style={styles.inputIcon} />
+                <Ionicons name="mail" size={16} color={c.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={[s.bodyText, styles.textInput]}
+                  style={[s.bodyText, styles.textInput, { fontSize: 13 }]}
                   placeholder={role === 'teacher' ? 'teacher@uos.edu.pk' : 'name@uos.edu.pk'}
                   placeholderTextColor={c.textMuted}
                   value={email}
@@ -185,16 +203,16 @@ export default function RegisterScreen({ onToggleAuth }) {
             </View>
 
             {/* 2. Full Name */}
-            <View style={s.inputGroup}>
-              <Text style={s.inputLabel}>Full Name</Text>
+            <View style={[s.inputGroup, { marginBottom: 6 }]}>
+              <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Full Name</Text>
               <View style={[
                 styles.inputWrapper,
                 { backgroundColor: c.inputBg, borderColor: c.glassBorder },
                 nameFocused && { borderColor: role === 'student' ? c.accentPrimary : c.accentSecondary }
               ]}>
-                <Ionicons name="person" size={18} color={c.textMuted} style={styles.inputIcon} />
+                <Ionicons name="person" size={16} color={c.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={[s.bodyText, styles.textInput]}
+                  style={[s.bodyText, styles.textInput, { fontSize: 13 }]}
                   placeholder={role === 'teacher' ? 'Dr. Afzal Badshah' : 'Ahmed Ali'}
                   placeholderTextColor={c.textMuted}
                   value={fullName}
@@ -207,16 +225,16 @@ export default function RegisterScreen({ onToggleAuth }) {
             </View>
 
             {/* 3. Security Password */}
-            <View style={s.inputGroup}>
-              <Text style={s.inputLabel}>Security Password</Text>
+            <View style={[s.inputGroup, { marginBottom: 6 }]}>
+              <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Security Password</Text>
               <View style={[
                 styles.inputWrapper,
                 { backgroundColor: c.inputBg, borderColor: c.glassBorder },
                 passFocused && { borderColor: role === 'student' ? c.accentPrimary : c.accentSecondary }
               ]}>
-                <Ionicons name="lock-closed" size={18} color={c.textMuted} style={styles.inputIcon} />
+                <Ionicons name="lock-closed" size={16} color={c.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={[s.bodyText, styles.textInput]}
+                  style={[s.bodyText, styles.textInput, { fontSize: 13 }]}
                   placeholder="Min 6 characters"
                   placeholderTextColor={c.textMuted}
                   secureTextEntry={secureText}
@@ -228,7 +246,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                   autoCorrect={false}
                 />
                 <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-                  <Ionicons name={secureText ? 'eye-off' : 'eye'} size={18} color={c.textSecondary} />
+                  <Ionicons name={secureText ? 'eye-off' : 'eye'} size={16} color={c.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -237,8 +255,8 @@ export default function RegisterScreen({ onToggleAuth }) {
             {role === 'student' && (
               <View style={styles.studentFieldsContainer}>
                 {/* Program Selector */}
-                <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Degree Program</Text>
+                <View style={[s.inputGroup, { marginBottom: 6 }]}>
+                  <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Degree Program</Text>
                   <View style={styles.pickerToggleContainer}>
                     {programs.map((p) => (
                       <TouchableOpacity
@@ -258,53 +276,56 @@ export default function RegisterScreen({ onToggleAuth }) {
                   </View>
                 </View>
 
-                {/* Session Batch */}
-                <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Session / Batch</Text>
-                  <View style={[
-                    styles.inputWrapper,
-                    { backgroundColor: c.inputBg, borderColor: c.glassBorder },
-                    batchFocused && { borderColor: c.accentPrimary }
-                  ]}>
-                    <TextInput
-                      style={[s.bodyText, styles.textInput, { paddingLeft: 4 }]}
-                      placeholder="e.g. 2024-2028"
-                      placeholderTextColor={c.textMuted}
-                      value={batch}
-                      onChangeText={setBatch}
-                      onFocus={() => setBatchFocused(true)}
-                      onBlur={() => setBatchFocused(false)}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
+                {/* 2-Column Row for Batch & Semester to save vertical space */}
+                <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginBottom: 6 }}>
+                  {/* Session Batch */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Session / Batch</Text>
+                    <View style={[
+                      styles.inputWrapper,
+                      { backgroundColor: c.inputBg, borderColor: c.glassBorder },
+                      batchFocused && { borderColor: c.accentPrimary }
+                    ]}>
+                      <TextInput
+                        style={[s.bodyText, styles.textInput, { paddingLeft: 4, fontSize: 13 }]}
+                        placeholder="e.g. 2024-2028"
+                        placeholderTextColor={c.textMuted}
+                        value={batch}
+                        onChangeText={setBatch}
+                        onFocus={() => setBatchFocused(true)}
+                        onBlur={() => setBatchFocused(false)}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    </View>
                   </View>
-                </View>
 
-                {/* Semester Selector */}
-                <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Active Semester</Text>
-                  <View style={styles.semesterList}>
-                    {semesters.slice(0, 8).map((sem) => (
-                      <TouchableOpacity
-                        key={sem}
-                        style={[
-                          styles.semBadge,
-                          { backgroundColor: c.bgTertiary },
-                          semester === sem && { backgroundColor: c.accentPrimary }
-                        ]}
-                        onPress={() => setSemester(sem)}
-                      >
-                        <Text style={[styles.semText, { color: semester === sem ? '#ffffff' : c.textSecondary }]}>
-                          {sem}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  {/* Active Semester */}
+                  <View style={{ flex: 1.25 }}>
+                    <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Active Semester</Text>
+                    <View style={styles.semesterList}>
+                      {semesters.slice(0, 8).map((sem) => (
+                        <TouchableOpacity
+                          key={sem}
+                          style={[
+                            styles.semBadge,
+                            { backgroundColor: c.bgTertiary },
+                            semester === sem && { backgroundColor: c.accentPrimary }
+                          ]}
+                          onPress={() => setSemester(sem)}
+                        >
+                          <Text style={[styles.semText, { color: semester === sem ? '#ffffff' : c.textSecondary }]}>
+                            {sem}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
                   </View>
                 </View>
 
                 {/* Admission Type (Support Category) */}
-                <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Support Type</Text>
+                <View style={[s.inputGroup, { marginBottom: 6 }]}>
+                  <Text style={[s.inputLabel, { marginBottom: 4, fontSize: 11 }]}>Support Type</Text>
                   <View style={styles.typeBadgeRow}>
                     {types.map((t) => (
                       <TouchableOpacity
@@ -331,7 +352,12 @@ export default function RegisterScreen({ onToggleAuth }) {
               style={[
                 s.btn,
                 s.btnPrimary,
-                { backgroundColor: role === 'student' ? c.accentPrimary : c.accentSecondary, marginTop: 10 }
+                { 
+                  backgroundColor: role === 'student' ? c.accentPrimary : c.accentSecondary, 
+                  marginTop: 6,
+                  paddingVertical: 10,
+                  height: 40
+                }
               ]}
               onPress={handleRegister}
               disabled={loading}
@@ -340,8 +366,8 @@ export default function RegisterScreen({ onToggleAuth }) {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <>
-                  <Text style={s.btnTextPrimary}>Complete Registration</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 8 }} />
+                  <Text style={[s.btnTextPrimary, { fontSize: 14 }]}>Complete Registration</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#ffffff" style={{ marginLeft: 8 }} />
                 </>
               )}
             </TouchableOpacity>
@@ -349,7 +375,7 @@ export default function RegisterScreen({ onToggleAuth }) {
 
           {/* Toggle Screen Switcher */}
           <TouchableOpacity onPress={onToggleAuth} style={styles.registerToggle}>
-            <Text style={{ color: c.textSecondary, fontSize: 14 }}>
+            <Text style={{ color: c.textSecondary, fontSize: 12 }}>
               Already have a profile?{' '}
               <Text style={{ color: role === 'student' ? c.accentPrimary : c.accentSecondary, fontWeight: '700' }}>
                 Sign In
@@ -370,48 +396,41 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 50,
-    paddingBottom: 60,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 24,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexGrow: 1,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoOutline: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.04)',
   },
   titleText: {
-    marginBottom: 4,
-    fontSize: 24,
+    marginBottom: 2,
+    fontSize: 20,
     textAlign: 'center',
   },
   subtitleText: {
     textAlign: 'center',
-    fontSize: 13,
+    fontSize: 11,
+    paddingHorizontal: 10,
   },
   roleContainer: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
+    borderRadius: 8,
+    padding: 2,
+    marginBottom: 12,
     width: '100%',
   },
   roleTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   activeTab: {
     shadowColor: '#000',
@@ -421,16 +440,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   roleText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 48,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    height: 38,
   },
   inputIcon: {
     marginRight: 8,
@@ -442,43 +461,39 @@ const styles = StyleSheet.create({
   },
   studentFieldsContainer: {
     width: '100%',
-    marginTop: 6,
+    marginTop: 2,
   },
   pickerToggleContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginVertical: 4,
+    gap: 6,
+    marginVertical: 2,
   },
   chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
     borderWidth: 1,
   },
   chipText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
-  },
-  flexRow: {
-    flexDirection: 'row',
-    width: '100%',
   },
   semesterList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: 3,
     marginTop: 2,
   },
   semBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   semText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
   },
   typeBadgeRow: {
@@ -490,15 +505,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
     borderWidth: 1,
   },
   typeBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   registerToggle: {
-    marginTop: 16,
+    marginTop: 10,
   }
 });
