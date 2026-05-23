@@ -45,12 +45,18 @@ export default function ProfileScreen() {
     'BS in Software Engineering',
     'BS in Computer Science',
     'BS in Information Technology',
-    'BS in Data Science',
-    'BS in Artificial Intelligence',
-    'MS in Computer Science'
+    'MS in Software Engineering'
   ];
-  const types = ['Regular', 'Self Support', 'Weekend Self Support'];
+  const types = ['Regular', 'Self Support 1', 'Self Support 2'];
   const semesters = ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+  const getProgramLabel = (name) => {
+    if (name === 'BS in Software Engineering') return 'BS Software Eng.';
+    if (name === 'BS in Computer Science') return 'BS Computer Sci.';
+    if (name === 'BS in Information Technology') return 'BS Info. Tech.';
+    if (name === 'MS in Software Engineering') return 'MS Software Eng.';
+    return name;
+  };
 
   const handleSaveProfile = async () => {
     if (!fullName) {
@@ -191,7 +197,7 @@ export default function ProfileScreen() {
                     onPress={() => setProgram(p)}
                   >
                     <Text style={[styles.chipText, { color: program === p ? c.accentPrimary : c.textSecondary }]}>
-                      {p.replace('BS in ', '')}
+                      {getProgramLabel(p)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -248,7 +254,7 @@ export default function ProfileScreen() {
                     onPress={() => setType(t)}
                   >
                     <Text style={[styles.supportText, { color: type === t ? c.accentPrimary : c.textSecondary }]}>
-                      {t}
+                      {t === 'Self Support 1' ? 'Self 1' : t === 'Self Support 2' ? 'Self 2' : t}
                     </Text>
                   </TouchableOpacity>
                 ))}

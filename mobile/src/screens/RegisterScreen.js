@@ -10,7 +10,8 @@ import {
   Platform,
   ActivityIndicator,
   StyleSheet,
-  Alert
+  Alert,
+  Image
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,18 +45,24 @@ export default function RegisterScreen({ onToggleAuth }) {
   const c = COLORS[theme];
   const s = COMMON_STYLES(theme);
 
-  // Program Options Picker List
+  // Program Options Picker List (Matches Web exactly)
   const programs = [
     'BS in Software Engineering',
     'BS in Computer Science',
     'BS in Information Technology',
-    'BS in Data Science',
-    'BS in Artificial Intelligence',
-    'MS in Computer Science'
+    'MS in Software Engineering'
   ];
 
-  const types = ['Regular', 'Self Support', 'Weekend Self Support'];
+  const types = ['Regular', 'Self Support 1', 'Self Support 2'];
   const semesters = ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+  const getProgramLabel = (name) => {
+    if (name === 'BS in Software Engineering') return 'BS Software Eng.';
+    if (name === 'BS in Computer Science') return 'BS Computer Sci.';
+    if (name === 'BS in Information Technology') return 'BS Info. Tech.';
+    if (name === 'MS in Software Engineering') return 'MS Software Eng.';
+    return name;
+  };
 
   const handleRegister = async () => {
     if (!email || !fullName || !password) {
@@ -114,16 +121,17 @@ export default function RegisterScreen({ onToggleAuth }) {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={[styles.logoOutline, { borderColor: role === 'student' ? c.accentPrimary : c.accentSecondary }]}>
-              <Ionicons name="school" size={32} color={role === 'student' ? c.accentPrimary : c.accentSecondary} />
-            </View>
+            <Image
+              source={require('../../assets/uos.png')}
+              style={{ width: 52, height: 52, resizeMode: 'contain', marginBottom: 12 }}
+            />
             <Text style={[s.title, styles.titleText]}>
               {role === 'student' ? 'Create Student Profile' : 'Create Teacher Profile'}
             </Text>
             <Text style={[s.mutedText, styles.subtitleText]}>
               {role === 'student' 
-                ? 'Align your timetable to your batch coordinates' 
-                : 'Enter details to view your filtered classes'}
+                ? 'Establish your academic details to align your parsed timetable' 
+                : 'Enter your name and official UOS email to custom filter your teaching schedule'}
             </Text>
           </View>
 
@@ -152,27 +160,7 @@ export default function RegisterScreen({ onToggleAuth }) {
 
           {/* Form fields */}
           <View style={s.glassCard}>
-            <View style={s.inputGroup}>
-              <Text style={s.inputLabel}>Full Name</Text>
-              <View style={[
-                styles.inputWrapper,
-                { backgroundColor: c.inputBg, borderColor: c.glassBorder },
-                nameFocused && { borderColor: role === 'student' ? c.accentPrimary : c.accentSecondary }
-              ]}>
-                <Ionicons name="person" size={18} color={c.textMuted} style={styles.inputIcon} />
-                <TextInput
-                  style={[s.bodyText, styles.textInput]}
-                  placeholder={role === 'teacher' ? 'Dr. Muhammad Summair Raza' : 'Ahmed Ali'}
-                  placeholderTextColor={c.textMuted}
-                  value={fullName}
-                  onChangeText={setFullName}
-                  onFocus={() => setNameFocused(true)}
-                  onBlur={() => setNameFocused(false)}
-                  autoCorrect={false}
-                />
-              </View>
-            </View>
-
+            {/* 1. Official UOS Email (Matches Web Field Ordering) */}
             <View style={s.inputGroup}>
               <Text style={s.inputLabel}>Official UOS Email</Text>
               <View style={[
@@ -183,7 +171,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                 <Ionicons name="mail" size={18} color={c.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={[s.bodyText, styles.textInput]}
-                  placeholder="username@uos.edu.pk"
+                  placeholder={role === 'teacher' ? 'teacher@uos.edu.pk' : 'name@uos.edu.pk'}
                   placeholderTextColor={c.textMuted}
                   value={email}
                   onChangeText={setEmail}
@@ -196,8 +184,31 @@ export default function RegisterScreen({ onToggleAuth }) {
               </View>
             </View>
 
+            {/* 2. Full Name */}
             <View style={s.inputGroup}>
-              <Text style={s.inputLabel}>Password</Text>
+              <Text style={s.inputLabel}>Full Name</Text>
+              <View style={[
+                styles.inputWrapper,
+                { backgroundColor: c.inputBg, borderColor: c.glassBorder },
+                nameFocused && { borderColor: role === 'student' ? c.accentPrimary : c.accentSecondary }
+              ]}>
+                <Ionicons name="person" size={18} color={c.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={[s.bodyText, styles.textInput]}
+                  placeholder={role === 'teacher' ? 'Dr. Afzal Badshah' : 'Ahmed Ali'}
+                  placeholderTextColor={c.textMuted}
+                  value={fullName}
+                  onChangeText={setFullName}
+                  onFocus={() => setNameFocused(true)}
+                  onBlur={() => setNameFocused(false)}
+                  autoCorrect={false}
+                />
+              </View>
+            </View>
+
+            {/* 3. Security Password */}
+            <View style={s.inputGroup}>
+              <Text style={s.inputLabel}>Security Password</Text>
               <View style={[
                 styles.inputWrapper,
                 { backgroundColor: c.inputBg, borderColor: c.glassBorder },
@@ -206,7 +217,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                 <Ionicons name="lock-closed" size={18} color={c.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={[s.bodyText, styles.textInput]}
-                  placeholder="••••••••"
+                  placeholder="Min 6 characters"
                   placeholderTextColor={c.textMuted}
                   secureTextEntry={secureText}
                   value={password}
@@ -227,7 +238,7 @@ export default function RegisterScreen({ onToggleAuth }) {
               <View style={styles.studentFieldsContainer}>
                 {/* Program Selector */}
                 <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Academic Program</Text>
+                  <Text style={s.inputLabel}>Degree Program</Text>
                   <View style={styles.pickerToggleContainer}>
                     {programs.map((p) => (
                       <TouchableOpacity
@@ -240,7 +251,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                         onPress={() => setProgram(p)}
                       >
                         <Text style={[styles.chipText, { color: program === p ? c.accentPrimary : c.textSecondary }]}>
-                          {p.replace('BS in ', '')}
+                          {getProgramLabel(p)}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -257,7 +268,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                   ]}>
                     <TextInput
                       style={[s.bodyText, styles.textInput, { paddingLeft: 4 }]}
-                      placeholder="2024-2028"
+                      placeholder="e.g. 2024-2028"
                       placeholderTextColor={c.textMuted}
                       value={batch}
                       onChangeText={setBatch}
@@ -271,7 +282,7 @@ export default function RegisterScreen({ onToggleAuth }) {
 
                 {/* Semester Selector */}
                 <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Semester</Text>
+                  <Text style={s.inputLabel}>Active Semester</Text>
                   <View style={styles.semesterList}>
                     {semesters.slice(0, 8).map((sem) => (
                       <TouchableOpacity
@@ -293,7 +304,7 @@ export default function RegisterScreen({ onToggleAuth }) {
 
                 {/* Admission Type (Support Category) */}
                 <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>Admission Status</Text>
+                  <Text style={s.inputLabel}>Support Type</Text>
                   <View style={styles.typeBadgeRow}>
                     {types.map((t) => (
                       <TouchableOpacity
@@ -306,7 +317,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                         onPress={() => setType(t)}
                       >
                         <Text style={[styles.typeBadgeText, { color: type === t ? c.accentPrimary : c.textSecondary }]}>
-                          {t}
+                          {t === 'Self Support 1' ? 'Self 1' : t === 'Self Support 2' ? 'Self 2' : t}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -329,7 +340,7 @@ export default function RegisterScreen({ onToggleAuth }) {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <>
-                  <Text style={s.btnTextPrimary}>CREATE PROFILE</Text>
+                  <Text style={s.btnTextPrimary}>Complete Registration</Text>
                   <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 8 }} />
                 </>
               )}
@@ -339,9 +350,9 @@ export default function RegisterScreen({ onToggleAuth }) {
           {/* Toggle Screen Switcher */}
           <TouchableOpacity onPress={onToggleAuth} style={styles.registerToggle}>
             <Text style={{ color: c.textSecondary, fontSize: 14 }}>
-              Already registered?{' '}
+              Already have a profile?{' '}
               <Text style={{ color: role === 'student' ? c.accentPrimary : c.accentSecondary, fontWeight: '700' }}>
-                Log in Here
+                Sign In
               </Text>
             </Text>
           </TouchableOpacity>

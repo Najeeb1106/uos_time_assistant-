@@ -9,7 +9,8 @@ import {
   Platform,
   ActivityIndicator,
   StyleSheet,
-  Alert
+  Alert,
+  Image
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -70,12 +71,13 @@ export default function LoginScreen({ onToggleAuth }) {
         <View style={styles.content}>
           {/* Logo & Header */}
           <View style={styles.logoSection}>
-            <View style={[styles.logoOutline, { borderColor: c.accentPrimary }]}>
-              <Ionicons name="calendar" size={48} color={c.accentPrimary} />
-            </View>
-            <Text style={[s.title, styles.titleText]}>UOS Timetable</Text>
+            <Image
+              source={require('../../assets/uos.png')}
+              style={{ width: 60, height: 60, resizeMode: 'contain', marginBottom: 16 }}
+            />
+            <Text style={[s.title, styles.titleText]}>Welcome Back</Text>
             <Text style={[s.mutedText, styles.subtitleText]}>
-              University of Sargodha Schedule Portal
+              Sign in to access your UOS schedule
             </Text>
           </View>
 
@@ -132,7 +134,7 @@ export default function LoginScreen({ onToggleAuth }) {
                 <Ionicons name="mail" size={20} color={c.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={[s.bodyText, styles.textInput]}
-                  placeholder={role === 'teacher' ? 'name@uos.edu.pk' : 'student@uos.edu.pk'}
+                  placeholder={role === 'teacher' ? 'teacher@uos.edu.pk' : 'student@uos.edu.pk'}
                   placeholderTextColor={c.textMuted}
                   value={email}
                   onChangeText={setEmail}
@@ -146,7 +148,7 @@ export default function LoginScreen({ onToggleAuth }) {
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.inputLabel}>Password</Text>
+              <Text style={s.inputLabel}>Security Password</Text>
               <View style={[
                 styles.inputWrapper,
                 { backgroundColor: c.inputBg, borderColor: c.glassBorder },
@@ -199,7 +201,7 @@ export default function LoginScreen({ onToggleAuth }) {
                 <ActivityIndicator color="#ffffff" />
               ) : (
                 <>
-                  <Text style={s.btnTextPrimary}>LOG IN</Text>
+                  <Text style={s.btnTextPrimary}>Sign In</Text>
                   <Ionicons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 8 }} />
                 </>
               )}
@@ -211,7 +213,7 @@ export default function LoginScreen({ onToggleAuth }) {
             <Text style={{ color: c.textSecondary, fontSize: 14 }}>
               Don't have an account?{' '}
               <Text style={{ color: role === 'student' ? c.accentPrimary : c.accentSecondary, fontWeight: '700' }}>
-                Register Here
+                Register Now
               </Text>
             </Text>
           </TouchableOpacity>
