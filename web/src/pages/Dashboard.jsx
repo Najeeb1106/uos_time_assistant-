@@ -17,11 +17,10 @@ import {
 export default function Dashboard() {
   const { classes, user, pdfFileName, uploadedAt } = useStore();
   
-  // Real active day calculation (fallback to Monday if weekend)
+  // Real active day calculation
   const getTodayDay = () => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const currentDay = dayNames[new Date().getDay()];
-    return (currentDay === 'Saturday' || currentDay === 'Sunday') ? 'Monday' : currentDay;
+    return dayNames[new Date().getDay()];
   };
 
   const [selectedDay, setSelectedDay] = useState(getTodayDay());
@@ -62,9 +61,42 @@ export default function Dashboard() {
     return currentTimeString >= cls.startTime && currentTimeString <= cls.endTime;
   };
 
+  // Weekend calculation helper
+  const isWeekend = () => {
+    const day = new Date().getDay();
+    const isWeekendDay = day === 0 || day === 6; // Sunday or Saturday
+    if (!isWeekendDay) return false;
+    
+    // If it is a weekend but we have classes scheduled today, treat as active class day
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const hasClassesToday = classes.some((c) => c.day === dayNames[day]);
+    return !hasClassesToday;
+  };
+
+  const getMinutesDiff = (timeA, timeB) => {
+    if (!timeA || !timeB) return 0;
+    const [hA, mA] = timeA.split(':').map(Number);
+    const [hB, mB] = timeB.split(':').map(Number);
+    return (hA * 60 + mA) - (hB * 60 + mB);
+  };
+
+  const renderTimeDiff = (startTime) => {
+    if (isWeekend()) {
+      return 'Upcoming on Monday';
+    }
+    const diff = getMinutesDiff(startTime, currentTimeString);
+    if (diff <= 0) return 'Starts now';
+    if (diff < 60) return `Starts in ${diff} mins`;
+    
+    const hrs = Math.floor(diff / 60);
+    const mins = diff % 60;
+    return mins > 0 ? `Starts in ${hrs}h ${mins}m` : `Starts in ${hrs}h`;
+  };
+
   const nextClass = getNextClass();
 
-  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  // Chronological day selector tabs including weekends
+  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -75,7 +107,9 @@ export default function Dashboard() {
             Assalam-o-Alaikum, {user?.role === 'teacher' ? 'Prof. ' : ''}{user?.fullName || 'User'}!
           </h1>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
-            Here is your personalized lecture schedule coordination for today.
+            {isWeekend() 
+              ? 'Enjoy your weekend! Here is a sneak peek at your upcoming Monday lectures.' 
+              : 'Here is your personalized lecture schedule coordination for today.'}
           </p>
         </div>
 
@@ -219,7 +253,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.25rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                       <Clock size={16} style={{ color: 'var(--accent-secondary)' }} />
-                      <span>Starts at: <strong>{nextClass.startTime}</strong> ({nextClass.startTime.localeCompare(currentTimeString)} mins later)</span>
+                      <span>Starts at: <strong>{nextClass.startTime}</strong> ({renderTimeDiff(nextClass.startTime)})</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                       <MapPin size={16} style={{ color: 'var(--accent-primary)' }} />

@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import WeeklySchedule from './pages/WeeklySchedule';
+import FreeRooms from './pages/FreeRooms';
 import Upload from './pages/Upload';
 import Profile from './pages/Profile';
 
@@ -86,6 +87,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <WeeklySchedule />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/free-rooms" 
+          element={
+            <ProtectedRoute>
+              <FreeRooms />
             </ProtectedRoute>
           } 
         />

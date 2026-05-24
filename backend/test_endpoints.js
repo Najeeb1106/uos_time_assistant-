@@ -122,6 +122,20 @@ async function testBackend() {
     console.log('Retrieve Response:', fetchData.success ? 'SUCCESS ✓' : 'FAILED ✗');
     console.log(`Schedule loaded from database contains ${fetchData.classes.length} classes!`);
 
+    // 7. Retrieve Global Schedule
+    console.log('\n--- 7. Retrieve Global Dynamic Timetable ---');
+    const fetchGlobalRes = await fetch(`${BASE_URL}/schedule/global`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const fetchGlobalData = await fetchGlobalRes.json();
+    console.log('Retrieve Global Response:', fetchGlobalData.success ? 'SUCCESS ✓' : 'FAILED ✗');
+    console.log(`Global schedule contains ${fetchGlobalData.classes.length} classes parsed from PDF!`);
+    if (fetchGlobalData.classes.length > 0) {
+      console.log('Dynamic Room Finder database sync verified successfully!');
+    } else {
+      throw new Error('Global schedule was empty, parsing or database set failed.');
+    }
+
     console.log('\n✅ ALL BACKEND SYSTEM APIS RUNNING FLAWLESSLY AND CORRECTLY!');
   } catch (err) {
     console.error('\n❌ TEST ERROR OCCURRED:', err.message);

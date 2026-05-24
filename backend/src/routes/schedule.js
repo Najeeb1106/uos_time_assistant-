@@ -26,6 +26,7 @@ router.use(authMiddleware);
 router.post('/upload', upload.single('file'), scheduleController.uploadSchedule);
 router.post('/', scheduleController.saveSchedule);
 router.get('/current', scheduleController.getCurrentSchedule);
+router.get('/global', scheduleController.getGlobalSchedule);
 router.put('/', scheduleController.updateScheduleClasses);
 router.delete('/', scheduleController.deleteSchedule);
 

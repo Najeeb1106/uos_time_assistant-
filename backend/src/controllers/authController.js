@@ -1,11 +1,13 @@
 const { db, auth, isFirebaseMode } = require('../config/firebase');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'uos-timetable-development-secret-key';
 
 /**
  * Register a new student profile and create user auth record
  */
 exports.register = async (req, res) => {
   try {
-    const { email, password, fullName, program, type, batch, semester, role = 'student' } = req.body;
+    const { email, password, fullName, program, type, batch, semester, role = 'student', department, designation, employeeId, facultyKey } = req.body;
 
     if (role === 'student') {
       if (!email || !password || !fullName || !program || !type || !batch || !semester) {
@@ -15,10 +17,18 @@ exports.register = async (req, res) => {
         });
       }
     } else {
-      if (!email || !password || !fullName) {
+      if (!email || !password || !fullName || !department || !designation || !employeeId || !facultyKey) {
         return res.status(400).json({
           success: false,
-          message: 'Please fill in all required fields.'
+          message: 'Please fill in all required fields, including Faculty ID, Department, Designation, and Faculty Key.'
+        });
+      }
+
+      const expectedKey = process.env.FACULTY_SECRET_KEY || 'UOS_FACULTY_2026';
+      if (facultyKey !== expectedKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid Faculty Security Access Key. Please contact department administration.'
         });
       }
     }
@@ -83,13 +93,18 @@ exports.register = async (req, res) => {
       userProfile.type = type;
       userProfile.batch = batch;
       userProfile.semester = Number(semester);
+    } else {
+      userProfile.department = department;
+      userProfile.designation = designation;
+      userProfile.employeeId = employeeId;
+      userProfile.verifiedFaculty = true;
     }
 
     // Save profile to database (Firestore or Local JSON fallback)
     await db.collection('users').doc(uid).set(userProfile);
 
-    // Generate custom auth JWT token
-    const token = await auth.createCustomToken(uid);
+    // Generate secure session JWT token
+    const token = jwt.sign({ uid }, JWT_SECRET, { expiresIn: '7d' });
 
     // Don't send password hash back
     const { passwordHash, ...cleanProfile } = userProfile;
@@ -187,8 +202,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Generate custom auth JWT token
-    const token = await auth.createCustomToken(uid);
+    // Generate secure session JWT token
+    const token = jwt.sign({ uid }, JWT_SECRET, { expiresIn: '7d' });
 
     // Clean profile data
     const { passwordHash, ...cleanProfile } = userRecord;

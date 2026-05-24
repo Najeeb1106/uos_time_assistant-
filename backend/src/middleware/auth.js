@@ -1,7 +1,8 @@
-const { auth } = require('../config/firebase');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'uos-timetable-development-secret-key';
 
 /**
- * Authentication middleware that verifies the Firebase ID token or Local JWT.
+ * Authentication middleware that verifies the Express Backend session JWT.
  * Populates req.user with { uid } if valid, otherwise throws 401.
  */
 module.exports = async (req, res, next) => {
@@ -17,9 +18,9 @@ module.exports = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     
-    // Verifies either real Firebase ID token or local custom signed JWT
-    const decodedToken = await auth.verifyIdToken(token);
-    req.user = { uid: decodedToken.uid };
+    // Verifies the custom backend session JWT securely across all modes
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = { uid: decoded.uid };
     
     next();
   } catch (error) {

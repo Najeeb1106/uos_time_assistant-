@@ -13,6 +13,12 @@ export default function Register() {
   const [batch, setBatch] = useState('2024-2028');
   const [semester, setSemester] = useState('2');
   
+  // Teacher-specific registration states
+  const [department, setDepartment] = useState('Software Engineering');
+  const [designation, setDesignation] = useState('Lecturer');
+  const [employeeId, setEmployeeId] = useState('');
+  const [facultyKey, setFacultyKey] = useState('');
+  
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -40,6 +46,13 @@ export default function Register() {
       return;
     }
 
+    if (role === 'teacher') {
+      if (!department || !designation || !employeeId || !facultyKey) {
+        setError('Please fill in all faculty details including Faculty ID and Security Key');
+        return;
+      }
+    }
+
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -59,6 +72,11 @@ export default function Register() {
         payload.type = type;
         payload.batch = batch;
         payload.semester = Number(semester);
+      } else {
+        payload.department = department;
+        payload.designation = designation;
+        payload.employeeId = employeeId;
+        payload.facultyKey = facultyKey;
       }
 
       await register(email, payload);
@@ -377,6 +395,70 @@ export default function Register() {
                       <option key={s} value={s}>Semester {s}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {role === 'teacher' && (
+            <div className="animate-fade-in" style={{ borderTop: '1px solid var(--glass-border)', padding: '1rem 0', margin: '0.5rem 0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Department & Designation */}
+              <div className="register-row-grid-equal">
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="department">Department</label>
+                  <select 
+                    id="department"
+                    className="input-field select-field"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                  >
+                    <option value="Computer Science & IT">CS & IT</option>
+                    <option value="Software Engineering">Software Eng.</option>
+                    <option value="Information Technology">Info. Tech.</option>
+                  </select>
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="designation">Designation</label>
+                  <select 
+                    id="designation"
+                    className="input-field select-field"
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                  >
+                    <option value="Professor">Professor</option>
+                    <option value="Associate Professor">Associate Prof.</option>
+                    <option value="Assistant Professor">Assistant Prof.</option>
+                    <option value="Lecturer">Lecturer</option>
+                    <option value="Visiting Faculty">Visiting Faculty</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Employee ID & Security Key */}
+              <div className="register-row-grid-equal">
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="employee-id">Faculty Employee ID</label>
+                  <input 
+                    id="employee-id"
+                    type="text" 
+                    className="input-field" 
+                    placeholder="e.g. EMP-9921"
+                    value={employeeId}
+                    onChange={(e) => setEmployeeId(e.target.value)}
+                  />
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label" htmlFor="faculty-key">Security Access Key</label>
+                  <input 
+                    id="faculty-key"
+                    type="password" 
+                    className="input-field" 
+                    placeholder="Enter UOS Secret Key"
+                    value={facultyKey}
+                    onChange={(e) => setFacultyKey(e.target.value)}
+                  />
                 </div>
               </div>
             </div>

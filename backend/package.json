@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "node src/app.js",
+    "verify-firebase": "node src/config/verify-firebase.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

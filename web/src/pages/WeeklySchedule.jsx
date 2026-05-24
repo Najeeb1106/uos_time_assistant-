@@ -31,7 +31,7 @@ export default function WeeklySchedule() {
     return () => clearInterval(interval);
   }, []);
 
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const getClassesForDay = (day) => {
     return classes
@@ -237,9 +237,11 @@ export default function WeeklySchedule() {
           <div 
             className="glass-panel animate-fade-in"
             style={{
-              maxWidth: '440px',
+              borderRadius: '24px',
+              border: '1px solid var(--glass-border)',
+              maxWidth: '540px',
               width: '100%',
-              padding: '2rem',
+              padding: '2.5rem',
               background: 'var(--bg-secondary)',
               position: 'relative',
               boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
@@ -250,72 +252,72 @@ export default function WeeklySchedule() {
               onClick={() => setSelectedClass(null)}
               style={{
                 position: 'absolute',
-                top: '1.25rem',
-                right: '1.25rem',
+                top: '1.5rem',
+                right: '1.5rem',
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--text-muted)',
                 cursor: 'pointer'
               }}
             >
-              <X size={20} />
+              <X size={22} />
             </button>
  
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-primary)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-primary)', padding: '0.3rem 0.65rem', borderRadius: '6px' }}>
                 {selectedClass.code}
               </span>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-secondary)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, background: 'rgba(168, 85, 247, 0.15)', color: 'var(--accent-secondary)', padding: '0.3rem 0.65rem', borderRadius: '6px' }}>
                 {selectedClass.type}
               </span>
             </div>
  
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>
+            <h3 style={{ fontSize: '1.65rem', fontWeight: 800, marginBottom: '1.75rem', color: 'var(--text-primary)', lineHeight: '1.25' }}>
               {selectedClass.name}
             </h3>
  
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <Clock size={18} color="var(--accent-primary)" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <Clock size={20} color="var(--accent-primary)" />
                 <div>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Day & Time</span>
-                  <strong>{selectedClass.day} • {selectedClass.startTime} - {selectedClass.endTime}</strong>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '0.15rem' }}>Day & Time</span>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>{selectedClass.day} • {selectedClass.startTime} - {selectedClass.endTime}</strong>
                 </div>
               </div>
  
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <MapPin size={18} color="var(--accent-secondary)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <MapPin size={20} color="var(--accent-secondary)" />
                 <div>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Room Location</span>
-                  <strong>Lecture Hall {selectedClass.room}</strong>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '0.15rem' }}>Room Location</span>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>Lecture Hall {selectedClass.room}</strong>
                 </div>
               </div>
  
               {user?.role === 'teacher' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
-                  <BookOpen size={18} color="var(--accent-secondary)" style={{ transform: 'none' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <BookOpen size={20} color="var(--accent-secondary)" style={{ transform: 'none' }} />
                   <div>
-                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Target Cohort</span>
-                    <strong>{selectedClass.program}</strong>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '0.15rem' }}>Target Cohort</span>
+                    <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>{selectedClass.program}</strong>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
-                  <UserIcon size={18} color="var(--text-secondary)" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <UserIcon size={20} color="var(--text-secondary)" />
                   <div>
-                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Instructor</span>
-                    <strong>{selectedClass.teacher}</strong>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '0.15rem' }}>Instructor</span>
+                    <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>{selectedClass.teacher}</strong>
                   </div>
                 </div>
               )}
  
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <BookOpen size={18} color="var(--text-muted)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <BookOpen size={20} color="var(--text-muted)" />
                 <div>
-                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '0.15rem' }}>
                     {user?.role === 'teacher' ? 'Session & Semester' : 'Batch & Target'}
                   </span>
-                  <strong>{selectedClass.batch ? `${selectedClass.batch} • ` : ''}Semester {selectedClass.semester}</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>{selectedClass.batch ? `${selectedClass.batch} • ` : ''}Semester {selectedClass.semester}</strong>
                 </div>
               </div>
             </div>

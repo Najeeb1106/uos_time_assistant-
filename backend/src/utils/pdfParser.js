@@ -302,6 +302,10 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
 
     const final = dedup(allLectures);
 
+    if (userRole === 'global') {
+      return final;
+    }
+
     if (userRole === 'teacher') {
       const normalizeTeacher = (name) => {
         if (!name) return '';

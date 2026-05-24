@@ -39,6 +39,19 @@ exports.uploadSchedule = async (req, res) => {
       user.fullName
     );
 
+    // Extract and save unfiltered global schedule for the Free Room Finder in Firestore
+    try {
+      const allLectures = await extractSchedule(req.file.buffer, null, null, null, null, 'global');
+      await db.collection('global_timetable').doc('latest').set({
+        pdfFileName: req.file.originalname,
+        classes: allLectures,
+        uploadedAt: new Date().toISOString()
+      });
+      console.log(`[ScheduleController] Saved global timetable of ${allLectures.length} classes to Firestore.`);
+    } catch (globalErr) {
+      console.error('[ScheduleController] Failed to parse/save global timetable:', globalErr);
+    }
+
     return res.status(200).json({
       success: true,
       message: `Parsed ${parsedClasses.length} matching schedule lectures successfully.`,
@@ -131,6 +144,39 @@ exports.getCurrentSchedule = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve active timetable.'
+    });
+  }
+};
+
+/**
+ * Fetch latest global timetable dataset for Free Room Finder
+ */
+exports.getGlobalSchedule = async (req, res) => {
+  try {
+    const globalDoc = await db.collection('global_timetable').doc('latest').get();
+
+    if (!globalDoc.exists) {
+      return res.status(200).json({
+        success: true,
+        classes: [],
+        pdfFileName: null,
+        uploadedAt: null
+      });
+    }
+
+    const data = globalDoc.data();
+    return res.status(200).json({
+      success: true,
+      classes: data.classes || [],
+      pdfFileName: data.pdfFileName || null,
+      uploadedAt: data.uploadedAt || null
+    });
+
+  } catch (error) {
+    console.error('GetGlobalSchedule Controller Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve global timetable.'
     });
   }
 };

@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore';
 import { 
   LayoutDashboard, 
   Calendar, 
+  DoorOpen,
   UploadCloud, 
   Settings, 
   LogOut, 
@@ -74,6 +75,7 @@ export default function Layout({ children }) {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Weekly Schedule', path: '/schedule', icon: Calendar },
+    { name: 'Free Rooms', path: '/free-rooms', icon: DoorOpen },
     { name: 'Upload PDF', path: '/upload', icon: UploadCloud },
     { name: 'Profile Settings', path: '/profile', icon: Settings }
   ];
@@ -82,6 +84,7 @@ export default function Layout({ children }) {
     switch (location.pathname) {
       case '/dashboard': return 'Dashboard Overview';
       case '/schedule': return 'Weekly timetable Grid';
+      case '/free-rooms': return 'Free Room Finder';
       case '/upload': return 'Timetable Parsing engine';
       case '/profile': return user?.role === 'teacher' ? 'Instructor Profile Settings' : 'Student Profile Settings';
       default: return 'UOS Timetable';

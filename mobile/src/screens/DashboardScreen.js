@@ -29,8 +29,7 @@ export default function DashboardScreen() {
 
   const getTodayDay = () => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const currentDay = dayNames[new Date().getDay()];
-    return (currentDay === 'Saturday' || currentDay === 'Sunday') ? 'Monday' : currentDay;
+    return dayNames[new Date().getDay()];
   };
 
   const [selectedDay, setSelectedDay] = useState(getTodayDay());
@@ -69,7 +68,7 @@ export default function DashboardScreen() {
   };
 
   const nextClass = getNextClass();
-  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const handleSync = async () => {
     if (!isOnline) {
