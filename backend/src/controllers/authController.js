@@ -420,15 +420,22 @@ exports.forgotPassword = async (req, res) => {
 
     console.log(`[ForgotPassword] Reset token generated for ${email}: ${token}`);
 
-    // In production you would send an email here.
-    // For dev/local mode we return the token in the response so users can use it immediately.
-    return res.status(200).json({
+    // Check if we are running in production mode
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    const responseData = {
       success: true,
-      message: 'Password reset token generated. Use it within 30 minutes.',
-      // ⚠️  Dev-only: strip this from the response before going to production!
-      devResetToken: token,
-      resetUrl: `http://localhost:5173/reset-password?token=${token}`,
-    });
+      message: 'If that email is registered, a password reset token has been generated.'
+    };
+
+    if (!isProduction) {
+      // ⚠️ Dev-only: return token in response only for local development
+      responseData.devResetToken = token;
+      responseData.resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+      responseData.message = 'Password reset token generated. Use it within 30 minutes.';
+    }
+
+    return res.status(200).json(responseData);
 
   } catch (error) {
     console.error('ForgotPassword Controller Error:', error);
