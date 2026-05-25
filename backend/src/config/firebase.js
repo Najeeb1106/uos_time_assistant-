@@ -29,9 +29,21 @@ if (hasFirebaseKey || hasEnvConfig) {
       // Replace escaped newlines with actual newlines
       privateKey = privateKey.replace(/\\n/g, '\n');
       
+      // Auto-heal missing header or footer if copy-paste cut them off
+      if (!privateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+        privateKey = `-----BEGIN PRIVATE KEY-----\n${privateKey}`;
+      }
+      if (!privateKey.includes('-----END PRIVATE KEY-----')) {
+        privateKey = `${privateKey}\n-----END PRIVATE KEY-----`;
+      }
+      
+      // Clean up duplicate double newlines that might occur during prepending
+      privateKey = privateKey.replace(/-----BEGIN PRIVATE KEY-----\n\n/, '-----BEGIN PRIVATE KEY-----\n');
+      privateKey = privateKey.replace(/\n\n-----END PRIVATE KEY-----/, '\n-----END PRIVATE KEY-----');
+      
       console.log(`[Firebase Debug] Configured Private Key length: ${privateKey.length}`);
-      console.log(`[Firebase Debug] Starts with: "${privateKey.substring(0, 28)}"`);
-      console.log(`[Firebase Debug] Ends with: "${privateKey.substring(privateKey.length - 26)}"`);
+      console.log(`[Firebase Debug] Starts with: "${privateKey.substring(0, 30)}"`);
+      console.log(`[Firebase Debug] Ends with: "${privateKey.substring(privateKey.length - 28)}"`);
       console.log(`[Firebase Debug] Contains literal newlines: ${privateKey.includes('\n')}`);
       
       serviceAccount = {
