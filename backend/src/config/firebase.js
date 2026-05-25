@@ -19,14 +19,25 @@ if (hasFirebaseKey || hasEnvConfig) {
       serviceAccount = require('./firebase-key.json');
     } else {
       let privateKey = process.env.FIREBASE_PRIVATE_KEY.trim();
-      // Remove any surrounding double quotes that might have been pasted
+      // Remove any surrounding double or single quotes that might have been pasted
       if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
         privateKey = privateKey.substring(1, privateKey.length - 1);
+      } else if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
+        privateKey = privateKey.substring(1, privateKey.length - 1);
       }
+      
+      // Replace escaped newlines with actual newlines
+      privateKey = privateKey.replace(/\\n/g, '\n');
+      
+      console.log(`[Firebase Debug] Configured Private Key length: ${privateKey.length}`);
+      console.log(`[Firebase Debug] Starts with: "${privateKey.substring(0, 28)}"`);
+      console.log(`[Firebase Debug] Ends with: "${privateKey.substring(privateKey.length - 26)}"`);
+      console.log(`[Firebase Debug] Contains literal newlines: ${privateKey.includes('\n')}`);
+      
       serviceAccount = {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: privateKey.replace(/\\n/g, '\n')
+        privateKey: privateKey
       };
     }
 
