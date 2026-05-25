@@ -18,10 +18,15 @@ if (hasFirebaseKey || hasEnvConfig) {
     if (hasFirebaseKey) {
       serviceAccount = require('./firebase-key.json');
     } else {
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY.trim();
+      // Remove any surrounding double quotes that might have been pasted
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        privateKey = privateKey.substring(1, privateKey.length - 1);
+      }
       serviceAccount = {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        privateKey: privateKey.replace(/\\n/g, '\n')
       };
     }
 
