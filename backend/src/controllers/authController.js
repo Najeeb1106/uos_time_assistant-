@@ -87,7 +87,7 @@ const verifyFirebasePassword = (email, password, apiKey) => {
  */
 exports.register = async (req, res) => {
   try {
-    const { email, password, fullName, program, type, batch, semester, role = 'student', department, designation, employeeId, facultyKey } = req.body;
+    const { email, password, fullName, program, type, batch, semester, role = 'student', department, designation, employeeId, teachingId } = req.body;
 
     if (role === 'student') {
       if (!email || !password || !fullName || !program || !type || !batch || !semester) {
@@ -97,18 +97,10 @@ exports.register = async (req, res) => {
         });
       }
     } else {
-      if (!email || !password || !fullName || !department || !designation || !employeeId || !facultyKey) {
+      if (!email || !password || !fullName || !department || !designation || !employeeId || !teachingId) {
         return res.status(400).json({
           success: false,
-          message: 'Please fill in all required fields, including Faculty ID, Department, Designation, and Faculty Key.'
-        });
-      }
-
-      const expectedKey = process.env.FACULTY_SECRET_KEY || 'UOS_FACULTY_2026';
-      if (facultyKey !== expectedKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid Faculty Security Access Key. Please contact department administration.'
+          message: 'Please fill in all required fields, including Department, Designation, Employee ID, and Teaching ID.'
         });
       }
     }
@@ -177,6 +169,7 @@ exports.register = async (req, res) => {
       userProfile.department = department;
       userProfile.designation = designation;
       userProfile.employeeId = employeeId;
+      userProfile.teachingId = teachingId;
       userProfile.verifiedFaculty = true;
     }
 
@@ -210,7 +203,7 @@ exports.register = async (req, res) => {
  */
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, teachingId } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -222,39 +215,25 @@ exports.login = async (req, res) => {
     let userRecord;
     let uid;
 
-    if (isFirebaseMode) {
-      // Firebase Mode: Search Firestore for user with this email
-      try {
-        const usersRef = db.collection('users');
-        // Simple scan in Firestore: since we want to support password checks on custom endpoints
-        // we retrieve the document where email matches
-        // In Firestore, we would normally use query:
-        const snapshot = await usersRef.where('email', '==', email).get();
-        if (snapshot.empty) {
-          return res.status(401).json({
-            success: false,
-            message: 'Invalid credentials. User not found.'
-          });
-        }
+    // Search by email or Teaching ID (employeeId) in Firestore / Local DB
+    try {
+      const usersRef = db.collection('users');
+      let snapshot = await usersRef.where('email', '==', email).get();
+      if (snapshot.empty) {
+        snapshot = await usersRef.where('employeeId', '==', email).get();
+      }
+      
+      if (!snapshot.empty) {
         const userDoc = snapshot.docs[0];
         userRecord = userDoc.data();
         uid = userDoc.id;
-      } catch (err) {
-        console.error('Firebase Auth Login Database Scan Error:', err.message);
-        // Fallback search using user email
-        try {
-          const authUser = await auth.getUserByEmail(email);
-          uid = authUser.uid;
-          const doc = await db.collection('users').doc(uid).get();
-          if (doc.exists) {
-            userRecord = doc.data();
-          }
-        } catch (e) {
-          // If no doc
-        }
       }
-    } else {
-      // Local Mode: Find user via mock auth getUserByEmail
+    } catch (err) {
+      console.error('Database Login Scan Error:', err.message);
+    }
+
+    // Fallback Mock Auth search in Local Mode if db scan failed to find profile
+    if (!userRecord) {
       try {
         const mockUser = await auth.getUserByEmail(email);
         uid = mockUser.uid;
@@ -263,15 +242,25 @@ exports.login = async (req, res) => {
           userRecord = doc.data();
         }
       } catch (err) {
-        console.error('Local Auth Login Error:', err.message);
+        console.warn('Fallback Auth Scan Error:', err.message);
       }
     }
 
     if (!userRecord) {
       return res.status(401).json({
         success: false,
-        message: 'No user record found corresponding to this email.'
+        message: 'No registered student or teacher profile found matching this Email or Teaching ID.'
       });
+    }
+
+    // If teacher role, verify Teaching ID matches the profile teachingId
+    if (userRecord.role === 'teacher' && teachingId) {
+      if (userRecord.teachingId !== teachingId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Security mismatch: The entered Teaching ID does not correspond to this email profile.'
+        });
+      }
     }
 
     // Verify password match
@@ -280,10 +269,11 @@ exports.login = async (req, res) => {
 
     if (isFirebaseMode && webApiKey) {
       try {
-        console.log(`[Login] Authenticating user password with Firebase Auth Service for ${email}`);
-        await verifyFirebasePassword(email, password, webApiKey);
+        const firebaseEmail = userRecord.email || email;
+        console.log(`[Login] Authenticating user password with Firebase Auth Service for ${firebaseEmail}`);
+        await verifyFirebasePassword(firebaseEmail, password, webApiKey);
         isAuthenticated = true;
-        console.log(`[Login] Firebase Auth authenticated successfully for ${email}`);
+        console.log(`[Login] Firebase Auth authenticated successfully for ${firebaseEmail}`);
         
         // Sync the new password to the Firestore user doc passwordHash to keep them in sync
         if (userRecord.passwordHash !== password) {

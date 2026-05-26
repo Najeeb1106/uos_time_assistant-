@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Mail, Lock, User, GraduationCap, CalendarDays, ArrowRight, Sun, Moon, Rocket } from 'lucide-react';
+import { Mail, Lock, User, GraduationCap, CalendarDays, ArrowRight, Sun, Moon, Rocket, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('student');
   const [program, setProgram] = useState('BS in Software Engineering');
   const [type, setType] = useState('Regular');
@@ -17,7 +18,7 @@ export default function Register() {
   const [department, setDepartment] = useState('Software Engineering');
   const [designation, setDesignation] = useState('Lecturer');
   const [employeeId, setEmployeeId] = useState('');
-  const [facultyKey, setFacultyKey] = useState('');
+  const [teachingId, setTeachingId] = useState('');
   
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +36,27 @@ export default function Register() {
       document.documentElement.classList.remove('no-scrollbar');
     };
   }, []);
+
+  const getPasswordStrength = (pass) => {
+    if (!pass) return 0;
+    let strength = 0;
+    if (pass.length >= 6) strength += 1;
+    if (pass.length >= 8) strength += 1;
+    if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) strength += 1;
+    if (/[0-9]/.test(pass)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) strength += 1;
+    return strength;
+  };
+
+  const getStrengthLabelAndColor = (score) => {
+    if (score === 0) return { label: '', color: 'transparent', width: '0%' };
+    if (score <= 2) return { label: 'Weak', color: '#f87171', width: '33%' };
+    if (score <= 4) return { label: 'Medium', color: '#fbbf24', width: '66%' };
+    return { label: 'Strong', color: '#34d399', width: '100%' };
+  };
+
+  const strengthScore = getPasswordStrength(password);
+  const strengthInfo = getStrengthLabelAndColor(strengthScore);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,8 +78,8 @@ export default function Register() {
     }
 
     if (role === 'teacher') {
-      if (!department || !designation || !employeeId || !facultyKey) {
-        setError('Please fill in all faculty details including Faculty ID and Security Key');
+      if (!department || !designation || !employeeId || !teachingId) {
+        setError('Please fill in all faculty details including Employee ID and Teaching ID');
         return;
       }
     }
@@ -85,7 +107,7 @@ export default function Register() {
         payload.department = department;
         payload.designation = designation;
         payload.employeeId = employeeId;
-        payload.facultyKey = facultyKey;
+        payload.teachingId = teachingId;
       }
 
       await register(email, payload);
@@ -347,14 +369,45 @@ export default function Register() {
               {/* Password */}
               <div className="auth-input-group" style={{ marginBottom: '1.25rem' }}>
                 <label className="auth-input-label" htmlFor="reg-password">Security Password</label>
-                <input 
-                  id="reg-password"
-                  type="password" 
-                  className="auth-input-field" 
-                  placeholder="Min 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    id="reg-password"
+                    type={showPassword ? "text" : "password"} 
+                    className="auth-input-field" 
+                    placeholder="Min 6 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '0.75rem',
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '0.25rem'
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {password && (
+                  <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Strength:</span>
+                      <span style={{ color: strengthInfo.color, fontWeight: 700 }}>{strengthInfo.label}</span>
+                    </div>
+                    <div style={{ width: '100%', height: '5px', background: 'var(--bg-tertiary)', borderRadius: '10px', overflow: 'hidden' }}>
+                      <div style={{ width: strengthInfo.width, height: '100%', background: strengthInfo.color, borderRadius: '10px', transition: 'all 0.3s ease' }}></div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Conditional Fields for Student */}
@@ -401,50 +454,53 @@ export default function Register() {
                     </div>
 
                     <div className="auth-input-group" style={{ marginBottom: 0 }}>
-                      <label className="auth-input-label">Support Type</label>
-                      <div style={{ display: 'flex', gap: '0.25rem', height: '100%', alignItems: 'center' }}>
-                        {['Regular', 'Self 1', 'Self 2'].map((t, idx) => {
-                          const realVal = idx === 0 ? 'Regular' : (idx === 1 ? 'Self Support 1' : 'Self Support 2');
-                          const active = type === realVal;
-                          return (
-                            <button 
-                              key={t}
-                              type="button"
-                              className="btn"
-                              style={{ 
-                                flex: idx === 0 ? 1.2 : 1, 
-                                padding: '0.45rem 0.15rem', 
-                                fontSize: '0.75rem',
-                                background: active ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                                color: active ? '#ffffff' : 'var(--text-secondary)',
-                                border: '1px solid var(--glass-border)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                transition: 'all 0.2s ease'
-                              }}
-                              onClick={() => setType(realVal)}
-                            >
-                              {t}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <label className="auth-input-label" htmlFor="type">Section</label>
+                      <select 
+                        id="type"
+                        className="auth-input-field select-field" 
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                      >
+                        <option value="Regular">Regular</option>
+                        <option value="Self Support 1">Self Support 1</option>
+                        <option value="Self Support 2">Self Support 2</option>
+                      </select>
                     </div>
                   </div>
 
                   {/* Batch & Semester */}
                   <div className="register-row-grid-equal" style={{ gap: '0.75rem' }}>
                     <div className="auth-input-group" style={{ marginBottom: 0 }}>
-                      <label className="auth-input-label" htmlFor="batch">Session / Batch</label>
-                      <input 
-                        id="batch"
-                        type="text" 
-                        className="auth-input-field" 
-                        placeholder="e.g. 2024-2028"
-                        value={batch}
-                        onChange={(e) => setBatch(e.target.value)}
-                      />
+                      <label className="auth-input-label">Session / Batch</label>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <select
+                          className="auth-input-field select-field"
+                          value={batch.split('-')[0] || '2024'}
+                          onChange={(e) => {
+                            const end = batch.split('-')[1] || '2028';
+                            setBatch(`${e.target.value}-${end}`);
+                          }}
+                          style={{ flex: 1 }}
+                        >
+                          {['2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030'].map(yr => (
+                            <option key={yr} value={yr}>{yr}</option>
+                          ))}
+                        </select>
+                        <span style={{ color: 'var(--text-muted)' }}>to</span>
+                        <select
+                          className="auth-input-field select-field"
+                          value={batch.split('-')[1] || '2028'}
+                          onChange={(e) => {
+                            const start = batch.split('-')[0] || '2024';
+                            setBatch(`${start}-${e.target.value}`);
+                          }}
+                          style={{ flex: 1 }}
+                        >
+                          {['2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030', '2031', '2032', '2033', '2034', '2035'].map(yr => (
+                            <option key={yr} value={yr}>{yr}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div className="auth-input-group" style={{ marginBottom: 0 }}>
@@ -511,7 +567,7 @@ export default function Register() {
                     </div>
                   </div>
 
-                  {/* Employee ID & Access Key */}
+                   {/* Employee ID & Teaching ID */}
                   <div className="register-row-grid-equal" style={{ gap: '0.75rem' }}>
                     <div className="auth-input-group" style={{ marginBottom: 0 }}>
                       <label className="auth-input-label" htmlFor="employee-id">Faculty Employee ID</label>
@@ -526,18 +582,15 @@ export default function Register() {
                     </div>
 
                     <div className="auth-input-group" style={{ marginBottom: 0 }}>
-                      <label className="auth-input-label" htmlFor="faculty-key">Access Key</label>
+                      <label className="auth-input-label" htmlFor="teaching-id">Teaching ID</label>
                       <input 
-                        id="faculty-key"
-                        type="password" 
+                        id="teaching-id"
+                        type="text" 
                         className="auth-input-field" 
-                        placeholder="Faculty Security Key"
-                        value={facultyKey}
-                        onChange={(e) => setFacultyKey(e.target.value)}
+                        placeholder="e.g. TCH-481"
+                        value={teachingId}
+                        onChange={(e) => setTeachingId(e.target.value)}
                       />
-                      <span style={{ fontSize: '0.72rem', color: 'var(--accent-primary)', marginTop: '0.25rem', display: 'block', opacity: 0.85 }}>
-                        Demo key: <code style={{ background: 'var(--bg-tertiary)', padding: '0.1rem 0.35rem', borderRadius: '4px', fontSize: '0.7rem' }}>UOS_FACULTY_2026</code>
-                      </span>
                     </div>
                   </div>
                 </div>

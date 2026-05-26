@@ -32,7 +32,8 @@ export default function UploadPage() {
     setParseProgress,
     setParseStatusText,
     setParseFileName,
-    clearParsedState
+    clearParsedState,
+    uploadHistory
   } = useStore();
   const navigate = useNavigate();
   
@@ -359,6 +360,69 @@ export default function UploadPage() {
         </div>
       )}
 
+      {parseStep === 'idle' && uploadHistory && uploadHistory.length > 0 && (
+        <div className="glass-panel animate-fade-in" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+            <FileText size={18} color="var(--accent-primary)" /> Upload & Parsing History
+          </h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {uploadHistory.map((item, idx) => (
+              <div key={idx} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '12px',
+                flexWrap: 'wrap',
+                gap: '1rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>
+                  <div style={{
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    color: 'var(--success)',
+                    padding: '0.65rem',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '250px' }} title={item.pdfFileName}>
+                      {item.pdfFileName}
+                    </strong>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Successfully parsed {item.classCount} classes
+                    </span>
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  <span>
+                    🕒 {new Date(item.uploadedAt).toLocaleString()}
+                  </span>
+                  <span style={{
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    color: 'var(--success)',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '20px',
+                    textTransform: 'uppercase'
+                  }}>
+                    Active
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {parseStep === 'parsing' && (
         /* Progress loader view */
         <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', gap: '2rem' }}>
@@ -406,7 +470,7 @@ export default function UploadPage() {
                 Parser Workspace
               </span>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>
-                Found {parsedClasses.length} courses matching {user?.program || 'your program'} (Sem {user?.semester})
+                Found {parsedClasses.length} Lectures  matching {user?.program || 'your program'} (Sem {user?.semester})
               </h3>
             </div>
             
@@ -427,7 +491,26 @@ export default function UploadPage() {
               </button>
             </div>
           </div>
-
+          {!isScannedFallback && (
+            <div className="glass-panel animate-fade-in" style={{
+              padding: '1.25rem 1.5rem',
+              borderLeft: '4px solid var(--success)',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--glass-bg) 100%)',
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              boxShadow: '0 4px 20px rgba(16, 185, 129, 0.05)'
+            }}>
+              <Check size={20} color="var(--success)" style={{ flexShrink: 0 }} />
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--success)' }}>Timetable Parsed Successfully!</h4>
+                <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  We have cleanly extracted <strong>{parsedClasses.length} lectures</strong> matching your academic coordinates. Please review them below before saving.
+                </p>
+              </div>
+            </div>
+          )}
           {isScannedFallback && (
             <div className="glass-panel animate-fade-in" style={{
               padding: '1.25rem 1.5rem',
@@ -451,7 +534,14 @@ export default function UploadPage() {
 
           {/* List of Parsed Classes Cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {parsedClasses.map((cls) => {
+            {[...parsedClasses]
+              .sort((a, b) => {
+                const dayOrder = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7 };
+                const dayDiff = (dayOrder[a.day] || 9) - (dayOrder[b.day] || 9);
+                if (dayDiff !== 0) return dayDiff;
+                return (a.startTime || '').localeCompare(b.startTime || '');
+              })
+              .map((cls) => {
               const isEditing = editingClassId === cls.classId;
               
               if (isEditing) {

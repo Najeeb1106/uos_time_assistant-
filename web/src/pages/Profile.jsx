@@ -316,18 +316,24 @@ export default function Profile() {
                     <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{alignedClassesCount} classes</span>
                   </div>
 
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.5rem', 
-                    fontSize: '0.8rem',
-                    marginTop: '0.5rem',
-                    padding: '0.6rem 0.85rem',
-                    borderRadius: '8px',
-                    background: isFullyAligned ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)',
-                    border: `1px solid ${isFullyAligned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
-                    color: isFullyAligned ? 'var(--success)' : 'var(--warning)'
-                  }}>
+                  <div 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.5rem', 
+                      fontSize: '0.8rem',
+                      marginTop: '0.5rem',
+                      padding: '0.6rem 0.85rem',
+                      borderRadius: '8px',
+                      background: isFullyAligned ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                      border: `1px solid ${isFullyAligned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`,
+                      color: isFullyAligned ? 'var(--success)' : 'var(--warning)',
+                      cursor: 'help'
+                    }}
+                    title={isFullyAligned 
+                      ? "Healthy & Fully Aligned: All parsed timetable classes in your database perfectly match your active semester, batch, and support cohort." 
+                      : "Coordinate Mismatch: Your current settings do not match the parsed timetable in your account. Re-upload your PDF to synchronize."}
+                  >
                     {isFullyAligned ? (
                       <>
                         <ShieldCheck size={16} />
@@ -434,47 +440,64 @@ export default function Profile() {
                         <select 
                           id="prof-program"
                           className="input-field select-field" 
-                          style={{ paddingLeft: '2.75rem' }}
+                          style={{ paddingLeft: '2.75rem', textAlign: 'center', textAlignLast: 'center' }}
                           value={program}
                           onChange={(e) => setProgram(e.target.value)}
                         >
-                          <option value="BS in Software Engineering">BS Software Eng.</option>
-                          <option value="BS in Computer Science">BS Computer Sci.</option>
-                          <option value="BS in Information Technology">BS Info. Tech.</option>
-                          <option value="BS in Artificial Intelligence">BS Artificial Intelligence</option>
-                          <option value="BS in Data Science">BS Data Science</option>
-                          <option value="BS in Cyber Security">BS Cyber Security</option>
-                          <option value="MS in Software Engineering">MS Software Eng.</option>
-                          <option value="MS in Computer Science">MS Computer Sci.</option>
-                          <option value="MS in Information Technology">MS Info. Tech.</option>
-                          <option value="MS in Artificial Intelligence">MS Artificial Intelligence</option>
-                          <option value="MS in Data Science">MS Data Science</option>
-                          <option value="MS in Cyber Security">MS Cyber Security</option>
-                          <option value="PhD in Software Engineering">PhD Software Eng.</option>
-                          <option value="PhD in Computer Science">PhD Computer Sci.</option>
-                          <option value="PhD in Information Technology">PhD Info. Tech.</option>
-                          <option value="PhD in Artificial Intelligence">PhD Artificial Intelligence</option>
-                          <option value="PhD in Data Science">PhD Data Science</option>
-                          <option value="PhD in Cyber Security">PhD Cyber Security</option>
+                          <option value="BS in Software Engineering" style={{ textAlign: 'center' }}>BS Software Eng.</option>
+                          <option value="BS in Computer Science" style={{ textAlign: 'center' }}>BS Computer Sci.</option>
+                          <option value="BS in Information Technology" style={{ textAlign: 'center' }}>BS Info. Tech.</option>
+                          <option value="BS in Artificial Intelligence" style={{ textAlign: 'center' }}>BS Artificial Intelligence</option>
+                          <option value="BS in Data Science" style={{ textAlign: 'center' }}>BS Data Science</option>
+                          <option value="BS in Cyber Security" style={{ textAlign: 'center' }}>BS Cyber Security</option>
+                          <option value="MS in Software Engineering" style={{ textAlign: 'center' }}>MS Software Eng.</option>
+                          <option value="MS in Computer Science" style={{ textAlign: 'center' }}>MS Computer Sci.</option>
+                          <option value="MS in Information Technology" style={{ textAlign: 'center' }}>MS Info. Tech.</option>
+                          <option value="MS in Artificial Intelligence" style={{ textAlign: 'center' }}>MS Artificial Intelligence</option>
+                          <option value="MS in Data Science" style={{ textAlign: 'center' }}>MS Data Science</option>
+                          <option value="MS in Cyber Security" style={{ textAlign: 'center' }}>MS Cyber Security</option>
+                          <option value="PhD in Software Engineering" style={{ textAlign: 'center' }}>PhD Software Eng.</option>
+                          <option value="PhD in Computer Science" style={{ textAlign: 'center' }}>PhD Computer Sci.</option>
+                          <option value="PhD in Information Technology" style={{ textAlign: 'center' }}>PhD Info. Tech.</option>
+                          <option value="PhD in Artificial Intelligence" style={{ textAlign: 'center' }}>PhD Artificial Intelligence</option>
+                          <option value="PhD in Data Science" style={{ textAlign: 'center' }}>PhD Data Science</option>
+                          <option value="PhD in Cyber Security" style={{ textAlign: 'center' }}>PhD Cyber Security</option>
                         </select>
                       </div>
                     </div>
 
-                    {/* Session / Batch Text Input (Self-type, not dropdown) */}
+                    {/* Session / Batch selectors */}
                     <div className="input-row-grid">
                       <div className="input-group" style={{ marginBottom: 0 }}>
-                        <label className="input-label" htmlFor="prof-batch">Session / Batch</label>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                          <CalendarDays size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem' }} />
-                          <input 
-                            id="prof-batch"
-                            type="text" 
-                            className="input-field" 
-                            style={{ paddingLeft: '2.75rem' }}
-                            placeholder="e.g. 2024-2028"
-                            value={batch}
-                            onChange={(e) => setBatch(e.target.value)}
-                          />
+                        <label className="input-label">Session / Batch</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', height: '100%' }}>
+                          <select
+                            className="input-field select-field"
+                            value={batch.split('-')[0] || '2024'}
+                            onChange={(e) => {
+                              const end = batch.split('-')[1] || '2028';
+                              setBatch(`${e.target.value}-${end}`);
+                            }}
+                            style={{ flex: 1 }}
+                          >
+                            {['2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030'].map(yr => (
+                              <option key={yr} value={yr}>{yr}</option>
+                            ))}
+                          </select>
+                          <span style={{ color: 'var(--text-muted)' }}>to</span>
+                          <select
+                            className="input-field select-field"
+                            value={batch.split('-')[1] || '2028'}
+                            onChange={(e) => {
+                              const start = batch.split('-')[0] || '2024';
+                              setBatch(`${start}-${e.target.value}`);
+                            }}
+                            style={{ flex: 1 }}
+                          >
+                            {['2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030', '2031', '2032', '2033', '2034', '2035'].map(yr => (
+                              <option key={yr} value={yr}>{yr}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
 
@@ -486,81 +509,29 @@ export default function Profile() {
                           className="input-field select-field" 
                           value={semester}
                           onChange={(e) => setSemester(e.target.value)}
+                          style={{ textAlign: 'center', textAlignLast: 'center' }}
                         >
                           {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                            <option key={s} value={s}>Semester {s}</option>
+                            <option key={s} value={s} style={{ textAlign: 'center' }}>Semester {s}</option>
                           ))}
                         </select>
                       </div>
                     </div>
 
-                    {/* Support Type selector buttons */}
+                    {/* Support Type selector dropdown */}
                     <div className="input-group" style={{ marginBottom: 0 }}>
-                      <label className="input-label">Academic Support Cohort</label>
-                      <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                        <button 
-                          type="button"
-                          style={{ 
-                            flex: 1.2, 
-                            padding: '0.8rem 0.5rem', 
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            background: type === 'Regular' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                            color: type === 'Regular' ? '#ffffff' : 'var(--text-secondary)',
-                            border: `1px solid ${type === 'Regular' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            boxShadow: type === 'Regular' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onClick={() => setType('Regular')}
-                        >
-                          Regular
-                        </button>
-                        
-                        <button 
-                          type="button"
-                          style={{ 
-                            flex: 1, 
-                            padding: '0.8rem 0.5rem', 
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            background: type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                            color: type === 'Self Support 1' ? '#ffffff' : 'var(--text-secondary)',
-                            border: `1px solid ${type === 'Self Support 1' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            boxShadow: type === 'Self Support 1' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onClick={() => setType('Self Support 1')}
-                        >
-                          Self 1
-                        </button>
-                        
-                        <button 
-                          type="button"
-                          style={{ 
-                            flex: 1, 
-                            padding: '0.8rem 0.5rem', 
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            background: type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                            color: type === 'Self Support 2' ? '#ffffff' : 'var(--text-secondary)',
-                            border: `1px solid ${type === 'Self Support 2' ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            boxShadow: type === 'Self Support 2' ? '0 4px 15px rgba(99, 102, 241, 0.25)' : 'none',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onClick={() => setType('Self Support 2')}
-                        >
-                          Self 2
-                        </button>
-                      </div>
+                      <label className="input-label" htmlFor="prof-type">Section</label>
+                      <select 
+                        id="prof-type"
+                        className="input-field select-field" 
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        style={{ textAlign: 'center', textAlignLast: 'center' }}
+                      >
+                        <option value="Regular" style={{ textAlign: 'center' }}>Regular</option>
+                        <option value="Self Support 1" style={{ textAlign: 'center' }}>Self Support 1</option>
+                        <option value="Self Support 2" style={{ textAlign: 'center' }}>Self Support 2</option>
+                      </select>
                     </div>
                   </>
                 )}

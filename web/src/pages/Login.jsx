@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Mail, Lock, ArrowRight, Sun, Moon, GraduationCap, User, Rocket } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Sun, Moon, GraduationCap, User, Rocket, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [role, setRole] = useState('student');
@@ -9,6 +9,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [teachingId, setTeachingId] = useState('');
   
   const login = useStore((state) => state.login);
   const themeMode = useStore((state) => state.themeMode);
@@ -37,15 +39,20 @@ export default function Login() {
       return;
     }
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (role === 'student' && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
       setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (role === 'teacher' && !teachingId) {
+      setError('Please enter your Faculty Teaching ID.');
       return;
     }
 
     setIsLoading(true);
     
     try {
-      await login(email, password);
+      await login(email, password, role === 'teacher' ? teachingId : null);
       setIsLoading(false);
       navigate('/dashboard');
     } catch (err) {
@@ -273,6 +280,21 @@ export default function Login() {
             {/* Inputs Form */}
             <form onSubmit={handleSubmit}>
               
+              {/* Teaching ID (Teacher Role Only) */}
+              {role === 'teacher' && (
+                <div className="auth-input-group animate-fade-in" style={{ marginBottom: '1.25rem' }}>
+                  <label className="auth-input-label" htmlFor="teaching-id">Teaching ID</label>
+                  <input 
+                    id="teaching-id"
+                    type="text" 
+                    className="auth-input-field" 
+                    placeholder="e.g. TCH-481"
+                    value={teachingId}
+                    onChange={(e) => setTeachingId(e.target.value)}
+                  />
+                </div>
+              )}
+
               {/* Email Address */}
               <div className="auth-input-group">
                 <label className="auth-input-label" htmlFor="email">Email Address</label>
@@ -289,14 +311,34 @@ export default function Login() {
               {/* Password */}
               <div className="auth-input-group">
                 <label className="auth-input-label" htmlFor="password">Security Password</label>
-                <input 
-                  id="password"
-                  type="password" 
-                  className="auth-input-field" 
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    id="password"
+                    type={showPassword ? "text" : "password"} 
+                    className="auth-input-field" 
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '0.75rem',
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '0.25rem'
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               {/* Forgot Password Link */}

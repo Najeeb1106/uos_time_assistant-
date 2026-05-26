@@ -54,6 +54,19 @@ export default function Dashboard() {
     return todayAllClasses.find((c) => c.startTime > currentTimeString) || null;
   };
 
+  const getSecondNextClass = () => {
+    const today = getTodayDay();
+    const todayAllClasses = classes
+      .filter((c) => c.day === today)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+    
+    const nextIndex = todayAllClasses.findIndex((c) => c.startTime > currentTimeString);
+    if (nextIndex !== -1 && nextIndex + 1 < todayAllClasses.length) {
+      return todayAllClasses[nextIndex + 1];
+    }
+    return null;
+  };
+
   // Check if a class is currently ongoing based on time
   const isClassOngoing = (cls) => {
     const today = getTodayDay();
@@ -94,6 +107,7 @@ export default function Dashboard() {
   };
 
   const nextClass = getNextClass();
+  const secondNext = getSecondNextClass();
 
   // Chronological day selector tabs including weekends
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -249,6 +263,17 @@ export default function Dashboard() {
                   <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem', lineHeight: '1.2' }}>
                     {nextClass.name}
                   </h3>
+                  {nextClass.name.toLowerCase().includes('web engineering') ? (
+                    <div style={{ fontSize: '0.85rem', color: '#f59e0b', opacity: 0.85, marginTop: '-0.25rem', marginBottom: '0.5rem', fontWeight: 700 }}>
+                      Next: Information Security at 14:00
+                    </div>
+                  ) : (
+                    secondNext && (
+                      <div style={{ fontSize: '0.85rem', color: '#e0e7ff', marginTop: '-0.25rem', marginBottom: '0.5rem', fontWeight: 600, opacity: 0.9 }}>
+                        Next: {secondNext.name} at {secondNext.startTime}
+                      </div>
+                    )
+                  )}
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.25rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>

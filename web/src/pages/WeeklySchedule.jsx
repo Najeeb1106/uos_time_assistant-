@@ -78,10 +78,11 @@ export default function WeeklySchedule() {
         </div>
       ) : (
         /* Weekly Columns Grid */
-        <div className="weekly-grid animate-fade-in" style={{ flex: 1, minHeight: '480px' }}>
+        <div className="weekly-grid no-scrollbar animate-fade-in" style={{ flex: 1, minHeight: '480px' }}>
           {days.map((day) => {
             const dayClasses = getClassesForDay(day);
             const isToday = day === getTodayDay();
+            const isWeekendDay = day === 'Saturday' || day === 'Sunday';
             
             return (
               <div 
@@ -92,8 +93,17 @@ export default function WeeklySchedule() {
                   display: 'flex', 
                   flexDirection: 'column', 
                   gap: '1rem',
-                  background: isToday ? 'rgba(99, 102, 241, 0.03)' : 'var(--glass-bg)',
-                  borderColor: isToday ? 'rgba(99, 102, 241, 0.25)' : 'var(--glass-border)'
+                  minWidth: '240px',
+                  background: isToday 
+                    ? 'rgba(99, 102, 241, 0.03)' 
+                    : isWeekendDay 
+                      ? 'rgba(148, 163, 184, 0.06)' 
+                      : 'var(--glass-bg)',
+                  borderColor: isToday 
+                    ? 'rgba(99, 102, 241, 0.25)' 
+                    : isWeekendDay 
+                      ? 'rgba(148, 163, 184, 0.15)' 
+                      : 'var(--glass-border)'
                 }}
               >
                 {/* Column header */}
@@ -139,7 +149,7 @@ export default function WeeklySchedule() {
                       border: '1px dashed var(--bg-tertiary)',
                       borderRadius: '8px'
                     }}>
-                      Free Day
+                      {isWeekendDay ? 'Intentionally Free' : 'Free Day'}
                     </div>
                   ) : (
                     dayClasses.map((cls) => {
@@ -152,7 +162,7 @@ export default function WeeklySchedule() {
                           style={{
                             padding: '0.85rem 1rem',
                             cursor: 'pointer',
-                            background: ongoing ? 'var(--accent-glow)' : 'var(--glass-bg)',
+                            background: ongoing ? 'rgba(99, 102, 241, 0.08)' : 'var(--glass-bg)',
                             borderColor: ongoing ? 'var(--accent-primary)' : 'var(--glass-border)',
                             position: 'relative',
                             overflow: 'hidden',
@@ -201,10 +211,10 @@ export default function WeeklySchedule() {
                           
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                              <Clock size={10} /> {cls.startTime}
+                              <Clock size={10} /> {cls.startTime}–{cls.endTime}
                             </span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                              <MapPin size={10} color="var(--accent-primary)" /> {cls.room}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600, color: 'var(--text-primary)' }} title={cls.room}>
+                              <MapPin size={10} color="var(--accent-primary)" /> {cls.room.replace('Department of Software Engineering', '').replace('Department of Communication and Media Studies', '').trim()}
                             </span>
                           </div>
                         </div>

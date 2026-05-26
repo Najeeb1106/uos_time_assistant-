@@ -336,7 +336,7 @@ export default function FreeRooms() {
           {/* Time input */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Clock size={14} color="var(--accent-secondary)" /> Search Time
+              <Clock size={14} color="var(--accent-secondary)" /> Search Time <span style={{ fontSize: '0.7rem', fontWeight: 500, color: 'var(--text-muted)', fontStyle: 'italic' }}>(Static Snapshot)</span>
             </label>
             <input 
               type="time" 
@@ -435,6 +435,11 @@ export default function FreeRooms() {
             }}
           />
         </div>
+
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.01)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--glass-border)', marginTop: '0.5rem' }}>
+          <BookOpen size={14} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>Snapshot Search:</strong> Displaying room status for the selected hour. It does not auto-refresh dynamically in real-time unless updated above.</span>
+        </div>
       </div>
 
       {/* Grid listing rooms */}
@@ -491,6 +496,20 @@ export default function FreeRooms() {
                       <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                         {room}
                       </h3>
+                      {(room.toLowerCase().includes('pharmacy') || room.toLowerCase().includes('phar')) && (
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          fontWeight: 650, 
+                          color: 'var(--accent-secondary)', 
+                          background: 'rgba(168, 85, 247, 0.08)', 
+                          padding: '0.15rem 0.45rem', 
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          marginTop: '0.2rem'
+                        }}>
+                          🏫 Pharmacy Dept Building
+                        </span>
+                      )}
                     </div>
                     
                     {/* Status Badge */}
@@ -521,8 +540,25 @@ export default function FreeRooms() {
                   <div style={{ flex: 1 }}>
                     {isFree ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
-                          Room is currently empty and available for study, team sessions, or meetings.
+                        <p style={{ color: 'var(--success)', fontSize: '0.85rem', margin: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          🟢 {(() => {
+                            if (!selectedTime) return 'Available';
+                            const [sh, sm] = selectedTime.split(':').map(Number);
+                            let eh = 17, em = 0; // standard end of academic day 5 PM
+                            if (nextClass && nextClass.startTime) {
+                              const [nh, nm] = nextClass.startTime.split(':').map(Number);
+                              eh = nh;
+                              em = nm;
+                            }
+                            const diff = (eh * 60 + em) - (sh * 60 + sm);
+                            if (diff <= 0) return nextClass ? 'Free shortly' : 'Free for remainder of day';
+                            const hrs = Math.floor(diff / 60);
+                            const mins = diff % 60;
+                            const parts = [];
+                            if (hrs > 0) parts.push(`${hrs}h`);
+                            if (mins > 0) parts.push(`${mins}m`);
+                            return `Free for ${parts.join(' ')}${!nextClass ? ' (remainder of day)' : ''}`;
+                          })()}
                         </p>
                         
                         {nextClass ? (
