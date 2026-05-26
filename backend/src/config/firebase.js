@@ -149,7 +149,7 @@ if (!isFirebaseMode) {
     },
     getUserByEmail: async (email) => {
       const users = readJSON(usersFile);
-      const user = Object.values(users).find(u => u.email === email);
+      const user = Object.values(users).find(u => u.email === email || u.employeeId === email || u.teachingId === email);
       if (!user) {
         throw new Error('There is no user record corresponding to this identifier.');
       }
