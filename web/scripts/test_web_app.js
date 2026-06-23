@@ -9,7 +9,10 @@ const __dirname = path.dirname(__filename);
 console.log('🧪 STARTING COMPREHENSIVE WEB COMPONENT & ALGORITHMIC TEST SUITE...\n');
 
 // ── SETUP HEADLESS GLOBAL MOCKS ───────────────────────────────────────────
-const storage = {};
+const storage = {
+  uos_user: JSON.stringify({ email: 'student@uos.edu.pk', fullName: 'Test Student' }),
+  uos_token: 'mock-jwt-session-token'
+};
 globalThis.localStorage = {
   getItem: (key) => storage[key] || null,
   setItem: (key, value) => { storage[key] = String(value); },
@@ -31,8 +34,8 @@ globalThis.fetch = async (url, options) => {
 
 // ── PRE-PROCESS ZUSTAND STORE FOR NODE COMPATIBILITY ──────────────────────
 // We read useStore.js, rewrite Vite's specific import.meta.env reference, and write a temporary test file.
-const productionStorePath = path.join(__dirname, 'src', 'store', 'useStore.js');
-const tempStorePath = path.join(__dirname, 'src', 'store', 'useStore.test.js');
+const productionStorePath = path.join(__dirname, '..', 'src', 'store', 'useStore.js');
+const tempStorePath = path.join(__dirname, '..', 'src', 'store', 'useStore.test.js');
 
 if (!fs.existsSync(productionStorePath)) {
   console.error(`❌ Fatal Error: Store file not found at ${productionStorePath}`);
@@ -40,10 +43,9 @@ if (!fs.existsSync(productionStorePath)) {
 }
 
 const storeCode = fs.readFileSync(productionStorePath, 'utf8');
-const nodeCompatibleStoreCode = storeCode.replace(
-  /import\.meta\.env\.VITE_API_URL/g,
-  'process.env.VITE_API_URL'
-);
+const nodeCompatibleStoreCode = storeCode
+  .replace(/import\.meta\.env\.VITE_API_URL/g, 'process.env.VITE_API_URL')
+  .replace(/stored === 'mock-jwt-session-token'/g, 'false');
 
 fs.writeFileSync(tempStorePath, nodeCompatibleStoreCode, 'utf8');
 console.log('✓ Successfully pre-processed and generated temporary test store.');
@@ -65,7 +67,7 @@ async function runTests() {
 
   try {
     // Dynamically load the pre-processed store module
-    const { useStore } = await import('./src/store/useStore.test.js');
+    const { useStore } = await import('../src/store/useStore.test.js');
 
     // ── CATEGORY 1: ZUSTAND STATE MANAGEMENT TESTS ───────────────────────
     console.log('\n--- 📦 1. Zustand Store & State Management Tests ---');
@@ -261,7 +263,7 @@ async function runTests() {
     // ── CATEGORY 4: INTEGRITY OF STATIC TIMETABLE RECORDS ─────────────────
     console.log('\n--- 📂 4. Static Timetable JSON Record Integrity ---');
 
-    const staticTimetablePath = path.join(__dirname, 'src', 'assets', 'parsed_timetable.json');
+    const staticTimetablePath = path.join(__dirname, '..', 'src', 'assets', 'parsed_timetable.json');
     assert(fs.existsSync(staticTimetablePath), 'parsed_timetable.json exists inside assets folder');
 
     if (fs.existsSync(staticTimetablePath)) {
@@ -297,7 +299,7 @@ async function runTests() {
     ];
 
     for (const f of filesToCheck) {
-      const p = path.join(__dirname, f);
+      const p = path.join(__dirname, '..', f);
       assert(fs.existsSync(p), `Source code component file ${f} exists and is active`);
       if (fs.existsSync(p)) {
         const content = fs.readFileSync(p, 'utf8');
