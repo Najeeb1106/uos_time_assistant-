@@ -481,7 +481,7 @@ exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ success: false, message: 'Please provide your university email address.' });
+      return res.status(400).json({ success: false, message: 'Please provide your email address.' });
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });

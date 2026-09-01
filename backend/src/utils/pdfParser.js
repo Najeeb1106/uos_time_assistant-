@@ -1,7 +1,23 @@
 const pdfImport = require('pdf-parse');
 
-// ── Day Column Map ─────────────────────────────────────────────────────────
-const DAY_COLUMNS = [
+// ── Day Column Dynamic Boundaries ──────────────────────────────────────────
+const ROOM_X_THRESHOLD = 45;
+const ROOM_GROUP_DY = 8;
+const LECTURE_BLOCK_DY = 12;
+
+const DAY_CANONICAL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAY_ALIAS_MAP = {
+  'monday': 'Monday', 'mon': 'Monday',
+  'tuesday': 'Tuesday', 'tue': 'Tuesday',
+  'wednesday': 'Wednesday', 'wed': 'Wednesday',
+  'thursday': 'Thursday', 'thu': 'Thursday',
+  'friday': 'Friday', 'fri': 'Friday',
+  'saturday': 'Saturday', 'sat': 'Saturday',
+  'sunday': 'Sunday', 'sun': 'Sunday'
+};
+
+// Fallback 7-day default boundaries (preserved for backwards compatibility if document headers cannot be parsed)
+const DEFAULT_7DAY_COLUMNS = [
   { day: 'Monday',    center: 99.0  },
   { day: 'Tuesday',   center: 204.8 },
   { day: 'Wednesday', center: 309.6 },
@@ -10,29 +26,72 @@ const DAY_COLUMNS = [
   { day: 'Saturday',  center: 629.0 },
   { day: 'Sunday',    center: 734.0 },
 ];
-
-const DAY_BOUNDARIES = [];
-for (let i = 0; i < DAY_COLUMNS.length; i++) {
-  const left = i === 0 ? 45 : (DAY_COLUMNS[i - 1].center + DAY_COLUMNS[i].center) / 2;
-  const right = i === DAY_COLUMNS.length - 1 ? 900 : (DAY_COLUMNS[i].center + DAY_COLUMNS[i + 1].center) / 2;
-  DAY_BOUNDARIES.push({ day: DAY_COLUMNS[i].day, left, right });
+const DEFAULT_7DAY_BOUNDARIES = [];
+for (let i = 0; i < DEFAULT_7DAY_COLUMNS.length; i++) {
+  const left = i === 0 ? ROOM_X_THRESHOLD : (DEFAULT_7DAY_COLUMNS[i - 1].center + DEFAULT_7DAY_COLUMNS[i].center) / 2;
+  const right = i === DEFAULT_7DAY_COLUMNS.length - 1 ? 900 : (DEFAULT_7DAY_COLUMNS[i].center + DEFAULT_7DAY_COLUMNS[i + 1].center) / 2;
+  DEFAULT_7DAY_BOUNDARIES.push({ day: DEFAULT_7DAY_COLUMNS[i].day, left, right, centerX: DEFAULT_7DAY_COLUMNS[i].center });
 }
 
-function getDay(x) {
-  for (const col of DAY_BOUNDARIES) {
+/**
+ * Builds dynamic day boundaries by scanning header row text items.
+ * Validates exact normalized matching, unique day names, and strict canonical day-of-week ordering.
+ */
+function buildDynamicBoundaries(headerRowItems, roomThreshold = ROOM_X_THRESHOLD, pageWidth = 900) {
+  const detected = [];
+  for (const item of headerRowItems) {
+    const cleanStr = item.str.toLowerCase().replace(/[^a-z]/g, '');
+    const stdName = DAY_ALIAS_MAP[cleanStr];
+    if (stdName) {
+      const centerX = item.x + (item.width ? item.width / 2 : 0);
+      detected.push({ day: stdName, x: item.x, centerX });
+    }
+  }
+
+  // Sort left-to-right by X center
+  detected.sort((a, b) => a.centerX - b.centerX);
+
+  if (detected.length < 3) return null;
+
+  // Validate uniqueness of recognized day headers
+  const uniqueNames = new Set(detected.map(d => d.day));
+  if (uniqueNames.size !== detected.length) return null;
+
+  // Validate strict canonical ordering (Mon < Tue < Wed < Thu < Fri < Sat < Sun)
+  for (let k = 1; k < detected.length; k++) {
+    const prevIdx = DAY_CANONICAL.indexOf(detected[k - 1].day);
+    const curIdx = DAY_CANONICAL.indexOf(detected[k].day);
+    if (curIdx <= prevIdx) return null;
+  }
+
+  const boundaries = [];
+  for (let i = 0; i < detected.length; i++) {
+    const cur = detected[i];
+    const left = (i === 0) 
+      ? roomThreshold 
+      : (detected[i - 1].centerX + cur.centerX) / 2;
+    const right = (i === detected.length - 1) 
+      ? pageWidth 
+      : (cur.centerX + detected[i + 1].centerX) / 2;
+
+    boundaries.push({ day: cur.day, left, right, centerX: cur.centerX });
+  }
+
+  return boundaries;
+}
+
+function getDayFromBoundaries(x, boundaries) {
+  const active = (boundaries && boundaries.length >= 3) ? boundaries : DEFAULT_7DAY_BOUNDARIES;
+  for (const col of active) {
     if (x >= col.left && x < col.right) return col.day;
   }
-  let best = 'Monday', minD = Infinity;
-  for (const col of DAY_COLUMNS) {
-    const d = Math.abs(x - col.center);
+  let best = active[0].day, minD = Infinity;
+  for (const col of active) {
+    const d = Math.abs(x - col.centerX);
     if (d < minD) { minD = d; best = col.day; }
   }
   return best;
 }
-
-const ROOM_X_THRESHOLD = 45;
-const ROOM_GROUP_DY = 8;
-const LECTURE_BLOCK_DY = 12;
 
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
 const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
@@ -173,6 +232,7 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
     }
 
     const allLectures = [];
+    let docBoundaries = null;
 
     for (let pageNum = 1; pageNum <= parser.doc.numPages; pageNum++) {
       const page = await parser.doc.getPage(pageNum);
@@ -217,6 +277,15 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
       const headerItem = items.find(i => i.str.includes('Room / Lab'));
       if (!headerItem) continue;
       const gridTopY = headerItem.y;
+
+      // Extract and validate page dynamic day boundaries
+      const headerRowItems = items.filter(i => Math.abs(i.y - gridTopY) < 10);
+      const pageBoundaries = buildDynamicBoundaries(headerRowItems);
+      if (pageBoundaries) {
+        docBoundaries = pageBoundaries;
+      }
+      const activeBoundaries = pageBoundaries || docBoundaries || DEFAULT_7DAY_BOUNDARIES;
+
       const gridItems = items.filter(i => i.y < gridTopY);
 
       // Rooms (x < 45)
@@ -254,7 +323,7 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
       for (let i = 0; i < lectureItems.length; i++) {
         if (used.has(i)) continue;
         const seed = lectureItems[i];
-        const day = getDay(seed.x);
+        const day = getDayFromBoundaries(seed.x, activeBoundaries);
         const block = [seed];
         used.add(i);
 
@@ -264,7 +333,7 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
           for (let j = 0; j < lectureItems.length; j++) {
             if (used.has(j)) continue;
             const candidate = lectureItems[j];
-            if (getDay(candidate.x) !== day) continue;
+            if (getDayFromBoundaries(candidate.x, activeBoundaries) !== day) continue;
             if (block.some(b => Math.abs(b.y - candidate.y) < LECTURE_BLOCK_DY)) {
               block.push(candidate);
               used.add(j);

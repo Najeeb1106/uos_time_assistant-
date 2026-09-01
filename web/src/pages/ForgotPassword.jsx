@@ -193,7 +193,7 @@ export default function ForgotPassword() {
                     Forgot Password?
                   </h2>
                   <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '0.4rem', lineHeight: 1.55 }}>
-                    Enter your UOS email and we'll generate a secure reset token for you.
+                    Enter your email address and we'll generate a secure reset token for you.
                   </p>
                 </div>
 
