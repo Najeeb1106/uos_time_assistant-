@@ -1,3 +1,5 @@
+<img width="957" height="413" alt="image" src="https://github.com/user-attachments/assets/128479b6-e1dc-4b49-bdbb-6d7c80326fd3" />
+
 # UOS Timetable Application
 
 [![CI Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)
