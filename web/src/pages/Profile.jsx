@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function Profile() {
-  const { user, classes, updateProfile } = useStore();
+  const { user, classes, updateProfile, fetchCurrentUser } = useStore();
 
   // Tab State
   const [activeTab, setActiveTab] = useState('academic');
@@ -35,6 +35,11 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Fetch latest profile from backend on mount
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   // Sync state if user changes in store
   useEffect(() => {

@@ -37,14 +37,16 @@ function AuthRoute({ children }) {
 
 export default function App() {
   const token = useStore((state) => state.token);
+  const fetchCurrentUser = useStore((state) => state.fetchCurrentUser);
   const fetchCurrentSchedule = useStore((state) => state.fetchCurrentSchedule);
   const themeMode = useStore((state) => state.themeMode);
 
   React.useEffect(() => {
     if (token) {
+      fetchCurrentUser();
       fetchCurrentSchedule();
     }
-  }, [token, fetchCurrentSchedule]);
+  }, [token, fetchCurrentUser, fetchCurrentSchedule]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);

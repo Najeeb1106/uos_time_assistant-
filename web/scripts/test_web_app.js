@@ -147,7 +147,66 @@ async function runTests() {
     assert(useStore.getState().token === 'test-user-auth-jwt', 'login() dynamically records the authentication JWT');
     assert(useStore.getState().user.role === 'teacher', 'login() updates user profile metadata to matched role');
 
-    // Test 1.7: Logout purge
+    // Test 1.7: Profile Synchronization (fetchCurrentUser updates stale local state from backend)
+    // Simulate user having stale localStorage name "Najeeb Ullah Tahir"
+    storage['uos_user'] = JSON.stringify({ email: 'najeeb@uos.edu.pk', fullName: 'Najeeb Ullah Tahir', role: 'student' });
+    useStore.setState({ user: { email: 'najeeb@uos.edu.pk', fullName: 'Najeeb Ullah Tahir', role: 'student' } });
+
+    // Mock GET /api/auth/me returning updated name from mobile: "Najeeb"
+    mockFetchHandler = (url, options) => {
+      if (url.includes('/auth/me')) {
+        return {
+          status: 200,
+          json: async () => ({
+            success: true,
+            user: {
+              email: 'najeeb@uos.edu.pk',
+              fullName: 'Najeeb',
+              role: 'student',
+              program: 'BS in Software Engineering',
+              semester: 6,
+              batch: '2023-2027',
+              type: 'Regular'
+            }
+          })
+        };
+      }
+      return { status: 404, json: async () => ({ success: false }) };
+    };
+
+    await useStore.getState().fetchCurrentUser();
+    assert(useStore.getState().user.fullName === 'Najeeb', 'fetchCurrentUser() synchronizes profile name to "Najeeb"');
+    assert(JSON.parse(storage['uos_user']).fullName === 'Najeeb', 'fetchCurrentUser() updates localStorage uos_user with "Najeeb"');
+
+    // Test 1.8: updateProfile action
+    mockFetchHandler = (url, options) => {
+      if (url.includes('/auth/profile')) {
+        const body = JSON.parse(options.body);
+        return {
+          status: 200,
+          json: async () => ({
+            success: true,
+            message: 'Student profile updated successfully.',
+            user: {
+              email: 'najeeb@uos.edu.pk',
+              fullName: body.fullName,
+              role: 'student',
+              program: body.program || 'BS in Software Engineering',
+              semester: body.semester || 6,
+              batch: body.batch || '2023-2027',
+              type: body.type || 'Regular'
+            }
+          })
+        };
+      }
+      return { status: 404, json: async () => ({ success: false }) };
+    };
+
+    await useStore.getState().updateProfile({ fullName: 'Najeeb Tahir' });
+    assert(useStore.getState().user.fullName === 'Najeeb Tahir', 'updateProfile() updates store state to "Najeeb Tahir"');
+    assert(JSON.parse(storage['uos_user']).fullName === 'Najeeb Tahir', 'updateProfile() updates localStorage to "Najeeb Tahir"');
+
+    // Test 1.9: Logout purge
     useStore.getState().logout();
     assert(useStore.getState().token === null, 'logout() correctly purges the auth token from memory');
     assert(useStore.getState().user === null, 'logout() purges the user profile');

@@ -6,13 +6,32 @@ backend/node_modules/
 # Production/build outputs
 web/dist/
 web/dist-ssr/
+*.apk
+*.aab
+Release build/
+mobile-rn/Release build/
+
+# Local documents & temporary verification files
+*.pdf
+google*.html
+
+# Agent & AI configs
+.agent/
+.agents/
+.specify/
 
 # Local databases and cache directories
 backend/data/*.json
 !backend/data/.gitkeep
 backend/src/config/firebase-key.json
+*firebase-key*.json
+*serviceAccountKey*.json
+
+# Environment files
 .env
 .env*.local
+.env.*
+!*.env.example
 
 # Logs
 *.log
@@ -32,4 +51,5 @@ yarn-error.log*
 
 # Video files
 /uos .mp4
+
 

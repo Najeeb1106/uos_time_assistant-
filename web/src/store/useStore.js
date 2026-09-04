@@ -320,6 +320,25 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  fetchCurrentUser: async () => {
+    const { token } = get();
+    if (!token || token === 'mock-jwt-session-token') return;
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        set({ user: data.user });
+        localStorage.setItem('uos_user', JSON.stringify(data.user));
+      } else if (res.status === 401) {
+        get().logout();
+      }
+    } catch (error) {
+      console.error('Fetch current user error:', error);
+    }
+  },
+
   updateProfile: async (profileData) => {
     const { token } = get();
     try {

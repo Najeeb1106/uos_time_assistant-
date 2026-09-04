@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "ShedUOS",
+    "slug": "sheduos-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#06143b"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "pk.edu.uos.schedule"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#06143b"
+      },
+      "package": "pk.edu.uos.schedule",
+      "versionCode": 3
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "https://uos-time-assistant.onrender.com/api",
+      "eas": {
+        "projectId": "4fa60f05-f2c4-45fd-97b0-69766e185adf"
+      }
+    },
+    "owner": "najeeb29"
+  }
+}

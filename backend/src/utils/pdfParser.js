@@ -408,64 +408,77 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
 
     // Filter results specifically for the user
     const targetSemester = Number(userSemester);
-    const targetType = (userType || 'Regular').toLowerCase();
+    const rawUserType = (userType || 'Regular').trim();
     
-    // Robust normalizer for program names
-    const normalizeProgramName = (name) => {
-      if (!name) return '';
-      return name
-        .toLowerCase()
-        .replace(/\s+/g, ' ')
-        .replace(/\bin\b/gi, '')
-        .replace(/[().…\-\s]+/g, '')
-        .trim();
+    // Strict normalizer for program names
+    const extractProgramKey = (name) => {
+      if (!name) return null;
+      const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (!clean) return null;
+      let degree = 'BS';
+      if (clean.startsWith('phd')) degree = 'PhD';
+      else if (clean.startsWith('ms')) degree = 'MS';
+      
+      let key = clean;
+      if (clean.includes('cyber')) key = 'cybersecurity';
+      else if (clean.includes('software')) key = 'softwareengineering';
+      else if (clean.includes('informationtech') || clean.includes('bsit') || clean.includes('msit') || clean.includes('phdit')) key = 'informationtechnology';
+      else if (clean.includes('datascience')) key = 'datascience';
+      else if (clean.includes('artificialintel') || clean.includes('ai')) key = 'artificialintelligence';
+      else if (clean.includes('cloud')) key = 'cloudcomputing';
+      else if (clean.includes('computer')) key = 'computerscience';
+      return `${degree}_${key}`;
     };
 
-    const targetProgramNorm = normalizeProgramName(userProgram);
+    const targetProgramKey = extractProgramKey(userProgram);
     
+    // Target Section & Type matching
+    let targetIsSelf = false;
+    let targetSection = null;
+    if (/self\s*support\s*2/i.test(rawUserType)) {
+      targetIsSelf = true;
+      targetSection = '2';
+    } else if (/self\s*support\s*1/i.test(rawUserType)) {
+      targetIsSelf = true;
+      targetSection = '1';
+    } else if (/self/i.test(rawUserType)) {
+      targetIsSelf = true;
+    } else {
+      targetIsSelf = false;
+    }
+
     const filtered = final.filter(cls => {
       const clsSemester = Number(cls.semester);
       const clsType = (cls.type || '').toLowerCase();
       
-      const semMatch = clsSemester === targetSemester;
+      // 1. Semester Match
+      if (targetSemester > 0 && clsSemester !== targetSemester) {
+        return false;
+      }
       
-      let typeMatch = false;
-      if (targetType.includes('regular') && clsType.includes('regular')) {
-        typeMatch = true;
-      } else if (targetType.includes('self') && clsType.includes('self')) {
-        const targetIsWeekend = targetType.includes('weekend');
-        const clsIsWeekend = clsType.includes('weekend');
-        
-        if (targetIsWeekend === clsIsWeekend) {
-          const targetSectionMatch = targetType.match(/\d+/);
-          const clsSectionMatch = cls.section ? cls.section.trim() : '';
-          
-          if (targetSectionMatch && clsSectionMatch) {
-            typeMatch = targetSectionMatch[0] === clsSectionMatch;
-          } else {
-            typeMatch = true;
-          }
+      // 2. Program Match
+      if (targetProgramKey) {
+        const clsProgKey = extractProgramKey(cls.program);
+        if (!clsProgKey || clsProgKey !== targetProgramKey) {
+          return false;
+        }
+      }
+      
+      // 3. Support Type Match
+      const clsIsSelf = clsType.includes('self');
+      if (clsIsSelf !== targetIsSelf) {
+        return false;
+      }
+
+      // 4. Section Match for Self Support
+      if (targetIsSelf && targetSection) {
+        const clsSection = String(cls.section || '').trim();
+        if (clsSection && clsSection !== targetSection) {
+          return false;
         }
       }
 
-      // Cohort match logic:
-      // If both userBatch and cls.batch are defined, they must match.
-      // If they match, they represent the same cohort, so they pass (bypassing semester delay mismatches like 7 vs 8).
-      // Otherwise, if batch information is missing or not applicable, we fall back to semester matching.
-      let cohortMatch = false;
-      if (userBatch && cls.batch) {
-        cohortMatch = (cls.batch === userBatch);
-      } else {
-        cohortMatch = semMatch;
-      }
-
-      // Filter by degree program
-      let programMatch = true;
-      if (targetProgramNorm && cls.program && cls.program !== 'Unknown') {
-        programMatch = normalizeProgramName(cls.program) === targetProgramNorm;
-      }
-
-      return cohortMatch && typeMatch && programMatch;
+      return true;
     });
 
     return filtered;
