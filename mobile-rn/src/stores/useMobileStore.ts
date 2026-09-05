@@ -36,8 +36,7 @@ function formatApiError(err: any, fallbackMessage: string): string {
       return err.response.data.error;
     }
     if (err.code === 'ERR_NETWORK' || !err.response) {
-      const cleanServerHost = Config.API_URL.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-      return `Unable to connect to server. Please ensure your device is connected to the same Wi-Fi network as the server (${cleanServerHost}).`;
+      return 'Unable to connect to server. Please check your internet connection and try again.';
     }
     if (err.message) {
       return err.message;

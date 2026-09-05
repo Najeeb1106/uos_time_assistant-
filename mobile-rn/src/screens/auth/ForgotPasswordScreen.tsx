@@ -149,7 +149,7 @@ export default function ForgotPasswordScreen() {
                     },
                     focusedField === 'email' && {
                       borderColor: colors.primary,
-                      backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                      backgroundColor: colors.badgeBg,
                     },
                   ]}
                 >

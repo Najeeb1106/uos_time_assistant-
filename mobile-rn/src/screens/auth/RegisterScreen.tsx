@@ -107,9 +107,9 @@ export default function RegisterScreen() {
 
   const getStrengthMeta = (score: number) => {
     if (score === 0) return { label: '', color: 'transparent', width: '0%' };
-    if (score <= 2) return { label: 'Weak', color: '#f87171', width: '33%' };
-    if (score <= 4) return { label: 'Medium', color: '#fbbf24', width: '66%' };
-    return { label: 'Strong', color: '#34d399', width: '100%' };
+    if (score <= 2) return { label: 'Weak', color: colors.error, width: '33%' };
+    if (score <= 4) return { label: 'Medium', color: colors.warning, width: '66%' };
+    return { label: 'Strong', color: colors.success, width: '100%' };
   };
 
   const strengthScore = getPasswordStrength(password);
@@ -321,7 +321,7 @@ export default function RegisterScreen() {
                       },
                       focusedField === 'name' && {
                         borderColor: colors.primary,
-                        backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                        backgroundColor: colors.badgeBg,
                       },
                     ]}
                   >
@@ -361,7 +361,7 @@ export default function RegisterScreen() {
                       },
                       focusedField === 'email' && {
                         borderColor: colors.primary,
-                        backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                        backgroundColor: colors.badgeBg,
                       },
                     ]}
                   >
@@ -404,7 +404,7 @@ export default function RegisterScreen() {
                       },
                       focusedField === 'password' && {
                         borderColor: colors.primary,
-                        backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                        backgroundColor: colors.badgeBg,
                       },
                     ]}
                   >
@@ -495,7 +495,7 @@ export default function RegisterScreen() {
                           },
                           focusedField === 'batch' && {
                             borderColor: colors.primary,
-                            backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                            backgroundColor: colors.badgeBg,
                           },
                         ]}
                       >
@@ -568,7 +568,7 @@ export default function RegisterScreen() {
                           },
                           focusedField === 'empId' && {
                             borderColor: colors.primary,
-                            backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                            backgroundColor: colors.badgeBg,
                           },
                         ]}
                       >
@@ -609,7 +609,7 @@ export default function RegisterScreen() {
                           },
                           focusedField === 'tchId' && {
                             borderColor: colors.primary,
-                            backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                            backgroundColor: colors.badgeBg,
                           },
                         ]}
                       >

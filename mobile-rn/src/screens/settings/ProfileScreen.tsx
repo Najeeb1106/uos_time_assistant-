@@ -195,8 +195,12 @@ export default function ProfileScreen() {
                 </View>
               </Pressable>
 
-              <Text style={[styles.name, { color: colors.textPrimary }]}>{user.fullName || 'University Student'}</Text>
-              <Text style={[styles.email, { color: colors.textSecondary }]}>{user.email}</Text>
+              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                {user.fullName || 'University Student'}
+              </Text>
+              <Text style={[styles.email, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                {user.email}
+              </Text>
 
               {/* Account Action Buttons Horizontal Row */}
               <View
@@ -299,7 +303,7 @@ export default function ProfileScreen() {
                   ]}
                   onPress={() => setThemeMode('light')}
                 >
-                  <Ionicons name="sunny" size={16} color={!isDark ? '#F59E0B' : colors.textMuted} style={{ marginRight: 6 }} />
+                  <Ionicons name="sunny" size={16} color={!isDark ? colors.gold : colors.textMuted} style={{ marginRight: 6 }} />
                   <Text style={[styles.themeOptionText, { color: !isDark ? colors.textPrimary : colors.textSecondary }]}>
                     Light Mode
                   </Text>
@@ -328,14 +332,16 @@ export default function ProfileScreen() {
 
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Degree Program</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{user.program || 'BS Software Engineering'}</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {user.program || 'BS Software Engineering'}
+                </Text>
               </View>
 
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Active Semester</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
                   {user.semester ? `Semester ${user.semester}` : 'N/A'}
                 </Text>
               </View>
@@ -344,14 +350,18 @@ export default function ProfileScreen() {
 
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Session / Batch</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{user.batch || '2024-2028'}</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {user.batch || '2024-2028'}
+                </Text>
               </View>
 
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Section</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{user.type || 'Regular'}</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {user.type || 'Regular'}
+                </Text>
               </View>
             </View>
 
@@ -369,17 +379,23 @@ export default function ProfileScreen() {
               <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>System Information</Text>
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Application</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>ShedUOS Mobile</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  ShedUOS Mobile
+                </Text>
               </View>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Version</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>Version 1.0.0</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  Version 1.0.0
+                </Text>
               </View>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Institution</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>University of Sargodha</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  University of Sargodha
+                </Text>
               </View>
             </View>
           </>
@@ -834,7 +850,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerContainer: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: Typography.sizes.xs,
@@ -842,64 +858,64 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
     alignItems: 'center',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
     elevation: 2,
   },
   avatarContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 5,
     position: 'relative',
     overflow: 'visible',
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 28,
+    borderRadius: 23,
   },
   avatarCameraBadge: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    bottom: -1,
+    right: -1,
+    width: 17,
+    height: 17,
+    borderRadius: 8.5,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: '#ffffff',
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: Typography.weights.bold,
   },
   name: {
-    fontSize: Typography.sizes.xl,
+    fontSize: 16,
     fontWeight: Typography.weights.bold,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   email: {
-    fontSize: Typography.sizes.sm,
-    marginBottom: 8,
+    fontSize: Typography.sizes.xs,
+    marginBottom: 5,
   },
   profileActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 16,
     width: '100%',
-    height: 38,
-    marginTop: 6,
+    height: 32,
+    marginTop: 3,
     overflow: 'hidden',
   },
   profileActionLeft: {
@@ -912,7 +928,7 @@ const styles = StyleSheet.create({
   },
   actionDivider: {
     width: 1,
-    height: 18,
+    height: 14,
   },
   profileActionRight: {
     flex: 1,
@@ -926,31 +942,31 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   roleBadgeText: {
-    fontSize: Typography.sizes.xs,
+    fontSize: 11,
     fontWeight: Typography.weights.semibold,
   },
   editProfileCardButtonText: {
-    fontSize: Typography.sizes.xs,
+    fontSize: 11,
     fontWeight: Typography.weights.bold,
   },
   themeToggleRow: {
     flexDirection: 'row',
     width: '100%',
-    gap: 8,
-    marginTop: 4,
+    gap: 6,
+    marginTop: 2,
   },
   themeOptionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 9,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    borderRadius: 8,
     borderWidth: 1,
   },
   themeOptionText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '600',
   },
   cardHeaderRow: {
@@ -958,14 +974,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   cardHeaderTitle: {
-    fontSize: Typography.sizes.md,
+    fontSize: 13.5,
     fontWeight: Typography.weights.bold,
   },
   editLinkText: {
-    fontSize: Typography.sizes.xs,
+    fontSize: 11.5,
     fontWeight: Typography.weights.bold,
   },
   infoRow: {
@@ -973,27 +989,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   infoLabel: {
-    fontSize: Typography.sizes.sm,
+    fontSize: 12,
   },
   infoValue: {
-    fontSize: Typography.sizes.sm,
+    fontSize: 12,
     fontWeight: Typography.weights.semibold,
+    flexShrink: 1,
+    textAlign: 'right',
+    marginLeft: 8,
   },
   divider: {
     height: 1,
     width: '100%',
-    marginVertical: 10,
+    marginVertical: 5,
   },
   logoutButton: {
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
+    borderRadius: 10,
+    paddingVertical: 11,
+    paddingHorizontal: 20,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   logoutContent: {
     flexDirection: 'row',
@@ -1005,7 +1024,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#ffffff',
-    fontSize: Typography.sizes.md,
+    fontSize: 14,
     fontWeight: Typography.weights.bold,
   },
   modalOverlay: {

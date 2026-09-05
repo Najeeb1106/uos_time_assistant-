@@ -30,12 +30,11 @@ export default function NextClassAlertCard({
   const isWeekendNotice = isWeekend(allClasses);
 
   // Card theme styling
-  const cardBg = isDark ? '#0D1333' : '#EEF2FF';
-  const cardBorder = isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(99, 102, 241, 0.25)';
-  const detailsBg = isDark ? 'rgba(0, 0, 0, 0.28)' : 'rgba(255, 255, 255, 0.75)';
-  const detailsBorder = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(99, 102, 241, 0.12)';
-  const purpleAccent = isDark ? '#A78BFA' : '#6366F1';
-  const purpleGlow = isDark ? '#8B5CF6' : '#4F46E5';
+  const cardBg = colors.surface;
+  const cardBorder = colors.border;
+  const detailsBg = colors.surfaceElevated;
+  const detailsBorder = colors.border;
+  const accentColor = colors.primary;
 
   return (
     <View style={styles.outerContainer}>
@@ -43,18 +42,18 @@ export default function NextClassAlertCard({
         {/* Header with Bell and Status */}
         <View style={styles.headerRow}>
           <View style={styles.headerTitleRow}>
-            <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(99, 102, 241, 0.15)' }]}>
-              <Ionicons name="notifications" size={15} color={purpleGlow} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.badgeBg }]}>
+              <Ionicons name="notifications" size={15} color={accentColor} />
             </View>
-            <Text style={[styles.headerBadgeText, { color: purpleAccent }]}>
+            <Text style={[styles.headerBadgeText, { color: accentColor }]}>
               NEXT CLASS ALERT
             </Text>
           </View>
 
           {nextClass && (
-            <View style={[styles.countdownBadge, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(99, 102, 241, 0.15)' }]}>
-              <Ionicons name="time-outline" size={12} color={purpleAccent} style={{ marginRight: 4 }} />
-              <Text style={[styles.countdownText, { color: purpleAccent }]}>
+            <View style={[styles.countdownBadge, { backgroundColor: colors.badgeBg }]}>
+              <Ionicons name="time-outline" size={12} color={accentColor} style={{ marginRight: 4 }} />
+              <Text style={[styles.countdownText, { color: accentColor }]}>
                 {formatCountdown(nextClass.startTime, nowTime)}
               </Text>
             </View>
@@ -77,7 +76,7 @@ export default function NextClassAlertCard({
 
             {/* Subtitle / Next up teaser */}
             {secondNextClass ? (
-              <Text style={[styles.subsequentText, { color: purpleAccent }]} numberOfLines={1}>
+              <Text style={[styles.subsequentText, { color: colors.primary }]} numberOfLines={1}>
                 Next: {secondNextClass.name} at {format12HourTime(secondNextClass.startTime)}
               </Text>
             ) : (
@@ -90,7 +89,7 @@ export default function NextClassAlertCard({
             <View style={[styles.detailsBox, { backgroundColor: detailsBg, borderColor: detailsBorder }]}>
               {/* Row 1: Time */}
               <View style={styles.detailRow}>
-                <Ionicons name="time-outline" size={15} color={purpleAccent} style={styles.detailIcon} />
+                <Ionicons name="time-outline" size={15} color={colors.primary} style={styles.detailIcon} />
                 <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
                   Starts at:{' '}
                   <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
@@ -115,7 +114,7 @@ export default function NextClassAlertCard({
               <View style={styles.detailRow}>
                 {isTeacher ? (
                   <>
-                    <Ionicons name="school-outline" size={15} color={purpleAccent} style={styles.detailIcon} />
+                    <Ionicons name="school-outline" size={15} color={colors.primary} style={styles.detailIcon} />
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]} numberOfLines={1}>
                       Class:{' '}
                       <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
@@ -125,7 +124,7 @@ export default function NextClassAlertCard({
                   </>
                 ) : (
                   <>
-                    <Ionicons name="person-outline" size={15} color={purpleAccent} style={styles.detailIcon} />
+                    <Ionicons name="person-outline" size={15} color={colors.primary} style={styles.detailIcon} />
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]} numberOfLines={1}>
                       Instructor:{' '}
                       <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
@@ -154,7 +153,7 @@ export default function NextClassAlertCard({
           /* Empty state when no classes on today's schedule */
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyIconRow}>
-              <Ionicons name="calendar-outline" size={22} color={purpleAccent} style={{ marginRight: 8 }} />
+              <Ionicons name="calendar-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.allDoneHeader, { color: colors.textPrimary }]}>
                 {isWeekendNotice ? 'Weekend Break' : 'No Lectures Today'}
               </Text>

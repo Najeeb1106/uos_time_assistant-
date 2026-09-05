@@ -78,7 +78,7 @@ export default function CollapsibleHeader({
               <Ionicons
                 name={isDark ? 'sunny-outline' : 'moon-outline'}
                 size={16}
-                color={isDark ? '#F59E0B' : colors.primary}
+                color={isDark ? colors.gold : colors.primary}
               />
             </Pressable>
           ) : onSettingsPress ? (

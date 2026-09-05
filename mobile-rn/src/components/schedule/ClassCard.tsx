@@ -23,12 +23,7 @@ export default function ClassCard({ item, onPress }: ClassCardProps) {
         {
           backgroundColor: colors.surface,
           borderColor: colors.border,
-          shadowOpacity: isDark ? 0.2 : 0.05,
-        },
-        ongoing && {
-          borderColor: colors.primary,
-          borderWidth: 1.5,
-          backgroundColor: isDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(79, 70, 229, 0.05)',
+          shadowOpacity: isDark ? 0.15 : 0.04,
         },
       ]}
       onPress={() => onPress && onPress(item)}
@@ -52,30 +47,30 @@ export default function ClassCard({ item, onPress }: ClassCardProps) {
         </View>
       </View>
 
-      <Text style={[styles.nameText, { color: colors.textPrimary }]}>
+      <Text style={[styles.nameText, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
         {item.name}
       </Text>
 
-      <View style={styles.detailsContainer}>
-        <View style={styles.detailItem}>
-          <Text style={styles.detailIcon}>📍</Text>
-          <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+      <View style={styles.metaRow}>
+        <View style={styles.metaItemRoom}>
+          <Text style={styles.metaIcon}>📍</Text>
+          <Text style={[styles.metaText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {item.room || 'TBA'}
           </Text>
         </View>
 
-        <View style={styles.detailItem}>
-          <Text style={styles.detailIcon}>👨‍🏫</Text>
-          <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+        <View style={styles.metaItemTeacher}>
+          <Text style={styles.metaIcon}>👤</Text>
+          <Text style={[styles.metaText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {item.teacher || 'To be allocated'}
           </Text>
         </View>
-      </View>
 
-      <View style={styles.footerRow}>
-        <Text style={[styles.tag, { backgroundColor: colors.surfaceElevated, color: colors.textMuted }]}>
-          {sectionBadge}
-        </Text>
+        {sectionBadge ? (
+          <Text style={[styles.tag, { backgroundColor: colors.surfaceElevated, color: colors.textMuted }]} numberOfLines={1}>
+            {sectionBadge}
+          </Text>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -84,23 +79,26 @@ export default function ClassCard({ item, onPress }: ClassCardProps) {
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
     elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 6,
   },
   codeText: {
     fontSize: Typography.sizes.xs,
@@ -110,24 +108,24 @@ const styles = StyleSheet.create({
   ongoingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    marginLeft: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 6,
   },
   pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 4,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    marginRight: 3,
   },
   ongoingBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: Typography.weights.bold,
   },
   timeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     borderRadius: 6,
   },
   timeText: {
@@ -135,40 +133,43 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.medium,
   },
   nameText: {
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '700',
-    marginBottom: 8,
-    lineHeight: 21,
-  },
-  detailsContainer: {
-    gap: 4,
-    marginBottom: 8,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  detailIcon: {
-    fontSize: 12,
-    marginRight: 6,
-    marginTop: 2,
-  },
-  detailText: {
-    fontSize: Typography.sizes.xs,
-    flex: 1,
+    marginBottom: 6,
     lineHeight: 18,
   },
-  footerRow: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    justifyContent: 'space-between',
+    gap: 6,
+    width: '100%',
+  },
+  metaItemRoom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+  },
+  metaItemTeacher: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    flexShrink: 1,
+  },
+  metaIcon: {
+    fontSize: 11,
+    marginRight: 4,
+  },
+  metaText: {
+    fontSize: 11.5,
+    flexShrink: 1,
   },
   tag: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
     overflow: 'hidden',
   },
 });

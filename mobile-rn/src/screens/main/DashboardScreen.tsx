@@ -77,16 +77,14 @@ export default function DashboardScreen() {
   const headerTotalHeight = TOOLBAR_HEIGHT + insets.top;
   const tabBarHeight = 54 + (insets.bottom > 0 ? insets.bottom : 8);
 
-  // Theme tokens matching the dark navy/indigo/purple aesthetic
-  const bgCanvas = isDark ? '#050B1F' : colors.background;
-  const cardSurface = isDark ? '#0B0F24' : colors.surface;
-  const cardElevated = isDark ? '#131936' : colors.surfaceElevated;
-  const textTitle = isDark ? '#F8FAFC' : colors.textPrimary;
-  const textSub = isDark ? '#94A3B8' : colors.textSecondary;
-  const borderLine = isDark ? 'rgba(255, 255, 255, 0.08)' : colors.border;
-  const subtleBorder = isDark ? 'rgba(255, 255, 255, 0.05)' : colors.borderSubtle;
-  const purpleAccent = '#8B5CF6';
-  const purpleLight = '#A78BFA';
+  // Theme tokens matching the unified UOS Navy / Gold / Purple palette
+  const bgCanvas = colors.background;
+  const cardSurface = colors.surface;
+  const cardElevated = colors.surfaceElevated;
+  const textTitle = colors.textPrimary;
+  const textSub = colors.textSecondary;
+  const borderLine = colors.border;
+  const subtleBorder = colors.borderSubtle;
 
   // Compute initials for user avatar
   const getUserInitials = (name?: string) => {
@@ -128,8 +126,8 @@ export default function DashboardScreen() {
               await refreshSchedule();
               setIsRefreshing(false);
             }}
-            tintColor={purpleAccent}
-            colors={[purpleAccent]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
             progressViewOffset={headerTotalHeight}
           />
         }
@@ -138,11 +136,11 @@ export default function DashboardScreen() {
         <View style={styles.greetingContainer}>
           <View style={styles.greetingLeftRow}>
             {/* Avatar Circle */}
-            <View style={[styles.avatarCircle, { backgroundColor: cardElevated, borderColor: 'rgba(139, 92, 246, 0.35)' }]}>
+            <View style={[styles.avatarCircle, { backgroundColor: cardElevated, borderColor: colors.borderFocus }]}>
               {user?.avatarUri ? (
                 <Image source={{ uri: user.avatarUri }} style={styles.avatarImage} resizeMode="cover" />
               ) : (
-                <Text style={[styles.avatarText, { color: purpleLight }]}>
+                <Text style={[styles.avatarText, { color: colors.primary }]}>
                   {getUserInitials(user?.fullName)}
                 </Text>
               )}
@@ -154,7 +152,7 @@ export default function DashboardScreen() {
                 <Text style={[styles.greetingSalutation, { color: textTitle }]}>
                   Assalam-o-Alaikum,{' '}
                 </Text>
-                <Text style={[styles.greetingName, { color: purpleAccent }]}>
+                <Text style={[styles.greetingName, { color: colors.primary }]}>
                   {displayName}!
                 </Text>
               </View>
@@ -168,7 +166,7 @@ export default function DashboardScreen() {
         {/* 3. Main Dashboard Body States */}
         {isLoading && classes.length === 0 ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={purpleAccent} />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.loaderText, { color: textSub }]}>Loading your schedule...</Text>
           </View>
         ) : classes.length === 0 ? (
@@ -189,9 +187,9 @@ export default function DashboardScreen() {
                   >
                     {/* Top Status Header */}
                     <View style={styles.lectureHeaderRow}>
-                      <View style={[styles.statusBadgeOngoing, { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
-                        <View style={[styles.pulseDot, { backgroundColor: '#10B981' }]} />
-                        <Text style={[styles.statusBadgeTextOngoing, { color: '#10B981' }]}>
+                      <View style={[styles.statusBadgeOngoing, { backgroundColor: colors.successBg, borderColor: colors.successBorder }]}>
+                        <View style={[styles.pulseDot, { backgroundColor: colors.success }]} />
+                        <Text style={[styles.statusBadgeTextOngoing, { color: colors.success }]}>
                           Ongoing Lecture
                         </Text>
                       </View>
@@ -208,9 +206,9 @@ export default function DashboardScreen() {
                     {/* Meta Badges */}
                     <View style={styles.metaBadgesRow}>
                       {/* Room Pill */}
-                      <View style={[styles.purplePill, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
-                        <Ionicons name="location-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: purpleLight }]} numberOfLines={1} ellipsizeMode="tail">
+                      <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                        <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={[styles.purplePillText, { color: colors.primary }]} numberOfLines={1} ellipsizeMode="tail">
                           {ongoingClass.room || 'TBA'}
                         </Text>
                       </View>
@@ -227,7 +225,7 @@ export default function DashboardScreen() {
                       {ongoingClass.teacher ? (
                         <View style={[styles.neutralPill, { backgroundColor: cardElevated, borderColor: subtleBorder }]}>
                           <Ionicons name="person-outline" size={12} color={textSub} style={{ marginRight: 4 }} />
-                          <Text style={[styles.neutralPillText, { color: textSub }]} numberOfLines={1}>
+                          <Text style={[styles.neutralPillText, { color: textSub }]} numberOfLines={1} ellipsizeMode="tail">
                             {ongoingClass.teacher}
                           </Text>
                         </View>
@@ -267,13 +265,13 @@ export default function DashboardScreen() {
                   >
                     {/* Next Header */}
                     <View style={styles.lectureHeaderRow}>
-                      <View style={[styles.statusBadgeNext, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
-                        <Ionicons name="arrow-forward-circle-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.statusBadgeTextNext, { color: purpleLight }]}>
+                      <View style={[styles.statusBadgeNext, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                        <Ionicons name="arrow-forward-circle-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={[styles.statusBadgeTextNext, { color: colors.primary }]}>
                           Next Lecture
                         </Text>
                       </View>
-                      <Text style={[styles.countdownText, { color: purpleLight }]}>
+                      <Text style={[styles.countdownText, { color: colors.primary }]}>
                         Starts at {format12HourTime(subsequentClass.startTime)}
                       </Text>
                     </View>
@@ -286,9 +284,9 @@ export default function DashboardScreen() {
                     {/* Meta Badges */}
                     <View style={styles.metaBadgesRow}>
                       {/* Room Pill */}
-                      <View style={[styles.purplePill, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
-                        <Ionicons name="location-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: purpleLight }]} numberOfLines={1} ellipsizeMode="tail">
+                      <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                        <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={[styles.purplePillText, { color: colors.primary }]} numberOfLines={1} ellipsizeMode="tail">
                           {subsequentClass.room || 'TBA'}
                         </Text>
                       </View>
@@ -305,7 +303,7 @@ export default function DashboardScreen() {
                       {subsequentClass.teacher ? (
                         <View style={[styles.neutralPill, { backgroundColor: cardElevated, borderColor: subtleBorder }]}>
                           <Ionicons name="person-outline" size={12} color={textSub} style={{ marginRight: 4 }} />
-                          <Text style={[styles.neutralPillText, { color: textSub }]} numberOfLines={1}>
+                          <Text style={[styles.neutralPillText, { color: textSub }]} numberOfLines={1} ellipsizeMode="tail">
                             {subsequentClass.teacher}
                           </Text>
                         </View>
@@ -322,13 +320,13 @@ export default function DashboardScreen() {
                   >
                     {/* Next Header */}
                     <View style={styles.lectureHeaderRow}>
-                      <View style={[styles.statusBadgeNext, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
-                        <Ionicons name="alarm-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.statusBadgeTextNext, { color: purpleLight }]}>
+                      <View style={[styles.statusBadgeNext, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                        <Ionicons name="alarm-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={[styles.statusBadgeTextNext, { color: colors.primary }]}>
                           Next Class Alert
                         </Text>
                       </View>
-                      <Text style={[styles.countdownText, { color: purpleLight }]}>
+                      <Text style={[styles.countdownText, { color: colors.primary }]}>
                         {formatCountdown(nextClass.startTime, nowTime)}
                       </Text>
                     </View>
@@ -341,9 +339,9 @@ export default function DashboardScreen() {
                     {/* Meta Badges */}
                     <View style={styles.metaBadgesRow}>
                       {/* Room Pill */}
-                      <View style={[styles.purplePill, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
-                        <Ionicons name="location-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: purpleLight }]} numberOfLines={1} ellipsizeMode="tail">
+                      <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                        <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={[styles.purplePillText, { color: colors.primary }]} numberOfLines={1} ellipsizeMode="tail">
                           {nextClass.room || 'TBA'}
                         </Text>
                       </View>
@@ -360,7 +358,7 @@ export default function DashboardScreen() {
                       {nextClass.teacher ? (
                         <View style={[styles.neutralPill, { backgroundColor: cardElevated, borderColor: subtleBorder }]}>
                           <Ionicons name="person-outline" size={12} color={textSub} style={{ marginRight: 4 }} />
-                          <Text style={[styles.neutralPillText, { color: textSub }]} numberOfLines={1}>
+                          <Text style={[styles.neutralPillText, { color: textSub }]} numberOfLines={1} ellipsizeMode="tail">
                             {nextClass.teacher}
                           </Text>
                         </View>
@@ -388,7 +386,7 @@ export default function DashboardScreen() {
                 Today's Schedule ({todayClasses.length})
               </Text>
               <Pressable onPress={() => navigation.navigate('ScheduleTab')} hitSlop={8}>
-                <Text style={[styles.sectionLink, { color: purpleLight }]}>Full Week →</Text>
+                <Text style={[styles.sectionLink, { color: colors.primary }]}>Full Week →</Text>
               </Pressable>
             </View>
 

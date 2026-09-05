@@ -1,20 +1,31 @@
-// Theme Colors for ShedUOS Mobile Application (100% Web Parity)
+// Theme Colors for ShedUOS Mobile Application (Unified UOS Palette)
 
 export const darkColors = {
   // Atmospheric Space Surfaces
-  background: '#060814',          // Web --bg-primary
-  surface: '#0B0F24',             // Web --bg-secondary
-  surfaceElevated: '#131936',     // Web --bg-tertiary (input tracks, chips)
+  background: '#060814',          // Deep academic navy canvas
+  surface: '#0B0F24',             // Primary card surface
+  surfaceElevated: '#131936',     // Elevated chips & input tracks
   surfaceGlass: 'rgba(13, 18, 41, 0.75)',
   cardBackground: '#0B0F24',
   cardElevated: '#131936',
 
-  // Accents & Gradients
-  primary: '#6366F1',             // Indigo
+  // Accents & Brand Identity
+  primary: '#6366F1',             // UOS Indigo/Navy
   primaryDark: '#4F46E5',
   primaryLight: '#818CF8',
   primaryAccent: '#818CF8',
-  secondary: '#A855F7',           // Purple
+  secondary: '#8B5CF6',           // Controlled Purple Accent
+  gold: '#F59E0B',                // UOS Gold
+  goldLight: '#FCD34D',
+  goldBg: 'rgba(245, 158, 11, 0.12)',
+  goldBorder: 'rgba(245, 158, 11, 0.25)',
+  purple: '#8B5CF6',
+  purpleLight: '#A78BFA',
+  purpleBg: 'rgba(139, 92, 246, 0.12)',
+  purpleBorder: 'rgba(139, 92, 246, 0.25)',
+  info: '#3B82F6',
+  infoBg: 'rgba(59, 130, 246, 0.12)',
+  infoBorder: 'rgba(59, 130, 246, 0.25)',
   glow: 'rgba(99, 102, 241, 0.15)',
   buttonGradientStart: '#1D4ED8', // Cobalt Royal Blue
   buttonGradientEnd: '#3B82F6',   // Sky Blue
@@ -48,7 +59,7 @@ export const darkColors = {
   danger: '#EF4444',
 
   // Feature specific
-  ongoing: '#EF4444',
+  ongoing: '#10B981',
   upcoming: '#6366F1',
   free: '#10B981',
   occupied: '#EF4444',
@@ -59,19 +70,30 @@ export const darkColors = {
 
 export const lightColors = {
   // Clean Web Light Surfaces
-  background: '#F8FAFC',          // Web light --bg-primary
-  surface: '#FFFFFF',             // Web light --bg-secondary
-  surfaceElevated: '#F1F5F9',     // Web light --bg-tertiary
+  background: '#F8FAFC',          // Crisp Light Canvas
+  surface: '#FFFFFF',             // Pure White Card
+  surfaceElevated: '#F1F5F9',     // Slate 100 Input Track & Chips
   surfaceGlass: 'rgba(255, 255, 255, 0.85)',
   cardBackground: '#FFFFFF',
   cardElevated: '#F1F5F9',
 
-  // Accents & Gradients
-  primary: '#4F46E5',             // Indigo
+  // Accents & Brand Identity
+  primary: '#4F46E5',             // UOS Indigo/Navy
   primaryDark: '#4338CA',
   primaryLight: '#6366F1',
   primaryAccent: '#4F46E5',
-  secondary: '#7C3AED',           // Purple
+  secondary: '#7C3AED',           // Controlled Purple Accent
+  gold: '#D97706',                // UOS Gold
+  goldLight: '#B45309',
+  goldBg: 'rgba(217, 119, 6, 0.1)',
+  goldBorder: 'rgba(217, 119, 6, 0.25)',
+  purple: '#7C3AED',
+  purpleLight: '#6D28D9',
+  purpleBg: 'rgba(124, 58, 237, 0.08)',
+  purpleBorder: 'rgba(124, 58, 237, 0.2)',
+  info: '#2563EB',
+  infoBg: 'rgba(37, 99, 235, 0.08)',
+  infoBorder: 'rgba(37, 99, 235, 0.2)',
   glow: 'rgba(79, 70, 229, 0.12)',
   buttonGradientStart: '#2563EB', // Blue
   buttonGradientEnd: '#3B82F6',   // Sky Blue
@@ -105,7 +127,7 @@ export const lightColors = {
   danger: '#DC2626',
 
   // Feature specific
-  ongoing: '#DC2626',
+  ongoing: '#059669',
   upcoming: '#4F46E5',
   free: '#059669',
   occupied: '#DC2626',

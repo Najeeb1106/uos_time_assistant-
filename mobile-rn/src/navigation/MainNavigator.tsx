@@ -16,18 +16,14 @@ export default function MainNavigator() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const bottomInset = insets.bottom > 0 ? insets.bottom : 8;
-  const navBg = isDark ? '#050B1F' : colors.surface;
-  const navBorder = isDark ? 'rgba(255, 255, 255, 0.08)' : colors.border;
-  const activeColor = '#8B5CF6';
-  const inactiveColor = isDark ? '#94A3B8' : '#64748B';
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: navBg,
-          borderTopColor: navBorder,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           height: 54 + bottomInset,
           paddingBottom: bottomInset > 0 ? bottomInset : 8,
@@ -38,14 +34,14 @@ export default function MainNavigator() {
           shadowOpacity: isDark ? 0.3 : 0.05,
           shadowRadius: 6,
         },
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: inactiveColor,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
           marginBottom: 2,
         },
-        sceneStyle: { backgroundColor: isDark ? '#050B1F' : colors.background },
+        sceneStyle: { backgroundColor: colors.background },
       }}
     >
       <Tab.Screen

@@ -80,18 +80,9 @@ const ONBOARDING_PAGES: OnboardingPageData[] = [
 
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const insets = useSafeAreaInsets();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors, isDark } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList<OnboardingPageData>>(null);
-
-  // Theme tokens matching the dark navy/indigo aesthetic
-  const bgCanvas = isDark ? '#060814' : colors.background;
-  const cardSurface = isDark ? '#0B0F24' : colors.surface;
-  const cardElevated = isDark ? '#131936' : colors.surfaceElevated;
-  const textTitle = isDark ? '#F8FAFC' : colors.textPrimary;
-  const textSub = isDark ? '#94A3B8' : colors.textSecondary;
-  const borderLine = isDark ? 'rgba(255, 255, 255, 0.08)' : colors.border;
-  const subtleBorder = isDark ? 'rgba(255, 255, 255, 0.05)' : colors.borderSubtle;
 
   const handleFinish = async () => {
     try {
@@ -136,9 +127,9 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         return (
           <View style={styles.heroIllustrationBox}>
             {/* Ambient Multi-Ring Glow */}
-            <View style={[styles.glowRingOuter, { borderColor: 'rgba(99, 102, 241, 0.12)' }]}>
-              <View style={[styles.glowRingInner, { borderColor: 'rgba(99, 102, 241, 0.25)', backgroundColor: isDark ? 'rgba(99, 102, 241, 0.06)' : 'rgba(99, 102, 241, 0.04)' }]}>
-                <View style={[styles.crestContainer, { backgroundColor: cardElevated, borderColor: 'rgba(99, 102, 241, 0.4)' }]}>
+            <View style={[styles.glowRingOuter, { borderColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(79, 70, 229, 0.12)' }]}>
+              <View style={[styles.glowRingInner, { borderColor: isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(79, 70, 229, 0.25)', backgroundColor: isDark ? 'rgba(99, 102, 241, 0.06)' : 'rgba(79, 70, 229, 0.04)' }]}>
+                <View style={[styles.crestContainer, { backgroundColor: colors.surfaceElevated, borderColor: colors.primary }]}>
                   <Image
                     source={require('../../../assets/uos.png')}
                     style={styles.crestImage}
@@ -150,17 +141,17 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
             {/* Quick feature pill tags under crest */}
             <View style={styles.quickPillsRow}>
-              <View style={[styles.featureMicroChip, { backgroundColor: cardElevated, borderColor: borderLine }]}>
-                <Ionicons name="sparkles" size={11} color="#818CF8" style={{ marginRight: 4 }} />
-                <Text style={[styles.featureMicroText, { color: textSub }]}>Daily Schedule</Text>
+              <View style={[styles.featureMicroChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+                <Ionicons name="sparkles" size={11} color={colors.primaryLight} style={{ marginRight: 4 }} />
+                <Text style={[styles.featureMicroText, { color: colors.textSecondary }]}>Daily Schedule</Text>
               </View>
-              <View style={[styles.featureMicroChip, { backgroundColor: cardElevated, borderColor: borderLine }]}>
-                <Ionicons name="flash" size={11} color="#10B981" style={{ marginRight: 4 }} />
-                <Text style={[styles.featureMicroText, { color: textSub }]}>Free Rooms</Text>
+              <View style={[styles.featureMicroChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+                <Ionicons name="flash" size={11} color={colors.success} style={{ marginRight: 4 }} />
+                <Text style={[styles.featureMicroText, { color: colors.textSecondary }]}>Free Rooms</Text>
               </View>
-              <View style={[styles.featureMicroChip, { backgroundColor: cardElevated, borderColor: borderLine }]}>
-                <Ionicons name="shield-checkmark" size={11} color="#F59E0B" style={{ marginRight: 4 }} />
-                <Text style={[styles.featureMicroText, { color: textSub }]}>Offline Access</Text>
+              <View style={[styles.featureMicroChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+                <Ionicons name="shield-checkmark" size={11} color={colors.gold} style={{ marginRight: 4 }} />
+                <Text style={[styles.featureMicroText, { color: colors.textSecondary }]}>Offline Access</Text>
               </View>
             </View>
           </View>
@@ -169,61 +160,61 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
       case 'timetables':
         return (
           <View style={styles.heroIllustrationBox}>
-            <View style={[styles.illustrationCard, { backgroundColor: cardElevated, borderColor: borderLine }]}>
+            <View style={[styles.illustrationCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
               {/* Mock Timetable Card Header */}
               <View style={styles.mockHeader}>
                 <View style={styles.mockHeaderLeft}>
-                  <View style={[styles.mockIconCircle, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
-                    <Ionicons name="calendar" size={14} color="#6366F1" />
+                  <View style={[styles.mockIconCircle, { backgroundColor: colors.badgeBg }]}>
+                    <Ionicons name="calendar" size={14} color={colors.primary} />
                   </View>
                   <View>
-                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>CS-6th-Morning</Text>
-                    <Text style={[styles.mockHeaderSub, { color: textSub }]}>Section A • Fall 2025</Text>
+                    <Text style={[styles.mockHeaderTitle, { color: colors.textPrimary }]}>CS-6th-Morning</Text>
+                    <Text style={[styles.mockHeaderSub, { color: colors.textSecondary }]}>Section A • Fall 2025</Text>
                   </View>
                 </View>
-                <View style={[styles.liveStatusPill, { backgroundColor: 'rgba(99, 102, 241, 0.15)', borderColor: 'rgba(99, 102, 241, 0.3)' }]}>
-                  <View style={[styles.liveDot, { backgroundColor: '#6366F1' }]} />
-                  <Text style={[styles.liveStatusText, { color: '#818CF8' }]}>ACTIVE</Text>
+                <View style={[styles.liveStatusPill, { backgroundColor: colors.badgeBg, borderColor: isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(79, 70, 229, 0.25)' }]}>
+                  <View style={[styles.liveDot, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.liveStatusText, { color: colors.primaryLight }]}>ACTIVE</Text>
                 </View>
               </View>
 
               {/* Slot Row 1 */}
-              <View style={[styles.mockScheduleRow, { backgroundColor: isDark ? '#0B0F24' : '#FFFFFF', borderColor: subtleBorder }]}>
-                <View style={[styles.slotColorBar, { backgroundColor: '#6366F1' }]} />
+              <View style={[styles.mockScheduleRow, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.slotColorBar, { backgroundColor: colors.primary }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>Mobile Application Dev</Text>
-                    <Text style={[styles.slotTime, { color: '#818CF8' }]}>09:00 - 10:30</Text>
+                    <Text style={[styles.slotSubject, { color: colors.textPrimary }]}>Mobile Application Dev</Text>
+                    <Text style={[styles.slotTime, { color: colors.primaryLight }]}>09:00 - 10:30</Text>
                   </View>
                   <View style={styles.slotMeta}>
-                    <Ionicons name="location-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Lab 03 • CS Dept</Text>
-                    <Text style={[styles.slotMetaDivider, { color: textSub }]}>•</Text>
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Sir Imran</Text>
+                    <Ionicons name="location-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Lab 03 • CS Dept</Text>
+                    <Text style={[styles.slotMetaDivider, { color: colors.textSecondary }]}>•</Text>
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Sir Imran</Text>
                   </View>
                 </View>
               </View>
 
               {/* Slot Row 2 */}
-              <View style={[styles.mockScheduleRow, { backgroundColor: isDark ? '#0B0F24' : '#FFFFFF', borderColor: subtleBorder }]}>
-                <View style={[styles.slotColorBar, { backgroundColor: '#A855F7' }]} />
+              <View style={[styles.mockScheduleRow, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.slotColorBar, { backgroundColor: colors.purple }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>Artificial Intelligence</Text>
-                    <Text style={[styles.slotTime, { color: '#A855F7' }]}>10:30 - 12:00</Text>
+                    <Text style={[styles.slotSubject, { color: colors.textPrimary }]}>Artificial Intelligence</Text>
+                    <Text style={[styles.slotTime, { color: colors.purpleLight }]}>10:30 - 12:00</Text>
                   </View>
                   <View style={styles.slotMeta}>
-                    <Ionicons name="business-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Room 14 • Main Block</Text>
-                    <Text style={[styles.slotMetaDivider, { color: textSub }]}>•</Text>
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Dr. Usman</Text>
+                    <Ionicons name="business-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Room 14 • Main Block</Text>
+                    <Text style={[styles.slotMetaDivider, { color: colors.textSecondary }]}>•</Text>
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Dr. Usman</Text>
                   </View>
                 </View>
               </View>
             </View>
 
             {/* Floating Tag */}
-            <View style={[styles.floatingTag, { backgroundColor: '#1D4ED8', borderColor: '#3B82F6' }]}>
+            <View style={[styles.floatingTag, { backgroundColor: colors.primaryDark, borderColor: colors.primary }]}>
               <Ionicons name="time" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
               <Text style={styles.floatingTagText}>Current Period Tracking</Text>
             </View>
@@ -233,61 +224,61 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
       case 'freerooms':
         return (
           <View style={styles.heroIllustrationBox}>
-            <View style={[styles.illustrationCard, { backgroundColor: cardElevated, borderColor: borderLine }]}>
+            <View style={[styles.illustrationCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
               {/* Mock Free Room Header */}
               <View style={styles.mockHeader}>
                 <View style={styles.mockHeaderLeft}>
-                  <View style={[styles.mockIconCircle, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-                    <Ionicons name="search" size={14} color="#10B981" />
+                  <View style={[styles.mockIconCircle, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(5, 150, 105, 0.12)' }]}>
+                    <Ionicons name="search" size={14} color={colors.success} />
                   </View>
                   <View>
-                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>Free Room Finder</Text>
-                    <Text style={[styles.mockHeaderSub, { color: textSub }]}>Currently Unoccupied</Text>
+                    <Text style={[styles.mockHeaderTitle, { color: colors.textPrimary }]}>Free Room Finder</Text>
+                    <Text style={[styles.mockHeaderSub, { color: colors.textSecondary }]}>Currently Unoccupied</Text>
                   </View>
                 </View>
-                <View style={[styles.liveStatusPill, { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
-                  <View style={[styles.liveDot, { backgroundColor: '#10B981' }]} />
-                  <Text style={[styles.liveStatusText, { color: '#10B981' }]}>14 FREE</Text>
+                <View style={[styles.liveStatusPill, { backgroundColor: colors.successBg, borderColor: colors.successBorder }]}>
+                  <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
+                  <Text style={[styles.liveStatusText, { color: colors.success }]}>14 FREE</Text>
                 </View>
               </View>
 
               {/* Room Row 1 */}
-              <View style={[styles.mockScheduleRow, { backgroundColor: isDark ? '#0B0F24' : '#FFFFFF', borderColor: subtleBorder }]}>
-                <View style={[styles.slotColorBar, { backgroundColor: '#10B981' }]} />
+              <View style={[styles.mockScheduleRow, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.slotColorBar, { backgroundColor: colors.success }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>CS Lab 02</Text>
-                    <View style={[styles.freeTagPill, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-                      <Text style={[styles.freeTagText, { color: '#10B981' }]}>Available 2 hrs</Text>
+                    <Text style={[styles.slotSubject, { color: colors.textPrimary }]}>CS Lab 02</Text>
+                    <View style={[styles.freeTagPill, { backgroundColor: colors.successBg }]}>
+                      <Text style={[styles.freeTagText, { color: colors.success }]}>Available 2 hrs</Text>
                     </View>
                   </View>
                   <View style={styles.slotMeta}>
-                    <Ionicons name="hardware-chip-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>45 Systems • Air Conditioned</Text>
+                    <Ionicons name="hardware-chip-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>45 Systems • Air Conditioned</Text>
                   </View>
                 </View>
               </View>
 
               {/* Room Row 2 */}
-              <View style={[styles.mockScheduleRow, { backgroundColor: isDark ? '#0B0F24' : '#FFFFFF', borderColor: subtleBorder }]}>
-                <View style={[styles.slotColorBar, { backgroundColor: '#10B981' }]} />
+              <View style={[styles.mockScheduleRow, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.slotColorBar, { backgroundColor: colors.success }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>Lecture Hall 05</Text>
-                    <View style={[styles.freeTagPill, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-                      <Text style={[styles.freeTagText, { color: '#10B981' }]}>Free until 01:00</Text>
+                    <Text style={[styles.slotSubject, { color: colors.textPrimary }]}>Lecture Hall 05</Text>
+                    <View style={[styles.freeTagPill, { backgroundColor: colors.successBg }]}>
+                      <Text style={[styles.freeTagText, { color: colors.success }]}>Free until 01:00</Text>
                     </View>
                   </View>
                   <View style={styles.slotMeta}>
-                    <Ionicons name="easel-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Multimedia • 80 Seats</Text>
+                    <Ionicons name="easel-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Multimedia • 80 Seats</Text>
                   </View>
                 </View>
               </View>
             </View>
 
             {/* Floating Tag */}
-            <View style={[styles.floatingTag, { backgroundColor: '#059669', borderColor: '#34D399' }]}>
+            <View style={[styles.floatingTag, { backgroundColor: isDark ? '#059669' : '#047857', borderColor: colors.success }]}>
               <Ionicons name="radio" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
               <Text style={styles.floatingTagText}>Schedule-Based Room Availability</Text>
             </View>
@@ -297,57 +288,57 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
       case 'offline':
         return (
           <View style={styles.heroIllustrationBox}>
-            <View style={[styles.illustrationCard, { backgroundColor: cardElevated, borderColor: borderLine }]}>
+            <View style={[styles.illustrationCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
               {/* Mock Offline Header */}
               <View style={styles.mockHeader}>
                 <View style={styles.mockHeaderLeft}>
-                  <View style={[styles.mockIconCircle, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
-                    <Ionicons name="cloud-offline" size={14} color="#F59E0B" />
+                  <View style={[styles.mockIconCircle, { backgroundColor: colors.goldBg }]}>
+                    <Ionicons name="cloud-offline" size={14} color={colors.gold} />
                   </View>
                   <View>
-                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>Offline Timetable</Text>
-                    <Text style={[styles.mockHeaderSub, { color: textSub }]}>Local Offline Storage</Text>
+                    <Text style={[styles.mockHeaderTitle, { color: colors.textPrimary }]}>Offline Timetable</Text>
+                    <Text style={[styles.mockHeaderSub, { color: colors.textSecondary }]}>Local Offline Storage</Text>
                   </View>
                 </View>
-                <View style={[styles.liveStatusPill, { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.3)' }]}>
-                  <Ionicons name="checkmark-circle" size={11} color="#F59E0B" style={{ marginRight: 3 }} />
-                  <Text style={[styles.liveStatusText, { color: '#F59E0B' }]}>CACHED</Text>
+                <View style={[styles.liveStatusPill, { backgroundColor: colors.goldBg, borderColor: colors.goldBorder }]}>
+                  <Ionicons name="checkmark-circle" size={11} color={colors.gold} style={{ marginRight: 3 }} />
+                  <Text style={[styles.liveStatusText, { color: colors.gold }]}>CACHED</Text>
                 </View>
               </View>
 
               {/* Offline Row 1 */}
-              <View style={[styles.mockScheduleRow, { backgroundColor: isDark ? '#0B0F24' : '#FFFFFF', borderColor: subtleBorder }]}>
-                <View style={[styles.slotColorBar, { backgroundColor: '#F59E0B' }]} />
+              <View style={[styles.mockScheduleRow, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.slotColorBar, { backgroundColor: colors.gold }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>Full Weekly Timetable</Text>
-                    <Ionicons name="flash" size={13} color="#F59E0B" />
+                    <Text style={[styles.slotSubject, { color: colors.textPrimary }]}>Full Weekly Timetable</Text>
+                    <Ionicons name="flash" size={13} color={colors.gold} />
                   </View>
                   <View style={styles.slotMeta}>
-                    <Ionicons name="speedometer-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Instant schedule access without internet</Text>
+                    <Ionicons name="speedometer-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Instant schedule access without internet</Text>
                   </View>
                 </View>
               </View>
 
               {/* Offline Row 2 */}
-              <View style={[styles.mockScheduleRow, { backgroundColor: isDark ? '#0B0F24' : '#FFFFFF', borderColor: subtleBorder }]}>
-                <View style={[styles.slotColorBar, { backgroundColor: '#6366F1' }]} />
+              <View style={[styles.mockScheduleRow, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.slotColorBar, { backgroundColor: colors.primary }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>Automatic Schedule Sync</Text>
-                    <Ionicons name="sync-circle" size={14} color="#6366F1" />
+                    <Text style={[styles.slotSubject, { color: colors.textPrimary }]}>Automatic Schedule Sync</Text>
+                    <Ionicons name="sync-circle" size={14} color={colors.primary} />
                   </View>
                   <View style={styles.slotMeta}>
-                    <Ionicons name="shield-checkmark-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>Auto updates when network is available</Text>
+                    <Ionicons name="shield-checkmark-outline" size={12} color={colors.textSecondary} style={{ marginRight: 3 }} />
+                    <Text style={[styles.slotMetaText, { color: colors.textSecondary }]}>Auto updates when network is available</Text>
                   </View>
                 </View>
               </View>
             </View>
 
             {/* Floating Tag */}
-            <View style={[styles.floatingTag, { backgroundColor: '#D97706', borderColor: '#FBBF24' }]}>
+            <View style={[styles.floatingTag, { backgroundColor: isDark ? '#D97706' : '#B45309', borderColor: colors.gold }]}>
               <Ionicons name="infinite" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
               <Text style={styles.floatingTagText}>Full offline access to cached schedules</Text>
             </View>
@@ -359,7 +350,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   const renderPage = ({ item }: { item: OnboardingPageData }) => {
     return (
       <View style={[styles.pageContainer, { width: SCREEN_WIDTH }]}>
-        <View style={[styles.mainCard, { backgroundColor: cardSurface, borderColor: borderLine }]}>
+        <View style={[styles.mainCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {/* Top Illustration Box */}
           {renderScreenIllustration(item.type)}
 
@@ -368,7 +359,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             style={[
               styles.screenBadge,
               {
-                backgroundColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.08)',
+                backgroundColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(79, 70, 229, 0.08)',
                 borderColor: item.badgeColor + '40',
               },
             ]}
@@ -378,8 +369,8 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           </View>
 
           {/* Heading and Subtitle */}
-          <Text style={[styles.screenTitle, { color: textTitle }]}>{item.title}</Text>
-          <Text style={[styles.screenSubtitle, { color: textSub }]}>{item.subtitle}</Text>
+          <Text style={[styles.screenTitle, { color: colors.textPrimary }]}>{item.title}</Text>
+          <Text style={[styles.screenSubtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
         </View>
       </View>
     );
@@ -390,13 +381,13 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
       style={[
         styles.container,
         {
-          backgroundColor: bgCanvas,
+          backgroundColor: colors.background,
           paddingTop: insets.top + 4,
           paddingBottom: insets.bottom + 8,
         },
       ]}
     >
-      {/* 1. Header Bar: Back (on screens 2-4), Branding, Theme Toggle & Skip */}
+      {/* 1. Header Bar: Back (on screens 2-4), Branding & Skip */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
           {currentIndex > 0 ? (
@@ -404,27 +395,27 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
               style={[
                 styles.backBtn,
                 {
-                  backgroundColor: cardElevated,
-                  borderColor: borderLine,
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
                 },
               ]}
               onPress={handleBack}
               hitSlop={10}
             >
-              <Ionicons name="chevron-back" size={18} color={textTitle} />
+              <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
             </Pressable>
           ) : (
             <View
               style={[
                 styles.brandPill,
                 {
-                  backgroundColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.08)',
-                  borderColor: 'rgba(99, 102, 241, 0.25)',
+                  backgroundColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(79, 70, 229, 0.08)',
+                  borderColor: isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(79, 70, 229, 0.25)',
                 },
               ]}
             >
-              <View style={styles.brandDot} />
-              <Text style={styles.brandTag}>SHEDUOS</Text>
+              <View style={[styles.brandDot, { backgroundColor: colors.primary }]} />
+              <Text style={[styles.brandTag, { color: colors.primary }]}>SHEDUOS</Text>
             </View>
           )}
 
@@ -434,13 +425,13 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                 styles.brandPill,
                 {
                   marginLeft: 8,
-                  backgroundColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.08)',
-                  borderColor: 'rgba(99, 102, 241, 0.25)',
+                  backgroundColor: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(79, 70, 229, 0.08)',
+                  borderColor: isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(79, 70, 229, 0.25)',
                 },
               ]}
             >
-              <View style={styles.brandDot} />
-              <Text style={styles.brandTag}>SHEDUOS</Text>
+              <View style={[styles.brandDot, { backgroundColor: colors.primary }]} />
+              <Text style={[styles.brandTag, { color: colors.primary }]}>SHEDUOS</Text>
             </View>
           )}
         </View>
@@ -450,14 +441,14 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             style={[
               styles.skipBtn,
               {
-                backgroundColor: cardElevated,
-                borderColor: borderLine,
+                backgroundColor: colors.surfaceElevated,
+                borderColor: colors.border,
               },
             ]}
             onPress={handleFinish}
             hitSlop={8}
           >
-            <Text style={[styles.skipBtnText, { color: textSub }]}>Skip</Text>
+            <Text style={[styles.skipBtnText, { color: colors.textSecondary }]}>Skip</Text>
           </Pressable>
         </View>
       </View>
@@ -500,7 +491,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                   style={[
                     styles.dot,
                     isActive
-                      ? [styles.activeDot, { backgroundColor: '#6366F1' }]
+                      ? [styles.activeDot, { backgroundColor: colors.primary }]
                       : [
                           styles.inactiveDot,
                           {
@@ -521,6 +512,8 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           style={({ pressed }) => [
             styles.primaryActionButton,
             {
+              backgroundColor: colors.buttonGradientStart,
+              borderColor: colors.primaryDark,
               opacity: pressed ? 0.92 : 1,
               transform: [{ scale: pressed ? 0.99 : 1 }],
             },
@@ -541,7 +534,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         </Pressable>
 
         {/* Subtle Footer Note */}
-        <Text style={[styles.footerText, { color: isDark ? '#475569' : colors.textMuted }]}>
+        <Text style={[styles.footerText, { color: colors.textMuted }]}>
           ShedUOS • Official Student & Faculty Platform
         </Text>
       </View>
@@ -875,7 +868,6 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     width: 24,
-    shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
@@ -888,15 +880,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderRadius: 14,
-    backgroundColor: '#1D4ED8',
     overflow: 'hidden',
-    shadowColor: '#1D4ED8',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#3B82F6',
   },
   buttonInnerGradient: {
     width: '100%',

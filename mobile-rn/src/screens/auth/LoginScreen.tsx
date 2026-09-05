@@ -218,7 +218,7 @@ export default function LoginScreen() {
                     },
                     focusedField === 'email' && {
                       borderColor: colors.primary,
-                      backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                      backgroundColor: colors.badgeBg,
                     },
                   ]}
                 >
@@ -272,7 +272,7 @@ export default function LoginScreen() {
                     },
                     focusedField === 'password' && {
                       borderColor: colors.primary,
-                      backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                      backgroundColor: colors.badgeBg,
                     },
                   ]}
                 >
@@ -326,7 +326,7 @@ export default function LoginScreen() {
                       },
                       focusedField === 'teachingId' && {
                         borderColor: colors.primary,
-                        backgroundColor: isDark ? '#0e1538' : '#eef2ff',
+                        backgroundColor: colors.badgeBg,
                       },
                     ]}
                   >

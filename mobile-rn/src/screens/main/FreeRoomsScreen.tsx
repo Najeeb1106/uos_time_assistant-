@@ -28,9 +28,11 @@ import {
   format12HourTime,
 } from '../../utils/timeUtils';
 import RoomCard from '../../components/freerooms/RoomCard';
+import RoomDetailModal from '../../components/freerooms/RoomDetailModal';
 import RoomFilter from '../../components/freerooms/RoomFilter';
 import FreeRoomEmptyState from '../../components/freerooms/FreeRoomEmptyState';
 import OfflineBanner from '../../components/schedule/OfflineBanner';
+import { RoomStatus } from '../../utils/freeRoomUtils';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
@@ -60,6 +62,7 @@ export default function FreeRoomsScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'Classrooms' | 'Labs'>('All');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Free' | 'Occupied'>('All');
+  const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
 
   // Modal Sheet State
   const [activeFilterModal, setActiveFilterModal] = useState<'category' | 'status' | null>(null);
@@ -465,7 +468,9 @@ export default function FreeRoomsScreen() {
             </View>
           </View>
         )}
-        renderItem={({ item }) => <RoomCard item={item} />}
+        renderItem={({ item }) => (
+          <RoomCard item={item} onPress={(room) => setSelectedRoom(room)} />
+        )}
         ListEmptyComponent={
           isLoading ? (
             <View style={styles.centerContainer}>
@@ -503,6 +508,13 @@ export default function FreeRoomsScreen() {
         onTimeChange={setSelectedTime}
         timeSlots={TIME_SLOTS}
         onClose={() => setIsTimeModalOpen(false)}
+      />
+
+      {/* Room Detail Modal */}
+      <RoomDetailModal
+        visible={!!selectedRoom}
+        item={selectedRoom}
+        onClose={() => setSelectedRoom(null)}
       />
     </View>
   );
