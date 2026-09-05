@@ -114,10 +114,9 @@ export default function LoginScreen() {
 
               <Text style={[styles.welcomeSubhead, { color: colors.textSecondary }]}>WELCOME TO</Text>
               <Text style={[styles.brandTitle, { color: colors.textPrimary }]}>UOS</Text>
-              <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>SMART CAMPUS TIMETABLE ASSISTANT</Text>
+              <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>ACADEMIC TIMETABLE ASSISTANT</Text>
               <Text style={[styles.heroDescription, { color: colors.textSecondary }]}>
-                Navigate your academic day with absolute clarity. Track your schedules in real-time,
-                discover unoccupied lecture halls instantly.
+                View your department schedule, track lecture timings, and discover free classrooms across campus.
               </Text>
             </View>
 

@@ -56,7 +56,7 @@ export default function ScheduleScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CollapsibleHeader
-        title="Weekly timetable Grid"
+        title="Weekly Timetable"
         scrollY={scrollY}
       />
 

@@ -175,7 +175,7 @@ export default function DashboardScreen() {
           <ScheduleEmptyState onUploadPress={() => navigation.navigate('UploadTab')} />
         ) : (
           <>
-            {/* 4. Large Unified Lecture Card */}
+            {/* 4. Ongoing and Next Class Cards */}
             {(ongoingClass || nextClass) ? (
               <View style={[styles.mainLectureCard, { backgroundColor: cardSurface, borderColor: borderLine }]}>
                 {/* SECTION A: ONGOING LECTURE */}
@@ -201,7 +201,7 @@ export default function DashboardScreen() {
                     </View>
 
                     {/* Subject Title */}
-                    <Text style={[styles.lectureTitle, { color: textTitle }]}>
+                    <Text style={[styles.lectureTitle, { color: textTitle }]} numberOfLines={2}>
                       {ongoingClass.name}
                     </Text>
 
@@ -210,8 +210,8 @@ export default function DashboardScreen() {
                       {/* Room Pill */}
                       <View style={[styles.purplePill, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
                         <Ionicons name="location-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: purpleLight }]}>
-                          Room {ongoingClass.room || 'TBA'}
+                        <Text style={[styles.purplePillText, { color: purpleLight }]} numberOfLines={1} ellipsizeMode="tail">
+                          {ongoingClass.room || 'TBA'}
                         </Text>
                       </View>
 
@@ -279,7 +279,7 @@ export default function DashboardScreen() {
                     </View>
 
                     {/* Subject Title */}
-                    <Text style={[styles.lectureTitleSecondary, { color: textTitle }]}>
+                    <Text style={[styles.lectureTitleSecondary, { color: textTitle }]} numberOfLines={2}>
                       {subsequentClass.name}
                     </Text>
 
@@ -288,8 +288,8 @@ export default function DashboardScreen() {
                       {/* Room Pill */}
                       <View style={[styles.purplePill, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
                         <Ionicons name="location-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: purpleLight }]}>
-                          Room {subsequentClass.room || 'TBA'}
+                        <Text style={[styles.purplePillText, { color: purpleLight }]} numberOfLines={1} ellipsizeMode="tail">
+                          {subsequentClass.room || 'TBA'}
                         </Text>
                       </View>
 
@@ -325,7 +325,7 @@ export default function DashboardScreen() {
                       <View style={[styles.statusBadgeNext, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
                         <Ionicons name="alarm-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
                         <Text style={[styles.statusBadgeTextNext, { color: purpleLight }]}>
-                          Upcoming Lecture
+                          Next Class Alert
                         </Text>
                       </View>
                       <Text style={[styles.countdownText, { color: purpleLight }]}>
@@ -334,7 +334,7 @@ export default function DashboardScreen() {
                     </View>
 
                     {/* Subject Title */}
-                    <Text style={[styles.lectureTitle, { color: textTitle }]}>
+                    <Text style={[styles.lectureTitle, { color: textTitle }]} numberOfLines={2}>
                       {nextClass.name}
                     </Text>
 
@@ -343,8 +343,8 @@ export default function DashboardScreen() {
                       {/* Room Pill */}
                       <View style={[styles.purplePill, { backgroundColor: 'rgba(139, 92, 246, 0.15)', borderColor: 'rgba(139, 92, 246, 0.3)' }]}>
                         <Ionicons name="location-outline" size={12} color={purpleLight} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: purpleLight }]}>
-                          Room {nextClass.room || 'TBA'}
+                        <Text style={[styles.purplePillText, { color: purpleLight }]} numberOfLines={1} ellipsizeMode="tail">
+                          {nextClass.room || 'TBA'}
                         </Text>
                       </View>
 
@@ -407,17 +407,6 @@ export default function DashboardScreen() {
                 />
               ))
             )}
-
-            {/* 6. Prominent Next Class Alert Card (Matching Web Dashboard) */}
-            <NextClassAlertCard
-              nextClass={nextClass}
-              secondNextClass={secondNextClass}
-              todayClassesCount={todayClasses.length}
-              allClasses={classes}
-              nowTime={nowTime}
-              isTeacher={user?.role === 'teacher'}
-              onPress={(cls) => setSelectedClass(cls)}
-            />
           </>
         )}
       </Animated.ScrollView>
@@ -622,10 +611,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
+    maxWidth: '100%',
+    flexShrink: 1,
   },
   purplePillText: {
     fontSize: 11,
     fontWeight: '700',
+    flexShrink: 1,
   },
   neutralPill: {
     flexDirection: 'row',
@@ -634,10 +626,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
+    maxWidth: '100%',
+    flexShrink: 1,
   },
   neutralPillText: {
     fontSize: 11,
     fontWeight: '500',
+    flexShrink: 1,
   },
   cardDivider: {
     height: 1,

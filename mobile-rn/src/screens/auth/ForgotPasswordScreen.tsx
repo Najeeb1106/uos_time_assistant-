@@ -108,9 +108,9 @@ export default function ForgotPasswordScreen() {
               >
                 <Ionicons name="key-outline" size={24} color={colors.primary} />
               </View>
-              <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>Forgot Password?</Text>
+              <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>Reset Password</Text>
               <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-                Enter your registered email address to receive password recovery instructions
+                Enter your registered email address to receive password recovery instructions.
               </Text>
             </View>
 

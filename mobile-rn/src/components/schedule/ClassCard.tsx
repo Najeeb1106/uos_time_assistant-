@@ -59,14 +59,14 @@ export default function ClassCard({ item, onPress }: ClassCardProps) {
       <View style={styles.detailsContainer}>
         <View style={styles.detailItem}>
           <Text style={styles.detailIcon}>📍</Text>
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+          <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {item.room || 'TBA'}
           </Text>
         </View>
 
         <View style={styles.detailItem}>
           <Text style={styles.detailIcon}>👨‍🏫</Text>
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+          <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {item.teacher || 'To be allocated'}
           </Text>
         </View>

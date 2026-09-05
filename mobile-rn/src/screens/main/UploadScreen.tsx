@@ -71,7 +71,7 @@ export default function UploadScreen() {
 
     setErrorMessage('');
     setStep('uploading');
-    setStatusMessage('Uploading and parsing timetable with intelligent extractors...');
+    setStatusMessage('Uploading and parsing timetable PDF...');
 
     try {
       const response = await uploadScheduleApi(
@@ -167,7 +167,7 @@ export default function UploadScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CollapsibleHeader
-        title="Timetable Parsing Engine"
+        title="Upload Timetable"
         scrollY={scrollY}
       />
 
@@ -184,7 +184,7 @@ export default function UploadScreen() {
       >
         <View style={styles.headerContainer}>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Select your department PDF timetable to parse your lectures
+            Upload your department timetable PDF to import your schedule.
           </Text>
         </View>
 

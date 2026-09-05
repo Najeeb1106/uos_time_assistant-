@@ -43,13 +43,13 @@ const ONBOARDING_PAGES: OnboardingPageData[] = [
     badgeIcon: 'school-outline',
     badgeColor: '#6366F1',
     title: 'Welcome to ShedUOS',
-    subtitle: 'Your smart campus companion for automated timetables, schedule tracking, and instant free room discovery.',
+    subtitle: 'Official timetable and classroom schedule assistant for University of Sargodha students and faculty.',
     primaryButtonText: 'Get Started',
   },
   {
     id: 'screen_2',
     type: 'timetables',
-    badge: 'SMART SCHEDULES',
+    badge: 'ACADEMIC SCHEDULES',
     badgeIcon: 'calendar-outline',
     badgeColor: '#6366F1',
     title: 'Personalized Timetables',
@@ -59,11 +59,11 @@ const ONBOARDING_PAGES: OnboardingPageData[] = [
   {
     id: 'screen_3',
     type: 'freerooms',
-    badge: 'VACANCY RADAR',
+    badge: 'FREE ROOM FINDER',
     badgeIcon: 'search-outline',
     badgeColor: '#10B981',
     title: 'Free Room Finder',
-    subtitle: 'Instantly discover unoccupied lecture halls, computer laboratories, and classrooms across campus in real time.',
+    subtitle: 'Discover unoccupied lecture halls, computer laboratories, and classrooms across departments.',
     primaryButtonText: 'Next',
   },
   {
@@ -152,15 +152,15 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             <View style={styles.quickPillsRow}>
               <View style={[styles.featureMicroChip, { backgroundColor: cardElevated, borderColor: borderLine }]}>
                 <Ionicons name="sparkles" size={11} color="#818CF8" style={{ marginRight: 4 }} />
-                <Text style={[styles.featureMicroText, { color: textSub }]}>Smart Routine</Text>
+                <Text style={[styles.featureMicroText, { color: textSub }]}>Daily Schedule</Text>
               </View>
               <View style={[styles.featureMicroChip, { backgroundColor: cardElevated, borderColor: borderLine }]}>
                 <Ionicons name="flash" size={11} color="#10B981" style={{ marginRight: 4 }} />
-                <Text style={[styles.featureMicroText, { color: textSub }]}>Instant Vacancy</Text>
+                <Text style={[styles.featureMicroText, { color: textSub }]}>Free Rooms</Text>
               </View>
               <View style={[styles.featureMicroChip, { backgroundColor: cardElevated, borderColor: borderLine }]}>
                 <Ionicons name="shield-checkmark" size={11} color="#F59E0B" style={{ marginRight: 4 }} />
-                <Text style={[styles.featureMicroText, { color: textSub }]}>Offline Sync</Text>
+                <Text style={[styles.featureMicroText, { color: textSub }]}>Offline Access</Text>
               </View>
             </View>
           </View>
@@ -183,7 +183,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                 </View>
                 <View style={[styles.liveStatusPill, { backgroundColor: 'rgba(99, 102, 241, 0.15)', borderColor: 'rgba(99, 102, 241, 0.3)' }]}>
                   <View style={[styles.liveDot, { backgroundColor: '#6366F1' }]} />
-                  <Text style={[styles.liveStatusText, { color: '#818CF8' }]}>LIVE</Text>
+                  <Text style={[styles.liveStatusText, { color: '#818CF8' }]}>ACTIVE</Text>
                 </View>
               </View>
 
@@ -225,7 +225,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {/* Floating Tag */}
             <View style={[styles.floatingTag, { backgroundColor: '#1D4ED8', borderColor: '#3B82F6' }]}>
               <Ionicons name="time" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
-              <Text style={styles.floatingTagText}>Auto Day & Slot Detection</Text>
+              <Text style={styles.floatingTagText}>Current Period Tracking</Text>
             </View>
           </View>
         );
@@ -241,7 +241,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                     <Ionicons name="search" size={14} color="#10B981" />
                   </View>
                   <View>
-                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>Campus Room Radar</Text>
+                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>Free Room Finder</Text>
                     <Text style={[styles.mockHeaderSub, { color: textSub }]}>Currently Unoccupied</Text>
                   </View>
                 </View>
@@ -289,7 +289,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {/* Floating Tag */}
             <View style={[styles.floatingTag, { backgroundColor: '#059669', borderColor: '#34D399' }]}>
               <Ionicons name="radio" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
-              <Text style={styles.floatingTagText}>Real-Time Vacancy Radar</Text>
+              <Text style={styles.floatingTagText}>Schedule-Based Room Availability</Text>
             </View>
           </View>
         );
@@ -305,8 +305,8 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                     <Ionicons name="cloud-offline" size={14} color="#F59E0B" />
                   </View>
                   <View>
-                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>Offline Database</Text>
-                    <Text style={[styles.mockHeaderSub, { color: textSub }]}>Encrypted Local Cache</Text>
+                    <Text style={[styles.mockHeaderTitle, { color: textTitle }]}>Offline Timetable</Text>
+                    <Text style={[styles.mockHeaderSub, { color: textSub }]}>Local Offline Storage</Text>
                   </View>
                 </View>
                 <View style={[styles.liveStatusPill, { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.3)' }]}>
@@ -325,7 +325,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                   </View>
                   <View style={styles.slotMeta}>
                     <Ionicons name="speedometer-outline" size={12} color={textSub} style={{ marginRight: 3 }} />
-                    <Text style={[styles.slotMetaText, { color: textSub }]}>0ms Instant Load Without Internet</Text>
+                    <Text style={[styles.slotMetaText, { color: textSub }]}>Instant schedule access without internet</Text>
                   </View>
                 </View>
               </View>
@@ -335,7 +335,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                 <View style={[styles.slotColorBar, { backgroundColor: '#6366F1' }]} />
                 <View style={styles.slotContent}>
                   <View style={styles.slotTop}>
-                    <Text style={[styles.slotSubject, { color: textTitle }]}>Smart Background Sync</Text>
+                    <Text style={[styles.slotSubject, { color: textTitle }]}>Automatic Schedule Sync</Text>
                     <Ionicons name="sync-circle" size={14} color="#6366F1" />
                   </View>
                   <View style={styles.slotMeta}>
@@ -349,7 +349,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {/* Floating Tag */}
             <View style={[styles.floatingTag, { backgroundColor: '#D97706', borderColor: '#FBBF24' }]}>
               <Ionicons name="infinite" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
-              <Text style={styles.floatingTagText}>Zero Mobile Data Consumed</Text>
+              <Text style={styles.floatingTagText}>Full offline access to cached schedules</Text>
             </View>
           </View>
         );

@@ -138,7 +138,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CollapsibleHeader
-        title={user?.role === 'teacher' ? 'Instructor Profile Settings' : 'Student Profile Settings'}
+        title="Profile & Settings"
         scrollY={scrollY}
       />
 
@@ -280,7 +280,7 @@ export default function ProfileScreen() {
                 >
                   <Ionicons name="moon" size={16} color={isDark ? colors.primary : colors.textMuted} style={{ marginRight: 6 }} />
                   <Text style={[styles.themeOptionText, { color: isDark ? colors.textPrimary : colors.textSecondary }]}>
-                    Dark Space
+                    Dark Mode
                   </Text>
                   {isDark && <Ionicons name="checkmark-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />}
                 </Pressable>
@@ -301,7 +301,7 @@ export default function ProfileScreen() {
                 >
                   <Ionicons name="sunny" size={16} color={!isDark ? '#F59E0B' : colors.textMuted} style={{ marginRight: 6 }} />
                   <Text style={[styles.themeOptionText, { color: !isDark ? colors.textPrimary : colors.textSecondary }]}>
-                    Clean Light
+                    Light Mode
                   </Text>
                   {!isDark && <Ionicons name="checkmark-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />}
                 </Pressable>
@@ -374,7 +374,7 @@ export default function ProfileScreen() {
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Version</Text>
-                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>1.0.0 (Expo SDK 57)</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>Version 1.0.0</Text>
               </View>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.infoRow}>
@@ -400,7 +400,7 @@ export default function ProfileScreen() {
           ) : (
             <View style={styles.logoutContent}>
               <Ionicons name="log-out-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-              <Text style={styles.logoutButtonText}>Log Out Account</Text>
+              <Text style={styles.logoutButtonText}>Log Out</Text>
             </View>
           )}
         </Pressable>
