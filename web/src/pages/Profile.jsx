@@ -14,6 +14,15 @@ import {
   Info
 } from 'lucide-react';
 
+const normalizeBatch = (b) => {
+  if (!b) return '';
+  return String(b)
+    .trim()
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-')
+    .replace(/\s*-\s*/g, '-')
+    .replace(/\s+/g, '');
+};
+
 export default function Profile() {
   const { user, classes, updateProfile, fetchCurrentUser } = useStore();
 
@@ -25,7 +34,7 @@ export default function Profile() {
   const [program, setProgram] = useState(user?.program || 'BS in Software Engineering');
   const [type, setType] = useState(user?.type || 'Regular');
   const [batch, setBatch] = useState(user?.batch || '2024-2028');
-  const [semester, setSemester] = useState(String(user?.semester || '2'));
+  const [semester, setSemester] = useState(user?.semester !== undefined && user?.semester !== null ? String(user.semester) : '2');
 
   // Security Form State
   const [newPassword, setNewPassword] = useState('');
@@ -36,6 +45,18 @@ export default function Profile() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Reset form helper
+  const resetFormToUser = (targetUser) => {
+    const u = targetUser !== undefined ? targetUser : user;
+    if (u) {
+      setFullName(u.fullName || '');
+      setProgram(u.program || 'BS in Software Engineering');
+      setType(u.type || 'Regular');
+      setBatch(u.batch || '2024-2028');
+      setSemester(u.semester !== undefined && u.semester !== null ? String(u.semester) : '2');
+    }
+  };
+
   // Fetch latest profile from backend on mount
   useEffect(() => {
     fetchCurrentUser();
@@ -43,13 +64,7 @@ export default function Profile() {
 
   // Sync state if user changes in store
   useEffect(() => {
-    if (user) {
-      setFullName(user.fullName || '');
-      setProgram(user.program || 'BS in Software Engineering');
-      setType(user.type || 'Regular');
-      setBatch(user.batch || '2024-2028');
-      setSemester(String(user.semester || '2'));
-    }
+    resetFormToUser(user);
   }, [user]);
 
   // Calculate live alignment warnings
@@ -64,7 +79,7 @@ export default function Profile() {
   const totalClassesCount = classes?.length || 0;
   const alignedClassesCount = classes?.filter(cls => 
     cls.semester === Number(user?.semester) && 
-    cls.batch === user?.batch && 
+    normalizeBatch(cls.batch) === normalizeBatch(user?.batch) && 
     cls.type === user?.type
   ).length || 0;
 
@@ -94,12 +109,24 @@ export default function Profile() {
           return;
         }
       } else {
-        if (!fullName.trim() || !batch.trim()) {
+        const normBatch = normalizeBatch(batch);
+        if (!fullName.trim() || !normBatch) {
           setErrorMsg('Please fill in all required academic parameters.');
           return;
         }
-        if (!/^\d{4}-\d{4}$/.test(batch.trim())) {
+        if (!/^\d{4}-\d{4}$/.test(normBatch)) {
           setErrorMsg('Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).');
+          return;
+        }
+
+        // Semester-change validation: Batch MUST be changed as well when Semester is changed
+        const prevSem = Number(user?.semester);
+        const newSem = Number(semester);
+        const prevBatch = normalizeBatch(user?.batch);
+        const newBatch = normBatch;
+
+        if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
+          setErrorMsg('Please change your batch/session as well when changing the semester.');
           return;
         }
       }
@@ -122,13 +149,13 @@ export default function Profile() {
 
     try {
       const payload = {
-        fullName
+        fullName: fullName.trim()
       };
 
       if (user?.role !== 'teacher') {
         payload.program = program;
         payload.type = type;
-        payload.batch = batch;
+        payload.batch = normalizeBatch(batch);
         payload.semester = Number(semester);
       }
 

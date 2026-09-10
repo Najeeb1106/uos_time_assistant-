@@ -4,11 +4,9 @@ import { UserProfile } from '../models/User';
 import { getCurrentScheduleApi } from '../api/scheduleApi';
 import { loadScheduleCache, saveScheduleCache, clearScheduleCache } from '../utils/scheduleCache';
 import {
-  getBuiltinClassesForUser,
-  BUILTIN_TIMETABLE_NAME,
-  BUILTIN_TIMETABLE_UPLOADED_AT,
+  getScheduleProfileKey,
+  filterClassesForUserProfile,
 } from '../utils/builtinScheduleUtils';
-import { useMobileStore } from './useMobileStore';
 
 interface ScheduleState {
   classes: ClassLecture[];
@@ -20,13 +18,25 @@ interface ScheduleState {
   isOffline: boolean;
   error: string | null;
   lastUpdated: string | null;
+  activeProfileKey: string | null;
+  profileGeneration: number;
 
   // Actions
   fetchCurrentSchedule: () => Promise<void>;
   refreshSchedule: () => Promise<void>;
   loadCachedSchedule: () => Promise<boolean>;
   loadBuiltinSchedule: (customUser?: UserProfile | null) => void;
+  syncWithUserProfile: (user: UserProfile | null | undefined) => void;
   clearSchedule: () => Promise<void>;
+}
+
+function getCurrentUserFromStore(): UserProfile | null {
+  try {
+    const { useMobileStore } = require('./useMobileStore');
+    return useMobileStore?.getState?.()?.user || null;
+  } catch {
+    return null;
+  }
 }
 
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
@@ -39,41 +49,72 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   isOffline: false,
   error: null,
   lastUpdated: null,
+  activeProfileKey: null,
+  profileGeneration: 0,
 
-  loadBuiltinSchedule: (customUser?: UserProfile | null) => {
-    const user = customUser !== undefined ? customUser : useMobileStore.getState().user;
-    const builtinClasses = getBuiltinClassesForUser(user);
+  /**
+   * Atomically synchronizes the schedule with the active user profile.
+   * Clears stale data when user changes or logs out.
+   */
+  syncWithUserProfile: (user: UserProfile | null | undefined) => {
+    const newGen = get().profileGeneration + 1;
+    const profileKey = getScheduleProfileKey(user);
+
+    if (!user) {
+      set({
+        classes: [],
+        pdfFileName: null,
+        uploadedAt: null,
+        isBuiltin: false,
+        isLoading: false,
+        isRefreshing: false,
+        isOffline: false,
+        error: null,
+        lastUpdated: new Date().toISOString(),
+        activeProfileKey: profileKey,
+        profileGeneration: newGen,
+      });
+      clearScheduleCache().catch(() => {});
+      return;
+    }
+
     set({
-      classes: builtinClasses,
-      pdfFileName: BUILTIN_TIMETABLE_NAME,
-      uploadedAt: BUILTIN_TIMETABLE_UPLOADED_AT,
-      isBuiltin: true,
+      classes: [],
+      pdfFileName: null,
+      uploadedAt: null,
+      isBuiltin: false,
       isLoading: false,
       isRefreshing: false,
       isOffline: false,
       error: null,
       lastUpdated: new Date().toISOString(),
+      activeProfileKey: profileKey,
+      profileGeneration: newGen,
     });
+  },
 
-    // Save active built-in dataset to local storage cache for offline support
-    saveScheduleCache({
-      classes: builtinClasses,
-      pdfFileName: BUILTIN_TIMETABLE_NAME,
-      uploadedAt: BUILTIN_TIMETABLE_UPLOADED_AT,
-    }).catch(() => {});
+  loadBuiltinSchedule: (customUser?: UserProfile | null) => {
+    const user = customUser !== undefined ? customUser : getCurrentUserFromStore();
+    get().syncWithUserProfile(user);
+    get().fetchCurrentSchedule();
   },
 
   loadCachedSchedule: async () => {
-    const cached = await loadScheduleCache();
-    if (cached && cached.classes && cached.classes.length > 0) {
-      // If cached file was a user-uploaded PDF, load it
-      if (cached.pdfFileName !== BUILTIN_TIMETABLE_NAME) {
+    const user = getCurrentUserFromStore();
+    const expectedProfileKey = getScheduleProfileKey(user);
+    const cached = await loadScheduleCache(expectedProfileKey);
+
+    if (cached && cached.classes && Array.isArray(cached.classes)) {
+      // Validate that cached classes actually match the current user profile
+      const validClasses = filterClassesForUserProfile(cached.classes, user);
+      if (validClasses.length > 0) {
         set({
-          classes: cached.classes,
+          classes: validClasses,
           pdfFileName: cached.pdfFileName,
           uploadedAt: cached.uploadedAt,
           isBuiltin: false,
           isOffline: true,
+          activeProfileKey: expectedProfileKey,
           lastUpdated: cached.cachedAt,
         });
         return true;
@@ -83,90 +124,146 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   },
 
   fetchCurrentSchedule: async () => {
-    // 1. Attempt loading custom user-uploaded cached schedule first
-    const hasCustomUploadCache = await get().loadCachedSchedule();
+    const currentUser = getCurrentUserFromStore();
+    const currentProfileKey = getScheduleProfileKey(currentUser);
+    const requestGen = get().profileGeneration;
 
-    if (!hasCustomUploadCache) {
-      // Load built-in schedule matching the current profile immediately
-      get().loadBuiltinSchedule();
-    }
+    // 1. Attempt loading valid cache matching current profile
+    await get().loadCachedSchedule();
 
     set({ isLoading: true, error: null });
+
     try {
       const response = await getCurrentScheduleApi();
-      if (response.success && response.classes && response.classes.length > 0) {
-        // User has a personal uploaded custom schedule on server
-        const payload = {
-          classes: response.classes,
-          pdfFileName: response.pdfFileName || null,
-          uploadedAt: response.uploadedAt || null,
-        };
 
-        await saveScheduleCache(payload);
-
-        set({
-          classes: response.classes,
-          pdfFileName: response.pdfFileName || null,
-          uploadedAt: response.uploadedAt || null,
-          isBuiltin: false,
-          isLoading: false,
-          isOffline: false,
-          error: null,
-          lastUpdated: new Date().toISOString(),
-        });
-      } else {
-        // No custom upload on server -> Re-align with built-in dataset for active profile
-        get().loadBuiltinSchedule();
+      // Generation guard: If profile changed while network request was in flight, abort
+      if (get().profileGeneration !== requestGen) {
+        return;
       }
+
+      const latestUser = getCurrentUserFromStore();
+      const latestProfileKey = getScheduleProfileKey(latestUser);
+
+      if (response.success && response.classes && Array.isArray(response.classes) && response.classes.length > 0) {
+        // Strict filter: ensure classes from server belong to CURRENT profile (not old semester/batch)
+        const matchingClasses = filterClassesForUserProfile(response.classes, latestUser);
+
+        if (matchingClasses.length > 0) {
+          const payload = {
+            profileKey: latestProfileKey,
+            classes: matchingClasses,
+            pdfFileName: response.pdfFileName || null,
+            uploadedAt: response.uploadedAt || null,
+            isBuiltin: false,
+          };
+
+          await saveScheduleCache(payload);
+
+          set({
+            classes: matchingClasses,
+            pdfFileName: response.pdfFileName || null,
+            uploadedAt: response.uploadedAt || null,
+            isBuiltin: false,
+            isLoading: false,
+            isOffline: false,
+            error: null,
+            activeProfileKey: latestProfileKey,
+            lastUpdated: new Date().toISOString(),
+          });
+          return;
+        }
+      }
+
+      // No matching schedule on server -> clear classes and show empty state
+      set({
+        classes: [],
+        pdfFileName: null,
+        uploadedAt: null,
+        isBuiltin: false,
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        activeProfileKey: latestProfileKey,
+        lastUpdated: new Date().toISOString(),
+      });
     } catch (err: any) {
-      // Network offline or fetch error -> Ensure built-in dataset matches current profile
-      if (!get().classes || get().classes.length === 0 || get().isBuiltin) {
-        get().loadBuiltinSchedule();
-      } else {
-        set({
-          isLoading: false,
-          isOffline: true,
-          error: null,
-        });
-      }
+      // Generation guard
+      if (get().profileGeneration !== requestGen) return;
+
+      set({
+        isLoading: false,
+        isOffline: true,
+        error: null,
+      });
     }
   },
 
   refreshSchedule: async () => {
+    const currentUser = getCurrentUserFromStore();
+    const requestGen = get().profileGeneration;
+    const profileKey = getScheduleProfileKey(currentUser);
+
     set({ isRefreshing: true, error: null });
+
     try {
       const response = await getCurrentScheduleApi();
-      if (response.success && response.classes && response.classes.length > 0) {
-        const payload = {
-          classes: response.classes,
-          pdfFileName: response.pdfFileName || null,
-          uploadedAt: response.uploadedAt || null,
-        };
 
-        await saveScheduleCache(payload);
+      // Generation guard
+      if (get().profileGeneration !== requestGen) return;
 
-        set({
-          classes: response.classes,
-          pdfFileName: response.pdfFileName || null,
-          uploadedAt: response.uploadedAt || null,
-          isBuiltin: false,
-          isRefreshing: false,
-          isOffline: false,
-          error: null,
-          lastUpdated: new Date().toISOString(),
-        });
-      } else {
-        // No custom schedule -> Refresh built-in data for current active profile
-        get().loadBuiltinSchedule();
+      const latestUser = getCurrentUserFromStore();
+      const latestProfileKey = getScheduleProfileKey(latestUser);
+
+      if (response.success && response.classes && Array.isArray(response.classes) && response.classes.length > 0) {
+        const matchingClasses = filterClassesForUserProfile(response.classes, latestUser);
+
+        if (matchingClasses.length > 0) {
+          const payload = {
+            profileKey: latestProfileKey,
+            classes: matchingClasses,
+            pdfFileName: response.pdfFileName || null,
+            uploadedAt: response.uploadedAt || null,
+            isBuiltin: false,
+          };
+
+          await saveScheduleCache(payload);
+
+          set({
+            classes: matchingClasses,
+            pdfFileName: response.pdfFileName || null,
+            uploadedAt: response.uploadedAt || null,
+            isBuiltin: false,
+            isRefreshing: false,
+            isOffline: false,
+            error: null,
+            activeProfileKey: latestProfileKey,
+            lastUpdated: new Date().toISOString(),
+          });
+          return;
+        }
       }
+
+      // No matching server schedule -> clear classes
+      set({
+        classes: [],
+        pdfFileName: null,
+        uploadedAt: null,
+        isBuiltin: false,
+        isRefreshing: false,
+        isOffline: false,
+        error: null,
+        activeProfileKey: latestProfileKey,
+        lastUpdated: new Date().toISOString(),
+      });
     } catch (err: any) {
-      get().loadBuiltinSchedule();
+      if (get().profileGeneration !== requestGen) return;
       set({ isRefreshing: false, isOffline: true });
     }
   },
 
   clearSchedule: async () => {
     await clearScheduleCache();
-    get().loadBuiltinSchedule();
+    const user = getCurrentUserFromStore();
+    get().syncWithUserProfile(user);
   },
 }));

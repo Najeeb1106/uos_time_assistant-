@@ -13,11 +13,12 @@ import {
   Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthNavigationProp } from '../../navigation/types';
 import { useMobileStore } from '../../stores/useMobileStore';
-import { useTheme } from '../../constants/Colors';
+import { lightColors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import SelectBottomSheet from '../../components/common/SelectBottomSheet';
@@ -62,7 +63,8 @@ const DESIGNATION_OPTIONS = [
 export default function RegisterScreen() {
   const navigation = useNavigation<AuthNavigationProp<'Register'>>();
   const insets = useSafeAreaInsets();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const colors = lightColors;
+  const isDark = false;
   const register = useMobileStore((state) => state.register);
   const isLoading = useMobileStore((state) => state.isLoading);
   const storeError = useMobileStore((state) => state.error);
@@ -163,16 +165,7 @@ export default function RegisterScreen() {
       }
 
       await register(payload);
-      useScheduleStore.getState().loadBuiltinSchedule({
-        uid: '',
-        email: email.trim(),
-        fullName: fullName.trim(),
-        role,
-        program,
-        type,
-        batch: batch.trim(),
-        semester,
-      });
+      useScheduleStore.getState().fetchCurrentSchedule().catch(() => {});
     } catch {
       // Error handled by store
     }
@@ -194,6 +187,7 @@ export default function RegisterScreen() {
           },
         ]}
       >
+        <StatusBar style="dark" />
         {/* Top Header Bar */}
         <View style={[styles.topNavBar, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
           <View style={styles.topNavLeft}>
@@ -473,6 +467,7 @@ export default function RegisterScreen() {
                       value={selectedProgramLabel}
                       iconName="school-outline"
                       onPress={() => setActivePicker('program')}
+                      colors={colors}
                     />
 
                     {/* 2. Section Dropdown */}
@@ -481,6 +476,7 @@ export default function RegisterScreen() {
                       value={type}
                       iconName="layers-outline"
                       onPress={() => setActivePicker('section')}
+                      colors={colors}
                     />
 
                     {/* 3. Session / Batch Manual Text Input */}
@@ -531,6 +527,7 @@ export default function RegisterScreen() {
                       value={`Semester ${semester}`}
                       iconName="time-outline"
                       onPress={() => setActivePicker('semester')}
+                      colors={colors}
                     />
                   </>
                 )}
@@ -546,6 +543,7 @@ export default function RegisterScreen() {
                       value={department}
                       iconName="business-outline"
                       onPress={() => setActivePicker('department')}
+                      colors={colors}
                     />
 
                     {/* 2. Designation Dropdown */}
@@ -554,6 +552,7 @@ export default function RegisterScreen() {
                       value={designation}
                       iconName="ribbon-outline"
                       onPress={() => setActivePicker('designation')}
+                      colors={colors}
                     />
 
                     {/* Faculty Employee ID Text Input */}
@@ -688,6 +687,8 @@ export default function RegisterScreen() {
           onSelect={(val) => setProgram(val)}
           onClose={() => setActivePicker(null)}
           searchable
+          colors={colors}
+          isDark={isDark}
         />
 
         {/* 2. Section Bottom Sheet */}
@@ -698,6 +699,8 @@ export default function RegisterScreen() {
           selectedValue={type}
           onSelect={(val) => setType(val)}
           onClose={() => setActivePicker(null)}
+          colors={colors}
+          isDark={isDark}
         />
 
         {/* 3. Active Semester Bottom Sheet */}
@@ -708,6 +711,8 @@ export default function RegisterScreen() {
           selectedValue={semester}
           onSelect={(val) => setSemester(val)}
           onClose={() => setActivePicker(null)}
+          colors={colors}
+          isDark={isDark}
         />
 
         {/* 4. Teacher Department Bottom Sheet */}
@@ -718,6 +723,8 @@ export default function RegisterScreen() {
           selectedValue={department}
           onSelect={(val) => setDepartment(val)}
           onClose={() => setActivePicker(null)}
+          colors={colors}
+          isDark={isDark}
         />
 
         {/* 5. Teacher Designation Bottom Sheet */}
@@ -728,6 +735,8 @@ export default function RegisterScreen() {
           selectedValue={designation}
           onSelect={(val) => setDesignation(val)}
           onClose={() => setActivePicker(null)}
+          colors={colors}
+          isDark={isDark}
         />
       </View>
     </TouchableWithoutFeedback>

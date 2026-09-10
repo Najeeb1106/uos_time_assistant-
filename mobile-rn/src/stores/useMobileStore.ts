@@ -1,13 +1,17 @@
 import { create } from 'zustand';
 import { UserProfile } from '../models/User';
 import { getToken, setToken, removeToken } from '../utils/storage';
+import { isTokenExpired } from '../utils/jwtUtils';
+import { setOnUnauthorizedCallback } from '../api/client';
 import { loginApi, registerApi, getCurrentUserApi, LoginPayload, RegisterPayload } from '../api/authApi';
 import { updateProfileApi } from '../api/profileApi';
 import { Config } from '../constants/Config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from '../utils/appStorage';
+import { normalizeBatch } from '../utils/builtinScheduleUtils';
 import axios from 'axios';
 
 const AVATAR_STORAGE_KEY = 'sheduos_user_avatar_uri';
+const USER_STORAGE_KEY = 'sheduos_cached_user';
 
 interface MobileAuthState {
   token: string | null;
@@ -48,7 +52,19 @@ function formatApiError(err: any, fallbackMessage: string): string {
   return fallbackMessage;
 }
 
-export const useMobileStore = create<MobileAuthState>((set) => ({
+function syncScheduleStore(user: UserProfile | null | undefined): void {
+  try {
+    const { useScheduleStore } = require('./useScheduleStore');
+    const scheduleState = useScheduleStore?.getState?.();
+    if (scheduleState?.syncWithUserProfile) {
+      scheduleState.syncWithUserProfile(user);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export const useMobileStore = create<MobileAuthState>((set, get) => ({
   token: null,
   user: null,
   isAuthenticated: false,
@@ -59,71 +75,125 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
   clearError: () => set({ error: null }),
 
   initializeAuth: async () => {
+    if (__DEV__) {
+      console.log('[Auth] initializeAuth started');
+    }
     set({ isLoading: true, error: null });
     try {
       const storedToken = await getToken();
-      const cachedAvatar = await AsyncStorage.getItem(AVATAR_STORAGE_KEY).catch(() => null);
+      if (__DEV__) {
+        console.log(`[Auth] stored token found: ${Boolean(storedToken)}`);
+      }
+
+      const cachedAvatar = await appStorage.getItem(AVATAR_STORAGE_KEY).catch(() => null);
+      const cachedUserJson = await appStorage.getItem(USER_STORAGE_KEY).catch(() => null);
+      let cachedUser: UserProfile | null = null;
+      if (cachedUserJson) {
+        try {
+          cachedUser = JSON.parse(cachedUserJson);
+        } catch {
+          cachedUser = null;
+        }
+      }
+
+      if (__DEV__) {
+        console.log(`[Auth] cached user found: ${Boolean(cachedUser)}`);
+      }
 
       if (!storedToken) {
+        if (__DEV__) {
+          console.log('[Auth] No stored token found. Auth initialized as unauthenticated.');
+          console.log('[Auth] authInitialized set: true, isAuthenticated set: false');
+        }
         set({
           token: null,
           user: null,
           isAuthenticated: false,
           authInitialized: true,
           isLoading: false,
+          error: null,
         });
+        syncScheduleStore(null);
         return;
       }
 
-      // Token exists, validate with GET /api/auth/me
+      const expired = isTokenExpired(storedToken);
+      if (__DEV__) {
+        console.log(`[Auth] token expired: ${expired}`);
+      }
+
+      if (expired) {
+        if (__DEV__) {
+          console.log('[Auth] Stored token is expired. Clearing storage.');
+          console.log('[Auth] authInitialized set: true, isAuthenticated set: false');
+        }
+        await removeToken();
+        await appStorage.removeItem(USER_STORAGE_KEY).catch(() => {});
+        set({
+          token: null,
+          user: null,
+          isAuthenticated: false,
+          authInitialized: true,
+          isLoading: false,
+          error: null,
+        });
+        syncScheduleStore(null);
+        return;
+      }
+
+      // Token exists and is not expired: immediately restore authenticated session
+      const initialUser = cachedUser ? { ...cachedUser, avatarUri: cachedAvatar || undefined } : null;
+      if (__DEV__) {
+        console.log('[Auth] Valid unexpired token found. Restoring authenticated session.');
+        console.log('[Auth] authInitialized set: true, isAuthenticated set: true');
+      }
+      set({
+        token: storedToken,
+        user: initialUser,
+        isAuthenticated: true,
+        authInitialized: true,
+        isLoading: false,
+        error: null,
+      });
+
+      // Synchronize schedule store immediately with initial restored profile
+      syncScheduleStore(initialUser);
+
+      // Background validation & fresh user profile sync (offline errors ignored)
       try {
         const response = await getCurrentUserApi();
         if (response.success && response.user) {
-          set({
-            token: storedToken,
-            user: { ...response.user, avatarUri: cachedAvatar || undefined },
-            isAuthenticated: true,
-            authInitialized: true,
-            isLoading: false,
-          });
-        } else {
-          await removeToken();
-          set({
-            token: null,
-            user: null,
-            isAuthenticated: false,
-            authInitialized: true,
-            isLoading: false,
-          });
+          const freshUser = { ...response.user, avatarUri: cachedAvatar || undefined };
+          await appStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user)).catch(() => {});
+          set({ user: freshUser });
+          syncScheduleStore(freshUser);
         }
       } catch (err: any) {
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
-          // Token explicitly invalid
+        if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
+          // Token explicitly rejected by backend (e.g. revoked or user removed)
+          if (__DEV__) {
+            console.warn('[Auth] Stored token rejected by server with 401/403. Clearing session.');
+          }
           await removeToken();
+          await appStorage.removeItem(USER_STORAGE_KEY).catch(() => {});
           set({
             token: null,
             user: null,
             isAuthenticated: false,
-            authInitialized: true,
-            isLoading: false,
+            error: null,
           });
-        } else {
-          // Network error or backend offline: preserve token so user isn't logged out
-          set({
-            token: storedToken,
-            isAuthenticated: true,
-            authInitialized: true,
-            isLoading: false,
-          });
+          syncScheduleStore(null);
         }
+        // Network errors or backend offline are ignored so valid sessions remain authenticated offline
       }
     } catch (err) {
+      if (__DEV__) {
+        console.warn('[Auth] Unexpected error during initializeAuth:', err);
+      }
       set({
-        token: null,
-        user: null,
-        isAuthenticated: false,
         authInitialized: true,
         isLoading: false,
+        error: null,
       });
     }
   },
@@ -136,15 +206,21 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
         throw new Error(response.message || 'Login failed. Please check your credentials.');
       }
 
+      if (__DEV__) {
+        console.log('[Auth] Login successful. Saving token and user to storage.');
+      }
       await setToken(response.token);
-      const cachedAvatar = await AsyncStorage.getItem(AVATAR_STORAGE_KEY).catch(() => null);
+      await appStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user)).catch(() => {});
+      const cachedAvatar = await appStorage.getItem(AVATAR_STORAGE_KEY).catch(() => null);
+      const userProfile = { ...response.user, avatarUri: cachedAvatar || undefined };
       set({
         token: response.token,
-        user: { ...response.user, avatarUri: cachedAvatar || undefined },
+        user: userProfile,
         isAuthenticated: true,
         isLoading: false,
         error: null,
       });
+      syncScheduleStore(userProfile);
     } catch (err: any) {
       const errorMessage = formatApiError(err, 'An unexpected error occurred during login.');
       set({ isLoading: false, error: errorMessage });
@@ -161,6 +237,7 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
       }
 
       await setToken(response.token);
+      await appStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user)).catch(() => {});
       set({
         token: response.token,
         user: response.user,
@@ -168,6 +245,7 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
         isLoading: false,
         error: null,
       });
+      syncScheduleStore(response.user);
     } catch (err: any) {
       const errorMessage = formatApiError(err, 'An unexpected error occurred during registration.');
       set({ isLoading: false, error: errorMessage });
@@ -178,9 +256,9 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
   setAvatar: async (uri: string | null) => {
     try {
       if (uri) {
-        await AsyncStorage.setItem(AVATAR_STORAGE_KEY, uri);
+        await appStorage.setItem(AVATAR_STORAGE_KEY, uri);
       } else {
-        await AsyncStorage.removeItem(AVATAR_STORAGE_KEY);
+        await appStorage.removeItem(AVATAR_STORAGE_KEY);
       }
       set((state) => ({
         user: state.user ? { ...state.user, avatarUri: uri || undefined } : null,
@@ -193,6 +271,21 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
   updateProfile: async (payload: any) => {
     set({ isLoading: true, error: null });
     try {
+      // Semester-change validation: Batch MUST be changed as well when Semester is changed
+      const currentUser = get().user;
+      if (currentUser && currentUser.role !== 'teacher' && payload.semester !== undefined && payload.batch !== undefined) {
+        const prevSem = Number(currentUser.semester);
+        const newSem = Number(payload.semester);
+        const prevBatch = normalizeBatch(currentUser.batch);
+        const newBatch = normalizeBatch(payload.batch);
+
+        if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
+          const errorMsg = 'Please change your batch/session as well when changing the semester.';
+          set({ isLoading: false, error: errorMsg });
+          throw new Error(errorMsg);
+        }
+      }
+
       const avatarUri = payload.avatarUri;
       const cleanPayload = { ...payload };
       delete cleanPayload.avatarUri;
@@ -204,20 +297,28 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
 
       if (avatarUri !== undefined) {
         if (avatarUri) {
-          await AsyncStorage.setItem(AVATAR_STORAGE_KEY, avatarUri).catch(() => {});
+          await appStorage.setItem(AVATAR_STORAGE_KEY, avatarUri).catch(() => {});
         } else {
-          await AsyncStorage.removeItem(AVATAR_STORAGE_KEY).catch(() => {});
+          await appStorage.removeItem(AVATAR_STORAGE_KEY).catch(() => {});
         }
       }
 
-      set((state) => {
-        const finalAvatar = avatarUri !== undefined ? (avatarUri || undefined) : state.user?.avatarUri;
-        return {
-          user: { ...state.user, ...response.user, avatarUri: finalAvatar },
-          isLoading: false,
-          error: null,
-        };
+      const updatedUser = {
+        ...get().user,
+        ...response.user,
+        avatarUri: avatarUri !== undefined ? (avatarUri || undefined) : get().user?.avatarUri,
+      };
+
+      await appStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser)).catch(() => {});
+
+      set({
+        user: updatedUser,
+        isLoading: false,
+        error: null,
       });
+
+      // Synchronize schedule store with the updated profile immediately
+      syncScheduleStore(updatedUser);
     } catch (err: any) {
       const errorMessage = formatApiError(err, 'An unexpected error occurred while updating profile.');
       set({ isLoading: false, error: errorMessage });
@@ -228,6 +329,7 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
   logout: async () => {
     set({ isLoading: true });
     await removeToken();
+    await appStorage.removeItem(USER_STORAGE_KEY).catch(() => {});
     set({
       token: null,
       user: null,
@@ -235,5 +337,16 @@ export const useMobileStore = create<MobileAuthState>((set) => ({
       isLoading: false,
       error: null,
     });
+    try {
+      const { useScheduleStore } = require('./useScheduleStore');
+      useScheduleStore?.getState?.()?.clearSchedule?.();
+    } catch {
+      // ignore
+    }
   },
 }));
+
+// Bind global API 401/403 unauthorized event to automatic store reset
+setOnUnauthorizedCallback(() => {
+  useMobileStore.getState().logout();
+});

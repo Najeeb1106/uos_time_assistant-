@@ -19,12 +19,12 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useMobileStore } from '../../stores/useMobileStore';
-import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
 import SelectBottomSheet from '../../components/common/SelectBottomSheet';
 import { DEGREE_PROGRAMS } from '../../constants/degreePrograms';
+import { normalizeBatch } from '../../utils/builtinScheduleUtils';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -43,8 +43,8 @@ export default function ProfileScreen() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [program, setProgram] = useState(user?.program || '');
-  const [semester, setSemester] = useState<number>(user?.semester || 1);
-  const [batch, setBatch] = useState(user?.batch || '2024-2028');
+  const [semester, setSemester] = useState<number>(user?.semester !== undefined && user?.semester !== null ? Number(user.semester) : 1);
+  const [batch, setBatch] = useState(user?.batch || '');
   const [type, setType] = useState(user?.type || 'Regular');
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri || null);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,23 +53,51 @@ export default function ProfileScreen() {
   // Active Dropdown state inside Modal
   const [activeDropdown, setActiveDropdown] = useState<'program' | 'semester' | 'section' | null>(null);
 
-  // Responsive modal height calculation (bounded between 75% and 88% of screen height)
+  // Fixed heights for header and footer in Edit Profile modal
+  const EDIT_DRAG_HANDLE_HEIGHT = 15; // 3px bar + 8 marginTop + 2 marginBottom + 2 extra
+  const EDIT_HEADER_HEIGHT = 54;
+  const EDIT_FOOTER_HEIGHT = 66;
+
+  // Compact modal height (bounded by safe area and screen height, up to 580px)
   const bottomInset = insets.bottom > 0 ? insets.bottom : 8;
-  const modalHeight = Math.min(
-    screenHeight * 0.85,
-    screenHeight - insets.top - bottomInset - 16
+  const maxAvailableHeight = Math.min(
+    screenHeight * 0.88,
+    screenHeight - insets.top - Math.max(bottomInset, 16) - 24
   );
+  const modalHeight = Math.min(580, maxAvailableHeight);
+  // Explicit body height ensuring form is fully scrollable and bounded
+  const bodyHeight = modalHeight - EDIT_DRAG_HANDLE_HEIGHT - EDIT_HEADER_HEIGHT - EDIT_FOOTER_HEIGHT;
+
+  const resetFormToUser = (targetUser?: any) => {
+    const u = targetUser !== undefined ? targetUser : user;
+    if (u) {
+      setFullName(u.fullName || '');
+      setProgram(u.program || '');
+      setSemester(u.semester !== undefined && u.semester !== null ? Number(u.semester) : 1);
+      setBatch(u.batch || '');
+      setType(u.type || 'Regular');
+      setAvatarUri(u.avatarUri || null);
+    } else {
+      setFullName('');
+      setProgram('');
+      setSemester(1);
+      setBatch('');
+      setType('Regular');
+      setAvatarUri(null);
+    }
+    setFeedback(null);
+  };
 
   useEffect(() => {
-    if (user) {
-      setFullName(user.fullName || '');
-      setProgram(user.program || '');
-      setSemester(user.semester || 1);
-      setBatch(user.batch || '2024-2028');
-      setType(user.type || 'Regular');
-      setAvatarUri(user.avatarUri || null);
-    }
+    resetFormToUser(user);
   }, [user]);
+
+  // Re-synchronize form with latest user profile every time modal opens
+  useEffect(() => {
+    if (isEditModalOpen) {
+      resetFormToUser(user);
+    }
+  }, [isEditModalOpen]);
 
   const handlePickAvatar = async () => {
     try {
@@ -87,6 +115,16 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleOpenModal = () => {
+    resetFormToUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    resetFormToUser(user);
+    setIsEditModalOpen(false);
+  };
+
   const handleRemoveAvatar = () => {
     setAvatarUri(null);
   };
@@ -94,30 +132,61 @@ export default function ProfileScreen() {
   const handleSaveProfile = async () => {
     setIsSaving(true);
     setFeedback(null);
+
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
+      setFeedback({ type: 'error', message: 'Please specify your full name.' });
+      setIsSaving(false);
+      return;
+    }
+
+    // Student specific validations
+    if (user && user.role !== 'teacher') {
+      const normalizedInputBatch = normalizeBatch(batch);
+      if (!normalizedInputBatch) {
+        setFeedback({ type: 'error', message: 'Please specify your session / batch.' });
+        setIsSaving(false);
+        return;
+      }
+
+      if (!/^\d{4}-\d{4}$/.test(normalizedInputBatch)) {
+        setFeedback({
+          type: 'error',
+          message: 'Batch must be in YYYY-YYYY format (e.g. 2024-2028).',
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      // Semester-change validation: Batch MUST be changed as well when Semester is changed
+      const prevSem = Number(user.semester);
+      const newSem = Number(semester);
+      const prevBatch = normalizeBatch(user.batch);
+      const newBatch = normalizedInputBatch;
+
+      if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
+        setFeedback({
+          type: 'error',
+          message: 'Please change your batch/session as well when changing the semester.',
+        });
+        setIsSaving(false);
+        return;
+      }
+    }
+
     try {
+      const finalBatch = user?.role === 'teacher' ? batch.trim() : normalizeBatch(batch);
       await updateProfile({
-        fullName: fullName.trim(),
+        fullName: trimmedName,
         program: program.trim(),
         semester: Number(semester),
-        batch: batch.trim(),
+        batch: finalBatch,
         type,
         avatarUri: avatarUri || null,
       });
-      useScheduleStore.getState().loadBuiltinSchedule({
-        uid: user?.uid || '',
-        email: user?.email || '',
-        fullName: fullName.trim(),
-        role: user?.role || 'student',
-        program: program.trim(),
-        semester: Number(semester),
-        batch: batch.trim(),
-        type,
-        avatarUri: avatarUri || undefined,
-      });
       setFeedback({ type: 'success', message: 'Profile updated successfully!' });
       setTimeout(() => {
-        setIsEditModalOpen(false);
-        setFeedback(null);
+        handleCloseModal();
       }, 1200);
     } catch (err: any) {
       setFeedback({ type: 'error', message: err.message || 'Failed to update profile.' });
@@ -182,7 +251,7 @@ export default function ProfileScreen() {
                     borderColor: colors.primary,
                   },
                 ]}
-                onPress={() => setIsEditModalOpen(true)}
+                onPress={handleOpenModal}
               >
                 {user.avatarUri ? (
                   <Image source={{ uri: user.avatarUri }} style={styles.avatarImage} resizeMode="cover" />
@@ -231,7 +300,7 @@ export default function ProfileScreen() {
                 {/* Right: Edit Profile Button */}
                 <Pressable
                   style={styles.profileActionRight}
-                  onPress={() => setIsEditModalOpen(true)}
+                  onPress={handleOpenModal}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   <Ionicons
@@ -325,7 +394,7 @@ export default function ProfileScreen() {
             >
               <View style={styles.cardHeaderRow}>
                 <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>Academic Registration</Text>
-                <Pressable onPress={() => setIsEditModalOpen(true)} hitSlop={8}>
+                <Pressable onPress={handleOpenModal} hitSlop={8}>
                   <Text style={[styles.editLinkText, { color: colors.primary }]}>Edit</Text>
                 </Pressable>
               </View>
@@ -333,7 +402,7 @@ export default function ProfileScreen() {
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Degree Program</Text>
                 <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
-                  {user.program || 'BS Software Engineering'}
+                  {user.program || 'N/A'}
                 </Text>
               </View>
 
@@ -351,7 +420,7 @@ export default function ProfileScreen() {
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Session / Batch</Text>
                 <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
-                  {user.batch || '2024-2028'}
+                  {user.batch || 'N/A'}
                 </Text>
               </View>
 
@@ -398,36 +467,36 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
+
+            {/* Log Out CTA */}
+            <Pressable
+              style={[styles.logoutButton, { backgroundColor: colors.error }, isLoading && styles.buttonDisabled]}
+              onPress={() => logout()}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <View style={styles.logoutContent}>
+                  <Ionicons name="log-out-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+                  <Text style={styles.logoutButtonText}>Log Out</Text>
+                </View>
+              )}
+            </Pressable>
           </>
         ) : (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>No user session active</Text>
           </View>
         )}
-
-        {/* Log Out CTA */}
-        <Pressable
-          style={[styles.logoutButton, { backgroundColor: colors.error }, isLoading && styles.buttonDisabled]}
-          onPress={() => logout()}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <View style={styles.logoutContent}>
-              <Ionicons name="log-out-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-              <Text style={styles.logoutButtonText}>Log Out</Text>
-            </View>
-          )}
-        </Pressable>
       </Animated.ScrollView>
 
-      {/* Edit Profile Modal with Safe-Area & Fixed Header/Footer Layout */}
+      {/* Edit Profile Modal with Compact Bottom-Sheet & Fixed Header/Footer Layout */}
       <Modal
         visible={isEditModalOpen}
         animationType="slide"
         transparent
-        onRequestClose={() => setIsEditModalOpen(false)}
+        onRequestClose={handleCloseModal}
       >
         <KeyboardAvoidingView
           style={[
@@ -435,11 +504,12 @@ export default function ProfileScreen() {
             {
               backgroundColor: isDark ? 'rgba(6, 8, 20, 0.75)' : 'rgba(0, 0, 0, 0.5)',
               paddingTop: insets.top + 16,
-              paddingBottom: bottomInset,
+              paddingBottom: Math.max(bottomInset, 16),
             },
           ]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+          <Pressable style={styles.backdropPressable} onPress={handleCloseModal} />
           <View
             style={[
               styles.modalContainer,
@@ -447,24 +517,30 @@ export default function ProfileScreen() {
                 backgroundColor: colors.surface,
                 borderColor: colors.border,
                 height: modalHeight,
+                maxHeight: maxAvailableHeight,
               },
             ]}
           >
+            {/* Top Drag Handle */}
+            <View style={[styles.modalDragHandle, { backgroundColor: colors.border }]} />
+
             {/* 1. Fixed Modal Header */}
-            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <View style={[styles.modalHeader, { height: EDIT_HEADER_HEIGHT, borderBottomColor: colors.border }]}>
               <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Edit Profile</Text>
-              <Pressable onPress={() => setIsEditModalOpen(false)} hitSlop={10}>
-                <Ionicons name="close" size={22} color={colors.textMuted} />
+              <Pressable onPress={handleCloseModal} hitSlop={10}>
+                <Ionicons name="close" size={20} color={colors.textMuted} />
               </Pressable>
             </View>
 
-            {/* 2. Vertically Scrollable Form Area */}
-            <ScrollView
-              style={styles.modalScrollBody}
-              contentContainerStyle={styles.modalScrollContent}
-              showsVerticalScrollIndicator={true}
-              keyboardShouldPersistTaps="handled"
-            >
+            {/* 2. Middle Body with explicit bodyHeight — cannot collapse to 0 */}
+            <View style={[styles.modalBodyContainer, { height: bodyHeight }]}>
+              <ScrollView
+                style={[styles.modalScrollBody, { height: bodyHeight }]}
+                contentContainerStyle={styles.modalScrollContent}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
+              >
               {/* Feedback Banner */}
               {feedback ? (
                 <View
@@ -477,9 +553,9 @@ export default function ProfileScreen() {
                 >
                   <Ionicons
                     name={feedback.type === 'success' ? 'checkmark-circle-outline' : 'alert-circle-outline'}
-                    size={18}
+                    size={16}
                     color={feedback.type === 'success' ? colors.success : colors.error}
-                    style={{ marginRight: 8 }}
+                    style={{ marginRight: 6 }}
                   />
                   <Text
                     style={[
@@ -511,7 +587,7 @@ export default function ProfileScreen() {
                       style={[styles.uploadPhotoBtn, { backgroundColor: colors.primary }]}
                       onPress={handlePickAvatar}
                     >
-                      <Ionicons name="camera-outline" size={14} color="#ffffff" style={{ marginRight: 5 }} />
+                      <Ionicons name="camera-outline" size={13} color="#ffffff" style={{ marginRight: 4 }} />
                       <Text style={styles.uploadPhotoBtnText}>{avatarUri ? 'Change Photo' : 'Upload Photo'}</Text>
                     </Pressable>
 
@@ -520,17 +596,17 @@ export default function ProfileScreen() {
                         style={[styles.removePhotoBtn, { borderColor: colors.border }]}
                         onPress={handleRemoveAvatar}
                       >
-                        <Ionicons name="trash-outline" size={14} color={colors.error} />
+                        <Ionicons name="trash-outline" size={13} color={colors.error} />
                       </Pressable>
                     ) : null}
                   </View>
                 </View>
               </View>
 
-              {/* Warning Banner */}
+              {/* Notice Banner */}
               <View style={[styles.warningBox, { backgroundColor: colors.warningBg, borderColor: colors.warningBorder }]}>
-                <Ionicons name="warning-outline" size={18} color={colors.warning} style={{ marginRight: 8 }} />
-                <Text style={[styles.warningText, { color: colors.warning }]}>
+                <Ionicons name="information-circle-outline" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+                <Text style={[styles.warningText, { color: colors.textSecondary }]}>
                   Updating your Active Semester, Session / Batch, or Section will automatically re-align your timetable schedule.
                 </Text>
               </View>
@@ -590,7 +666,7 @@ export default function ProfileScreen() {
                   <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
                     {DEGREE_PROGRAMS.find((p) => p.value === program)?.label || program || 'Select Degree Program'}
                   </Text>
-                  <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+                  <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
                 </Pressable>
               </View>
 
@@ -608,7 +684,7 @@ export default function ProfileScreen() {
                   onPress={() => setActiveDropdown('semester')}
                 >
                   <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>Semester {semester}</Text>
-                  <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+                  <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
                 </Pressable>
               </View>
 
@@ -645,13 +721,14 @@ export default function ProfileScreen() {
                   onPress={() => setActiveDropdown('section')}
                 >
                   <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>{type}</Text>
-                  <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+                  <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
                 </Pressable>
               </View>
             </ScrollView>
+          </View>
 
             {/* 3. Fixed Footer with Cancel & Save Changes Buttons */}
-            <View style={[styles.modalFooter, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
+            <View style={[styles.modalFooter, { height: EDIT_FOOTER_HEIGHT, borderTopColor: colors.border, backgroundColor: colors.surface }]}>
               <View style={styles.modalActionRow}>
                 <Pressable
                   style={[
@@ -661,7 +738,7 @@ export default function ProfileScreen() {
                       borderColor: colors.border,
                     },
                   ]}
-                  onPress={() => setIsEditModalOpen(false)}
+                  onPress={handleCloseModal}
                 >
                   <Text style={[styles.cancelModalButtonText, { color: colors.textSecondary }]}>Cancel</Text>
                 </Pressable>
@@ -1029,66 +1106,88 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
   modalContainer: {
     width: '100%',
+    maxWidth: 460,
+    alignSelf: 'center',
+    borderRadius: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    borderWidth: 1,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -4 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 6,
+  },
+  modalDragHandle: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 2,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   modalTitle: {
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
+  modalBodyContainer: {
+    width: '100%',
+    overflow: 'hidden',
+  },
   modalScrollBody: {
-    flex: 1,
+    width: '100%',
   },
   modalScrollContent: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 12,
+    paddingBottom: 56,
     flexGrow: 1,
   },
   modalFooter: {
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    justifyContent: 'center',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   photoUploadSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: 8,
     borderRadius: 12,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
     borderWidth: 1,
-    marginBottom: 8,
+    marginBottom: 6,
     gap: 10,
   },
   modalAvatarBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1099,16 +1198,16 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   modalAvatarInitials: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: Typography.weights.bold,
   },
   photoActionsCol: {
     flex: 1,
   },
   photoSectionTitle: {
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   photoBtnRow: {
     flexDirection: 'row',
@@ -1118,9 +1217,13 @@ const styles = StyleSheet.create({
   uploadPhotoBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 5,
-    borderRadius: 6,
+    borderRadius: 8,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
   uploadPhotoBtnText: {
     color: '#ffffff',
@@ -1128,9 +1231,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   removePhotoBtn: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 7,
     paddingVertical: 5,
-    borderRadius: 6,
+    borderRadius: 8,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1138,13 +1245,17 @@ const styles = StyleSheet.create({
   feedbackBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
+    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    padding: 7,
+    marginBottom: 6,
     borderWidth: 1,
   },
   feedbackText: {
-    fontSize: Typography.sizes.xs,
+    fontSize: 11,
     fontWeight: Typography.weights.semibold,
     flex: 1,
   },
@@ -1152,17 +1263,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
+    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    padding: 7,
+    marginBottom: 6,
   },
   warningText: {
     fontSize: 10.5,
-    lineHeight: 15,
+    lineHeight: 14.5,
     flex: 1,
   },
   inputGroup: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   inputLabel: {
     fontSize: 11,
@@ -1171,7 +1286,11 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
     height: 38,
@@ -1185,7 +1304,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
     paddingHorizontal: 10,
     height: 38,
   },
@@ -1199,8 +1322,12 @@ const styles = StyleSheet.create({
   },
   cancelModalButton: {
     flex: 1,
-    height: 44,
-    borderRadius: 8,
+    height: 42,
+    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1212,8 +1339,12 @@ const styles = StyleSheet.create({
   },
   saveModalButton: {
     flex: 1.5,
-    height: 44,
-    borderRadius: 8,
+    height: 42,
+    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,

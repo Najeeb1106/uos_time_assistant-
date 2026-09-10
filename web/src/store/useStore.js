@@ -166,13 +166,40 @@ const mockClasses = [
   }
 ];
 
+export const normalizeBatch = (batch) => {
+  if (!batch) return '';
+  return String(batch)
+    .trim()
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-')
+    .replace(/\s*-\s*/g, '-')
+    .replace(/\s+/g, '');
+};
+
+const loadInitialClasses = () => {
+  const cachedClasses = safeParse('uos_classes', null);
+  if (cachedClasses && Array.isArray(cachedClasses)) {
+    const cachedUser = safeParse('uos_user', null);
+    if (cachedUser && cachedUser.role !== 'teacher') {
+      const userSem = Number(cachedUser.semester);
+      const userBatch = normalizeBatch(cachedUser.batch);
+      return cachedClasses.filter(c => {
+        if (userSem > 0 && c.semester !== undefined && Number(c.semester) !== userSem) return false;
+        if (userBatch && c.batch && normalizeBatch(c.batch) !== userBatch) return false;
+        return true;
+      });
+    }
+    return cachedClasses;
+  }
+  return mockClasses;
+};
+
 export const useStore = create((set, get) => ({
   // Authentication State
   user: safeParse('uos_user', null),
   token: safeGetToken(),
   
   // Timetable State
-  classes: safeParse('uos_classes', mockClasses),
+  classes: loadInitialClasses(),
   uploadedAt: safeGet('uos_uploaded_at', new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()),
   pdfFileName: safeGet('uos_pdf_name', 'official_timetable_s2_2025.pdf'),
   uploadHistory: safeParse('uos_history', [
@@ -342,6 +369,18 @@ export const useStore = create((set, get) => ({
   updateProfile: async (profileData) => {
     const { token } = get();
     try {
+      const currentUser = get().user;
+      if (currentUser && currentUser.role !== 'teacher' && profileData.semester !== undefined && profileData.batch !== undefined) {
+        const prevSem = Number(currentUser.semester);
+        const newSem = Number(profileData.semester);
+        const prevBatch = normalizeBatch(currentUser.batch);
+        const newBatch = normalizeBatch(profileData.batch);
+
+        if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
+          throw new Error('Please change your batch/session as well when changing the semester.');
+        }
+      }
+
       const res = await fetch(`${API_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
@@ -355,6 +394,9 @@ export const useStore = create((set, get) => ({
 
       set({ user: data.user });
       localStorage.setItem('uos_user', JSON.stringify(data.user));
+
+      // Re-fetch current schedule aligned with updated academic profile
+      await get().fetchCurrentSchedule();
 
       return { success: true, message: data.message };
     } catch (error) {
@@ -373,13 +415,29 @@ export const useStore = create((set, get) => ({
       });
       const data = await res.json();
       if (data.success) {
+        const currentUser = get().user;
+        let matchingClasses = data.classes || [];
+        if (currentUser && currentUser.role !== 'teacher' && matchingClasses.length > 0) {
+          const userSem = Number(currentUser.semester);
+          const userBatch = normalizeBatch(currentUser.batch);
+          matchingClasses = matchingClasses.filter(c => {
+            if (userSem > 0 && c.semester !== undefined && Number(c.semester) !== userSem) {
+              return false;
+            }
+            if (userBatch && c.batch && normalizeBatch(c.batch) !== userBatch) {
+              return false;
+            }
+            return true;
+          });
+        }
+
         set({
-          classes: data.classes || [],
+          classes: matchingClasses,
           pdfFileName: data.pdfFileName || null,
           uploadedAt: data.uploadedAt || null
         });
-        if (data.classes && data.classes.length > 0) {
-          localStorage.setItem('uos_classes', JSON.stringify(data.classes));
+        if (matchingClasses.length > 0) {
+          localStorage.setItem('uos_classes', JSON.stringify(matchingClasses));
           localStorage.setItem('uos_pdf_name', data.pdfFileName || '');
           localStorage.setItem('uos_uploaded_at', data.uploadedAt || '');
         } else {

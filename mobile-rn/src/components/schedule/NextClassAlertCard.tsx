@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ClassLecture } from '../../models/Schedule';
 import { format12HourTime, formatCountdown, isWeekend } from '../../utils/timeUtils';
+import { getClassSectionDisplay } from '../../utils/sectionUtils';
+import { parseLocation } from '../../utils/locationUtils';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
@@ -28,6 +30,7 @@ export default function NextClassAlertCard({
   const { colors, isDark } = useTheme();
 
   const isWeekendNotice = isWeekend(allClasses);
+  const nextLocation = parseLocation(nextClass?.room);
 
   // Card theme styling
   const cardBg = colors.surface;
@@ -100,14 +103,21 @@ export default function NextClassAlertCard({
               </View>
 
               {/* Row 2: Location */}
-              <View style={styles.detailRow}>
-                <Ionicons name="location-outline" size={15} color={colors.primary} style={styles.detailIcon} />
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                  Location:{' '}
-                  <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
-                    Room {nextClass.room || 'TBA'}
+              <View style={[styles.detailRow, { alignItems: 'flex-start' }]}>
+                <Ionicons name="location-outline" size={15} color={colors.primary} style={[styles.detailIcon, { marginTop: 2 }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                    Location:{' '}
+                    <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                      {nextLocation.department}
+                    </Text>
                   </Text>
-                </Text>
+                  {nextLocation.roomNumber ? (
+                    <Text style={[styles.detailValue, { color: colors.primary, marginTop: 2 }]}>
+                      {nextLocation.roomNumber}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
 
               {/* Row 3: Teacher / Cohort */}
@@ -118,7 +128,7 @@ export default function NextClassAlertCard({
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]} numberOfLines={1}>
                       Class:{' '}
                       <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
-                        {nextClass.program || 'Program'} • {nextClass.type || 'Regular'} (Sem {nextClass.semester || 1})
+                        {nextClass.program || 'Program'} • {getClassSectionDisplay(nextClass)} (Sem {nextClass.semester || 1})
                       </Text>
                     </Text>
                   </>

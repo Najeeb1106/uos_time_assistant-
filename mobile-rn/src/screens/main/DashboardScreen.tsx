@@ -19,6 +19,7 @@ import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 import { ClassLecture } from '../../models/Schedule';
+import { parseLocation } from '../../utils/locationUtils';
 import {
   format12HourTime,
   getTodayDayName,
@@ -106,8 +107,6 @@ export default function DashboardScreen() {
         scrollY={scrollY}
       />
 
-      {isOffline ? <OfflineBanner lastUpdated={lastUpdated} /> : null}
-
       <Animated.ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -163,6 +162,13 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {isOffline ? (
+          <OfflineBanner
+            lastUpdated={lastUpdated}
+            style={styles.offlineBanner}
+          />
+        ) : null}
+
         {/* 3. Main Dashboard Body States */}
         {isLoading && classes.length === 0 ? (
           <View style={styles.loaderContainer}>
@@ -206,12 +212,24 @@ export default function DashboardScreen() {
                     {/* Meta Badges */}
                     <View style={styles.metaBadgesRow}>
                       {/* Room Pill */}
-                      <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
-                        <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: colors.primary }]} numberOfLines={1} ellipsizeMode="tail">
-                          {ongoingClass.room || 'TBA'}
-                        </Text>
-                      </View>
+                      {(() => {
+                        const loc = parseLocation(ongoingClass.room);
+                        return (
+                          <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                            <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4, marginTop: 1 }} />
+                            <View style={{ flexShrink: 1 }}>
+                              <Text style={[styles.purplePillText, { color: colors.primary }]}>
+                                {loc.department}
+                              </Text>
+                              {loc.roomNumber ? (
+                                <Text style={[styles.purplePillRoomText, { color: colors.primary }]}>
+                                  {loc.roomNumber}
+                                </Text>
+                              ) : null}
+                            </View>
+                          </View>
+                        );
+                      })()}
 
                       {/* Time Pill */}
                       <View style={[styles.neutralPill, { backgroundColor: cardElevated, borderColor: subtleBorder }]}>
@@ -284,12 +302,24 @@ export default function DashboardScreen() {
                     {/* Meta Badges */}
                     <View style={styles.metaBadgesRow}>
                       {/* Room Pill */}
-                      <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
-                        <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: colors.primary }]} numberOfLines={1} ellipsizeMode="tail">
-                          {subsequentClass.room || 'TBA'}
-                        </Text>
-                      </View>
+                      {(() => {
+                        const loc = parseLocation(subsequentClass.room);
+                        return (
+                          <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                            <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4, marginTop: 1 }} />
+                            <View style={{ flexShrink: 1 }}>
+                              <Text style={[styles.purplePillText, { color: colors.primary }]}>
+                                {loc.department}
+                              </Text>
+                              {loc.roomNumber ? (
+                                <Text style={[styles.purplePillRoomText, { color: colors.primary }]}>
+                                  {loc.roomNumber}
+                                </Text>
+                              ) : null}
+                            </View>
+                          </View>
+                        );
+                      })()}
 
                       {/* Time Pill */}
                       <View style={[styles.neutralPill, { backgroundColor: cardElevated, borderColor: subtleBorder }]}>
@@ -339,12 +369,24 @@ export default function DashboardScreen() {
                     {/* Meta Badges */}
                     <View style={styles.metaBadgesRow}>
                       {/* Room Pill */}
-                      <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
-                        <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
-                        <Text style={[styles.purplePillText, { color: colors.primary }]} numberOfLines={1} ellipsizeMode="tail">
-                          {nextClass.room || 'TBA'}
-                        </Text>
-                      </View>
+                      {(() => {
+                        const loc = parseLocation(nextClass.room);
+                        return (
+                          <View style={[styles.purplePill, { backgroundColor: colors.badgeBg, borderColor: colors.badgeBorder }]}>
+                            <Ionicons name="location-outline" size={12} color={colors.primary} style={{ marginRight: 4, marginTop: 1 }} />
+                            <View style={{ flexShrink: 1 }}>
+                              <Text style={[styles.purplePillText, { color: colors.primary }]}>
+                                {loc.department}
+                              </Text>
+                              {loc.roomNumber ? (
+                                <Text style={[styles.purplePillRoomText, { color: colors.primary }]}>
+                                  {loc.roomNumber}
+                                </Text>
+                              ) : null}
+                            </View>
+                          </View>
+                        );
+                      })()}
 
                       {/* Time Pill */}
                       <View style={[styles.neutralPill, { backgroundColor: cardElevated, borderColor: subtleBorder }]}>
@@ -440,6 +482,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   greetingContainer: {
+    marginBottom: 16,
+  },
+  offlineBanner: {
+    marginHorizontal: 0,
+    marginTop: 0,
     marginBottom: 16,
   },
   greetingLeftRow: {
@@ -604,7 +651,7 @@ const styles = StyleSheet.create({
   },
   purplePill: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -614,8 +661,16 @@ const styles = StyleSheet.create({
   },
   purplePillText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     flexShrink: 1,
+    lineHeight: 15,
+  },
+  purplePillRoomText: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 1,
+    flexShrink: 1,
+    lineHeight: 15,
   },
   neutralPill: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,17 +14,19 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthNavigationProp } from '../../navigation/types';
 import { useMobileStore } from '../../stores/useMobileStore';
-import { useTheme } from '../../constants/Colors';
+import { lightColors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
 export default function LoginScreen() {
   const navigation = useNavigation<AuthNavigationProp<'Login'>>();
   const insets = useSafeAreaInsets();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const colors = lightColors;
+  const isDark = false;
   const login = useMobileStore((state) => state.login);
   const isLoading = useMobileStore((state) => state.isLoading);
   const storeError = useMobileStore((state) => state.error);
@@ -37,6 +39,12 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  useEffect(() => {
+    setShowPassword(false);
+    setPassword('');
+    clearError();
+  }, [clearError]);
 
   const handleLogin = async () => {
     Keyboard.dismiss();
@@ -83,6 +91,7 @@ export default function LoginScreen() {
           },
         ]}
       >
+        <StatusBar style="dark" />
 
 
         <KeyboardAvoidingView
@@ -298,6 +307,9 @@ export default function LoginScreen() {
                     onBlur={() => setFocusedField(null)}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
+                    autoCorrect={false}
+                    textContentType="password"
+                    autoComplete="password"
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}

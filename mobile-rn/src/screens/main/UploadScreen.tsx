@@ -19,6 +19,8 @@ import { ClassLecture } from '../../models/Schedule';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { saveScheduleCache } from '../../utils/scheduleCache';
 import { format12HourTime, getTodayDayName } from '../../utils/timeUtils';
+import { getClassSectionDisplay } from '../../utils/sectionUtils';
+import { parseLocation } from '../../utils/locationUtils';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
@@ -335,31 +337,52 @@ export default function UploadScreen() {
                 </Text>
               </View>
             ) : (
-              previewClassesForDay.map((cls, idx) => (
-                <View
-                  key={cls.classId || idx}
-                  style={[
-                    styles.previewClassCard,
-                    {
-                      backgroundColor: colors.surface,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                >
-                  <View style={styles.previewCardHeader}>
-                    <Text style={[styles.previewClassCode, { color: colors.primary }]}>{cls.code}</Text>
-                    <Text style={[styles.previewClassTime, { color: colors.textSecondary }]}>
-                      {format12HourTime(cls.startTime)} - {format12HourTime(cls.endTime)}
-                    </Text>
+              previewClassesForDay.map((cls, idx) => {
+                const loc = parseLocation(cls.room);
+                return (
+                  <View
+                    key={cls.classId || idx}
+                    style={[
+                      styles.previewClassCard,
+                      {
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                  >
+                    <View style={styles.previewCardHeader}>
+                      <Text style={[styles.previewClassCode, { color: colors.primary }]}>{cls.code}</Text>
+                      <Text style={[styles.previewClassTime, { color: colors.textSecondary }]}>
+                        {format12HourTime(cls.startTime)} - {format12HourTime(cls.endTime)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.previewClassName, { color: colors.textPrimary }]}>{cls.name}</Text>
+                    <View style={styles.previewLocationRow}>
+                      <Text style={styles.previewMetaIcon}>📍</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.previewDeptText, { color: colors.textSecondary }]}>
+                          {loc.department}
+                        </Text>
+                        {loc.roomNumber ? (
+                          <Text style={[styles.previewRoomText, { color: colors.primary }]}>
+                            {loc.roomNumber}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                    <View style={styles.previewMetaRow}>
+                      <Text style={[styles.previewClassMeta, { color: colors.textMuted }]} numberOfLines={1}>
+                        👨‍🏫 {cls.teacher || 'To be allocated'}
+                      </Text>
+                      {getClassSectionDisplay(cls) ? (
+                        <Text style={[styles.previewTag, { backgroundColor: colors.surfaceElevated, color: colors.textMuted }]}>
+                          {getClassSectionDisplay(cls)}
+                        </Text>
+                      ) : null}
+                    </View>
                   </View>
-                  <Text style={[styles.previewClassName, { color: colors.textPrimary }]}>{cls.name}</Text>
-                  <View style={styles.previewMetaRow}>
-                    <Text style={[styles.previewClassMeta, { color: colors.textMuted }]}>📍 {cls.room}</Text>
-                    <Text style={[styles.previewClassMeta, { color: colors.textMuted }]}>👨‍🏫 {cls.teacher}</Text>
-                    <Text style={[styles.previewClassMeta, { color: colors.textMuted }]}>🏷️ {cls.type || 'Regular'}</Text>
-                  </View>
-                </View>
-              ))
+                );
+              })
             )}
 
             {/* Final Save Confirm Button */}
@@ -583,13 +606,47 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.bold,
     marginBottom: 6,
   },
+  previewLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  previewMetaIcon: {
+    fontSize: Typography.sizes.xs,
+    marginRight: 4,
+    marginTop: 1,
+  },
+  previewDeptText: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: '500',
+    lineHeight: 16,
+  },
+  previewRoomText: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: '700',
+    lineHeight: 16,
+    marginTop: 1,
+  },
   previewMetaRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 8,
+    marginTop: 2,
+    paddingTop: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(150, 150, 150, 0.12)',
   },
   previewClassMeta: {
     fontSize: Typography.sizes.xs,
+    flexShrink: 1,
+  },
+  previewTag: {
+    fontSize: 9,
+    fontWeight: '600',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   saveButton: {
     borderRadius: 12,

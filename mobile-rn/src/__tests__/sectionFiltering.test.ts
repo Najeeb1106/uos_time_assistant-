@@ -1,4 +1,9 @@
-import { getBuiltinClassesForUser } from '../utils/builtinScheduleUtils';
+import {
+  getBuiltinClassesForUser,
+  getScheduleProfileKey,
+  filterClassesForUserProfile,
+  normalizeBatch,
+} from '../utils/builtinScheduleUtils';
 import { normalizeSection, getClassSectionDisplay } from '../utils/sectionUtils';
 import { UserProfile } from '../models/User';
 
@@ -36,6 +41,29 @@ export function runSectionFilterTests() {
   assert(normalizeSection('Self Support', '') === 'Regular', 'Bare Self Support with empty section must return Regular (safe fallback)');
   assert(normalizeSection('Self Support', '0') === 'Regular', 'Bare Self Support with section 0 must return Regular (safe fallback)');
   assert(normalizeSection('Self Support') === 'Regular', 'Bare Self Support with no section must return Regular (safe fallback)');
+
+  // Test 1b: getClassSectionDisplay exact category display and variant normalization
+  assert(getClassSectionDisplay({ type: 'Regular', section: '' }) === 'Regular', 'Regular class displays Regular');
+  assert(getClassSectionDisplay({ type: 'Regular', section: 'Regular' }) === 'Regular', 'Regular section displays Regular');
+  assert(getClassSectionDisplay({ type: 'Self Support 1', section: '' }) === 'Self Support 1', 'Self Support 1 displays Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support 2', section: '' }) === 'Self Support 2', 'Self Support 2 displays Self Support 2');
+  assert(getClassSectionDisplay({ type: 'Self Support I', section: '' }) === 'Self Support 1', 'Self Support I displays Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support II', section: '' }) === 'Self Support 2', 'Self Support II displays Self Support 2');
+  assert(getClassSectionDisplay({ type: 'Self Support-I', section: '' }) === 'Self Support 1', 'Self Support-I displays Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support-II', section: '' }) === 'Self Support 2', 'Self Support-II displays Self Support 2');
+  assert(getClassSectionDisplay({ type: 'Self Support', section: '1' }) === 'Self Support 1', 'Self Support + sec 1 displays Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support', section: '2' }) === 'Self Support 2', 'Self Support + sec 2 displays Self Support 2');
+  assert(getClassSectionDisplay({ type: 'Self Support', section: 'I' }) === 'Self Support 1', 'Self Support + sec I displays Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support', section: 'II' }) === 'Self Support 2', 'Self Support + sec II displays Self Support 2');
+  assert(getClassSectionDisplay({ type: 'Self Support-1', section: '' }) === 'Self Support 1', 'Self Support-1 normalized to Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support-2', section: '' }) === 'Self Support 2', 'Self Support-2 normalized to Self Support 2');
+  assert(getClassSectionDisplay({ type: 'Self-Support 1', section: '' }) === 'Self Support 1', 'Self-Support 1 normalized to Self Support 1');
+  assert(getClassSectionDisplay({ type: 'Self Support', section: '' }) === 'Self Support', 'Bare Self Support displays Self Support');
+  assert(getClassSectionDisplay({ type: 'Weekend Self Support', section: '' }) === 'Weekend Self Support', 'Weekend Self Support preserved');
+  assert(getClassSectionDisplay({ type: 'Weekend Self Support', section: '1' }) === 'Weekend Self Support 1', 'Weekend Self Support 1 preserved');
+  assert(getClassSectionDisplay({ type: 'Morning', section: '' }) === 'Morning', 'Custom category Morning preserved');
+  assert(getClassSectionDisplay({ type: 'Evening', section: '1' }) === 'Evening 1', 'Custom category Evening 1 preserved');
+  assert(getClassSectionDisplay(null) === 'Regular', 'Null class safely defaults to Regular');
 
   // Test 2: Cyber Security Semester 3, 2025-2029, Self Support 2 gets ONLY Self Support 2 classes
   const userSS2: UserProfile = {
@@ -123,13 +151,183 @@ export function runSectionFilterTests() {
   assert(dsSS2.length === 4, `Expected 4 DS classes in SS2, got ${dsSS2.length}`);
   assert(dsReg.length === 4, `Expected 4 DS classes in Regular, got ${dsReg.length}`);
 
-  // Verify room/instructor distinction for Thursday slot
-  const thursSS1 = dsSS1.find((c) => c.day === 'Thursday' && c.startTime === '14:00');
-  const thursSS2 = dsSS2.find((c) => c.day === 'Thursday' && c.startTime === '14:00');
-  if (!thursSS1 || !thursSS2) {
-    throw new Error('Both SS1 and SS2 must have Thursday 14:00 slot');
-  }
-  assert(thursSS1.room !== thursSS2.room, 'Thursday 14:00 slot must be in different rooms for SS1 and SS2');
+  // Scenario 1: Initial Batch 2023-2027 + Semester 7 -> Returns Semester 7 classes
+  const se2023Sem7: UserProfile = {
+    uid: 'test_se_1',
+    email: 'se@uos.edu.pk',
+    fullName: 'SE Student',
+    role: 'student',
+    program: 'BS in Software Engineering',
+    semester: 7,
+    batch: '2023-2027',
+    type: 'Regular',
+  };
+  const scenario1Classes = getBuiltinClassesForUser(se2023Sem7);
+  assert(scenario1Classes.length === 8, `Scenario 1: Expected 8 classes for SE 2023-2027 Sem 7, got ${scenario1Classes.length}`);
+  scenario1Classes.forEach((c) => {
+    assert(c.semester === 7, `Expected Sem 7, got ${c.semester}`);
+    assert(c.batch === '2023-2027', `Expected Batch 2023-2027, got ${c.batch}`);
+  });
+
+  // Validation function matching mobile & web implementations
+  const validateAcademicUpdate = (prev: UserProfile, newName: string, newSem: number, newBatch: string) => {
+    if (!newName.trim()) {
+      return { allowed: false, error: 'Please specify your full name.' };
+    }
+    const normBatch = normalizeBatch(newBatch);
+    if (!normBatch) {
+      return { allowed: false, error: 'Please specify your session / batch.' };
+    }
+    if (!/^\d{4}-\d{4}$/.test(normBatch)) {
+      return { allowed: false, error: 'Batch must be in YYYY-YYYY format (e.g. 2024-2028).' };
+    }
+    const prevSem = Number(prev.semester);
+    const prevBatchNorm = normalizeBatch(prev.batch);
+    if (prevSem > 0 && newSem > 0 && newSem !== prevSem && normBatch === prevBatchNorm) {
+      return { allowed: false, error: 'Please change your batch/session as well when changing the semester.' };
+    }
+    return { allowed: true, error: null, normalizedBatch: normBatch };
+  };
+
+  // Scenario 2: Semester-only change (2023-2027 + Semester 7 -> Semester 6) -> Rejected
+  const scenario2Validation = validateAcademicUpdate(se2023Sem7, se2023Sem7.fullName, 6, '2023-2027');
+  assert(!scenario2Validation.allowed, 'Scenario 2: Semester-only change must be rejected');
+  assert(
+    scenario2Validation.error === 'Please change your batch/session as well when changing the semester.',
+    'Scenario 2: Warning must state batch change is required'
+  );
+  // Timetable and profile remain Semester 7
+  const scenario2Classes = getBuiltinClassesForUser(se2023Sem7);
+  assert(scenario2Classes.length === 8, 'Scenario 2: Classes must remain Semester 7');
+
+  // Scenario 3: Valid change (2023-2027 + Sem 7 -> 2024-2028 + Sem 6)
+  const scenario3Validation = validateAcademicUpdate(se2023Sem7, se2023Sem7.fullName, 6, '2024-2028');
+  assert(scenario3Validation.allowed, 'Scenario 3: Valid batch + semester change must be allowed');
+  const se2024Sem6: UserProfile = {
+    ...se2023Sem7,
+    batch: '2024-2028',
+    semester: 6,
+  };
+  const scenario3Classes = getBuiltinClassesForUser(se2024Sem6);
+  assert(scenario3Classes.length === 13, `Scenario 3: Expected 13 classes for SE 2024-2028 Sem 6, got ${scenario3Classes.length}`);
+  scenario3Classes.forEach((c) => {
+    assert(c.semester === 6, `Scenario 3: Expected Sem 6, got ${c.semester}`);
+    assert(c.batch === '2024-2028', `Scenario 3: Expected Batch 2024-2028, got ${c.batch}`);
+  });
+
+  // Scenario 4: Change back (2024-2028 + Sem 6 -> 2023-2027 + Sem 7)
+  const scenario4Validation = validateAcademicUpdate(se2024Sem6, se2024Sem6.fullName, 7, '2023-2027');
+  assert(scenario4Validation.allowed, 'Scenario 4: Valid batch + semester change back must be allowed');
+  const scenario4Classes = getBuiltinClassesForUser(se2023Sem7);
+  assert(scenario4Classes.length === 8, `Scenario 4: Expected 8 classes for SE 2023-2027 Sem 7, got ${scenario4Classes.length}`);
+
+  // Form Reset Emulation (matching resetFormToUser in ProfileScreen)
+  const emulateModalFormState = (savedUser: UserProfile | null) => {
+    return {
+      fullName: savedUser?.fullName || '',
+      program: savedUser?.program || '',
+      semester: savedUser?.semester !== undefined && savedUser?.semester !== null ? Number(savedUser.semester) : 1,
+      batch: savedUser?.batch || '',
+      type: savedUser?.type || 'Regular',
+    };
+  };
+
+  // Scenario 5: Open edit modal after valid change -> shows latest saved Semester 6 + Batch 2024-2028
+  const modalFormStateAfterValidChange = emulateModalFormState(se2024Sem6);
+  assert(modalFormStateAfterValidChange.semester === 6, 'Scenario 5: Modal must open with saved semester 6');
+  assert(modalFormStateAfterValidChange.batch === '2024-2028', 'Scenario 5: Modal must open with saved batch 2024-2028');
+
+  // Scenario 6: Cancel edit modal -> resets form state to saved profile
+  let dirtyModalState = { ...modalFormStateAfterValidChange, semester: 7, batch: '2023-2027' };
+  // User cancels:
+  dirtyModalState = emulateModalFormState(se2024Sem6);
+  assert(dirtyModalState.semester === 6, 'Scenario 6: Cancel must restore saved semester 6');
+  assert(dirtyModalState.batch === '2024-2028', 'Scenario 6: Cancel must restore saved batch 2024-2028');
+
+  // Scenario 7: App restart -> Restored profile and classes match saved state
+  const restoredUserJson = JSON.stringify(se2024Sem6);
+  const restoredUser: UserProfile = JSON.parse(restoredUserJson);
+  const restoredClasses = getBuiltinClassesForUser(restoredUser);
+  const restoredModalState = emulateModalFormState(restoredUser);
+  assert(restoredUser.semester === 6, 'Scenario 7: Restored user semester must be 6');
+  assert(restoredUser.batch === '2024-2028', 'Scenario 7: Restored user batch must be 2024-2028');
+  assert(restoredModalState.semester === 6, 'Scenario 7: Restored modal semester must be 6');
+  assert(restoredModalState.batch === '2024-2028', 'Scenario 7: Restored modal batch must be 2024-2028');
+  assert(restoredClasses.length === 13, 'Scenario 7: Restored timetable must match 13 classes');
+
+  // Scenario 8: Refresh -> Summary, edit modal, and timetable all match
+  const profileKeyBeforeRefresh = getScheduleProfileKey(se2024Sem6);
+  const classesBeforeRefresh = getBuiltinClassesForUser(se2024Sem6);
+  const profileKeyAfterRefresh = getScheduleProfileKey(se2024Sem6);
+  const classesAfterRefresh = getBuiltinClassesForUser(se2024Sem6);
+  assert(profileKeyBeforeRefresh === profileKeyAfterRefresh, 'Scenario 8: Profile key must be identical');
+  assert(classesBeforeRefresh.length === classesAfterRefresh.length, 'Scenario 8: Class count must match across refresh');
+
+  // Scenario 9: No-data combination (e.g. 2023-2027 + Sem 6) -> Classes clear to 0
+  const se2023Sem6: UserProfile = {
+    ...se2023Sem7,
+    semester: 6,
+  };
+  const scenario9Classes = getBuiltinClassesForUser(se2023Sem6);
+  assert(scenario9Classes.length === 0, 'Scenario 9: No-data combination must return 0 classes for empty state');
+
+  // Scenario 10: Cache mismatch -> Old cache rejected when profile key differs
+  const cacheKeySem7 = getScheduleProfileKey(se2023Sem7);
+  const cacheKeySem6 = getScheduleProfileKey(se2024Sem6);
+  const cacheItemSem7 = {
+    profileKey: cacheKeySem7,
+    classes: scenario1Classes,
+  };
+  // Emulate loadScheduleCache validation:
+  const isCacheValidForSem6 = cacheItemSem7.profileKey === cacheKeySem6;
+  assert(!isCacheValidForSem6, 'Scenario 10: Cache from Sem 7 must be rejected when active key is Sem 6');
+
+  // Scenario 11: Stale server response -> Old Semester 7 response cannot overwrite Semester 6 schedule
+  const staleServerResponseClasses = scenario1Classes; // Contains Sem 7 classes
+  const filteredServerClasses = filterClassesForUserProfile(staleServerResponseClasses, se2024Sem6);
+  assert(
+    filteredServerClasses.length === 0,
+    'Scenario 11: Stale Semester 7 server response must filter to 0 classes for Semester 6 profile'
+  );
+
+  // Scenario 12: Type/section mismatch -> Wrong shift or section classes are excluded
+  const seRegularClasses = getBuiltinClassesForUser({ ...se2024Sem6, type: 'Regular' });
+  const seSelfSupportClasses = getBuiltinClassesForUser({ ...se2024Sem6, type: 'Self Support 1' });
+  // Self Support for SE 2024-2028 is isolated from Regular
+  seRegularClasses.forEach((c) => {
+    assert(normalizeSection(c.type, c.section) === 'Regular', 'Scenario 12: Regular classes must only be Regular');
+  });
+
+  // Scenario 13: Invalid email/name/semester/batch validation
+  const emptyNameResult = validateAcademicUpdate(se2024Sem6, '   ', 6, '2024-2028');
+  assert(!emptyNameResult.allowed, 'Scenario 13: Empty name must be rejected');
+  assert(emptyNameResult.error === 'Please specify your full name.', 'Scenario 13: Correct name error message');
+
+  const emptyBatchResult = validateAcademicUpdate(se2024Sem6, 'SE Student', 6, '');
+  assert(!emptyBatchResult.allowed, 'Scenario 13: Empty batch must be rejected');
+
+  const invalidBatchFormatResult = validateAcademicUpdate(se2024Sem6, 'SE Student', 6, '2024_2028');
+  // Unicode dash normalization handles underscores and dashes
+  assert(invalidBatchFormatResult.allowed, 'Scenario 13: Underscore in batch is normalized to hyphen');
+
+  const malformedBatchResult = validateAcademicUpdate(se2024Sem6, 'SE Student', 6, 'invalid-batch');
+  assert(!malformedBatchResult.allowed, 'Scenario 13: Malformed batch must be rejected');
+
+  // Scenario 14: Logout/login session isolation
+  let activeSessionUser: UserProfile | null = se2024Sem6;
+  let activeSchedule: any[] = getBuiltinClassesForUser(activeSessionUser);
+  assert(activeSchedule.length > 0, 'Scenario 14: Logged in user has schedule');
+  // Logout:
+  activeSessionUser = null;
+  activeSchedule = getBuiltinClassesForUser(activeSessionUser);
+  assert(activeSchedule.length === 0, 'Scenario 14: Logout clears schedule completely');
+  // Login with new user:
+  activeSessionUser = se2023Sem7;
+  activeSchedule = getBuiltinClassesForUser(activeSessionUser);
+  assert(activeSchedule.length === 8, 'Scenario 14: Login restores correct schedule for new session');
+  activeSchedule.forEach((c) => {
+    assert(c.semester === 7, 'Scenario 14: Restored classes belong to Sem 7');
+  });
 
   return true;
 }

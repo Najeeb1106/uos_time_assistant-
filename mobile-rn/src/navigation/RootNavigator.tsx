@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from '../utils/appStorage';
 import { RootStackParamList } from './types';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
@@ -24,7 +24,7 @@ export default function RootNavigator() {
       initializeAuth();
     }
 
-    AsyncStorage.getItem(ONBOARDING_STORAGE_KEY)
+    appStorage.getItem(ONBOARDING_STORAGE_KEY)
       .then((val) => {
         setHasSeenOnboarding(val === 'true');
       })

@@ -20,6 +20,7 @@ import { Colors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 import SelectBottomSheet from '../../components/common/SelectBottomSheet';
 import { DEGREE_PROGRAMS } from '../../constants/degreePrograms';
+import { normalizeBatch } from '../../utils/builtinScheduleUtils';
 
 export default function ProfileScreen() {
   const { height: screenHeight } = useWindowDimensions();
@@ -31,26 +32,57 @@ export default function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [isProgramPickerOpen, setIsProgramPickerOpen] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || '');
-  const [program, setProgram] = useState(user?.program || 'BS in Software Engineering');
+  const [program, setProgram] = useState(user?.program || '');
   const [type, setType] = useState<string>(user?.type || 'Regular');
-  const [batch, setBatch] = useState(user?.batch || '2023-2027');
-  const [semester, setSemester] = useState(String(user?.semester || 7));
+  const [batch, setBatch] = useState(user?.batch || '');
+  const [semester, setSemester] = useState(user?.semester !== undefined && user?.semester !== null ? String(user.semester) : '1');
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri || null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      setFullName(user.fullName || '');
-      setProgram(user.program || 'BS in Software Engineering');
-      setType(user.type || 'Regular');
-      setBatch(user.batch || '2023-2027');
-      setSemester(String(user.semester || 7));
-      setAvatarUri(user.avatarUri || null);
+  const resetFormToUser = (targetUser?: any) => {
+    const u = targetUser !== undefined ? targetUser : user;
+    if (u) {
+      setFullName(u.fullName || '');
+      setProgram(u.program || '');
+      setType(u.type || 'Regular');
+      setBatch(u.batch || '');
+      setSemester(u.semester !== undefined && u.semester !== null ? String(u.semester) : '1');
+      setAvatarUri(u.avatarUri || null);
+    } else {
+      setFullName('');
+      setProgram('');
+      setType('Regular');
+      setBatch('');
+      setSemester('1');
+      setAvatarUri(null);
     }
+    setErrorMsg(null);
+    setSuccessMsg(null);
+  };
+
+  useEffect(() => {
+    resetFormToUser(user);
   }, [user]);
+
+  // Re-synchronize form with latest user profile every time modal opens
+  useEffect(() => {
+    if (isEditing) {
+      resetFormToUser(user);
+    }
+  }, [isEditing]);
+
+  const handleOpenModal = () => {
+    resetFormToUser(user);
+    setIsEditing(true);
+  };
+
+  const handleCloseModal = () => {
+    resetFormToUser(user);
+    setIsEditing(false);
+  };
 
   const handlePickAvatar = async () => {
     try {
@@ -90,50 +122,53 @@ export default function ProfileScreen() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    if (!fullName.trim()) {
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
       setErrorMsg('Please specify your full name.');
       return;
     }
 
     if (user?.role !== 'teacher') {
-      if (!batch.trim()) {
+      const normalizedInputBatch = normalizeBatch(batch);
+      if (!normalizedInputBatch) {
         setErrorMsg('Please specify your session / batch.');
         return;
       }
-      if (!/^\d{4}-\d{4}$/.test(batch.trim())) {
-        setErrorMsg('Batch must be in YYYY-YYYY format (e.g. 2023-2027).');
+      if (!/^\d{4}-\d{4}$/.test(normalizedInputBatch)) {
+        setErrorMsg('Batch must be in YYYY-YYYY format (e.g. 2024-2028).');
+        return;
+      }
+
+      // Semester-change validation: Batch MUST be changed as well when Semester is changed
+      const prevSem = Number(user?.semester);
+      const newSem = Number(semester);
+      const prevBatch = normalizeBatch(user?.batch);
+      const newBatch = normalizedInputBatch;
+
+      if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
+        setErrorMsg('Please change your batch/session as well when changing the semester.');
         return;
       }
     }
 
     setIsLoading(true);
     try {
+      const finalBatch = user?.role === 'teacher' ? batch.trim() : normalizeBatch(batch);
       const payload: any = {
-        fullName: fullName.trim(),
+        fullName: trimmedName,
         avatarUri: avatarUri || null,
       };
 
       if (user?.role !== 'teacher') {
-        payload.program = program;
+        payload.program = program.trim();
         payload.type = type;
-        payload.batch = batch.trim();
+        payload.batch = finalBatch;
         payload.semester = Number(semester);
       }
 
       await updateProfile(payload);
-      useScheduleStore.getState().loadBuiltinSchedule({
-        uid: user?.uid || '',
-        email: user?.email || '',
-        fullName: fullName.trim(),
-        role: user?.role || 'student',
-        program,
-        semester: Number(semester),
-        batch: batch.trim(),
-        type,
-        avatarUri: avatarUri || undefined,
-      });
       setSuccessMsg('Academic profile updated successfully!');
-      setIsEditing(false);
+      handleCloseModal();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to update profile.');
     } finally {
@@ -190,7 +225,7 @@ export default function ProfileScreen() {
       <View style={styles.card}>
         <View style={styles.cardHeaderRow}>
           <Text style={styles.cardTitle}>Academic Information</Text>
-          <Pressable style={styles.editButton} onPress={() => setIsEditing(true)}>
+          <Pressable style={styles.editButton} onPress={handleOpenModal}>
             <Text style={styles.editButtonText}>✏️ Edit Profile</Text>
           </Pressable>
         </View>
@@ -232,12 +267,14 @@ export default function ProfileScreen() {
       </View>
 
       {/* Logout Action Card */}
-      <Pressable style={styles.logoutCard} onPress={handleLogoutPress}>
-        <Text style={styles.logoutText}>🚪 Logout of Account</Text>
-      </Pressable>
+      {user ? (
+        <Pressable style={styles.logoutCard} onPress={handleLogoutPress}>
+          <Text style={styles.logoutText}>🚪 Logout of Account</Text>
+        </Pressable>
+      ) : null}
 
       {/* Edit Profile Modal */}
-      <Modal visible={isEditing} animationType="slide" transparent onRequestClose={() => setIsEditing(false)}>
+      <Modal visible={isEditing} animationType="slide" transparent onRequestClose={handleCloseModal}>
         <View
           style={[
             styles.modalOverlay,
@@ -251,7 +288,7 @@ export default function ProfileScreen() {
             {/* Fixed Header */}
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>Edit Academic Profile</Text>
-              <Pressable onPress={() => setIsEditing(false)} hitSlop={8}>
+              <Pressable onPress={handleCloseModal} hitSlop={8}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </Pressable>
             </View>
@@ -351,7 +388,7 @@ export default function ProfileScreen() {
                     style={styles.input}
                     value={batch}
                     onChangeText={setBatch}
-                    placeholder="e.g. 2023-2027"
+                    placeholder="e.g. 2024-2028"
                     placeholderTextColor={Colors.textMuted}
                   />
 

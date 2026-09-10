@@ -21,7 +21,6 @@ import {
   saveGlobalScheduleCache,
   loadGlobalScheduleCache,
 } from '../../utils/freeRoomCache';
-import { getBuiltinMasterClasses } from '../../utils/builtinScheduleUtils';
 import {
   getTodayDayName,
   getCurrentTimeString,
@@ -76,11 +75,6 @@ export default function FreeRoomsScreen() {
       if (cached && cached.classes && cached.classes.length > 0) {
         setMasterClasses(cached.classes);
         setLastUpdated(cached.uploadedAt || new Date().toISOString());
-      } else {
-        // Instant offline fallback to built-in master dataset
-        const builtinMaster = getBuiltinMasterClasses();
-        setMasterClasses(builtinMaster);
-        setLastUpdated(new Date().toISOString());
       }
 
       const response = await getGlobalScheduleApi();
@@ -96,9 +90,6 @@ export default function FreeRoomsScreen() {
         });
       }
     } catch (err: any) {
-      if (masterClasses.length === 0) {
-        setMasterClasses(getBuiltinMasterClasses());
-      }
       setIsOffline(true);
     } finally {
       setIsLoading(false);
@@ -109,7 +100,7 @@ export default function FreeRoomsScreen() {
     setIsRefreshing(true);
     try {
       const response = await getGlobalScheduleApi();
-      if (response.success && response.classes) {
+      if (response.success && response.classes && response.classes.length > 0) {
         setMasterClasses(response.classes);
         setIsOffline(false);
         setLastUpdated(new Date().toISOString());

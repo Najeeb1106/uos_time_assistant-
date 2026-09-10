@@ -13,17 +13,19 @@ import {
   Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthNavigationProp } from '../../navigation/types';
 import { forgotPasswordApi } from '../../api/authApi';
-import { useTheme } from '../../constants/Colors';
+import { lightColors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation<AuthNavigationProp<'ForgotPassword'>>();
   const insets = useSafeAreaInsets();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const colors = lightColors;
+  const isDark = false;
 
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -73,6 +75,7 @@ export default function ForgotPasswordScreen() {
           },
         ]}
       >
+        <StatusBar style="dark" />
         {/* Top Header Bar */}
         <View style={[styles.topNavBar, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
           <View style={styles.topNavLeft}>

@@ -11,9 +11,10 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StatusBar } from 'expo-status-bar';
+import { appStorage } from '../../utils/appStorage';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../constants/Colors';
+import { lightColors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
 export const ONBOARDING_STORAGE_KEY = 'sheduos_onboarding_completed';
@@ -59,17 +60,17 @@ const ONBOARDING_PAGES: OnboardingPageData[] = [
   {
     id: 'screen_3',
     type: 'freerooms',
-    badge: 'FREE ROOM FINDER',
+    badge: 'EMPTY ROOM FINDER',
     badgeIcon: 'search-outline',
     badgeColor: '#10B981',
-    title: 'Free Room Finder',
-    subtitle: 'Discover unoccupied lecture halls, computer laboratories, and classrooms across departments.',
+    title: 'Locate Free Classrooms',
+    subtitle: 'Instantly find unoccupied lecture halls and department labs during any time slot across campus.',
     primaryButtonText: 'Next',
   },
   {
     id: 'screen_4',
     type: 'offline',
-    badge: 'OFFLINE FIRST',
+    badge: 'PERSISTENT ACCESS',
     badgeIcon: 'cloud-offline-outline',
     badgeColor: '#F59E0B',
     title: 'Offline Ready',
@@ -80,13 +81,14 @@ const ONBOARDING_PAGES: OnboardingPageData[] = [
 
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const colors = lightColors;
+  const isDark = false;
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList<OnboardingPageData>>(null);
 
   const handleFinish = async () => {
     try {
-      await AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+      await appStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     } catch {
       // ignore storage error
     }
@@ -387,6 +389,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         },
       ]}
     >
+      <StatusBar style="dark" />
       {/* 1. Header Bar: Back (on screens 2-4), Branding & Skip */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>

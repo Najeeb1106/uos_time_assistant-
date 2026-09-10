@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../constants/Colors';
+import { useTheme, ThemeColors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
 export interface SelectOption {
@@ -29,6 +29,8 @@ interface SelectBottomSheetProps {
   onSelect: (value: any) => void;
   onClose: () => void;
   searchable?: boolean;
+  colors?: ThemeColors;
+  isDark?: boolean;
 }
 
 export default function SelectBottomSheet({
@@ -39,10 +41,14 @@ export default function SelectBottomSheet({
   onSelect,
   onClose,
   searchable = false,
+  colors: customColors,
+  isDark: customIsDark,
 }: SelectBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
-  const { colors, isDark } = useTheme();
+  const defaultTheme = useTheme();
+  const colors = customColors || defaultTheme.colors;
+  const isDark = customIsDark !== undefined ? customIsDark : defaultTheme.isDark;
   const [searchQuery, setSearchQuery] = useState('');
 
   if (!visible) return null;

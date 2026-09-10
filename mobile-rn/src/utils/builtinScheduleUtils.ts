@@ -55,9 +55,22 @@ export function normalizeProgramKey(p: string | null | undefined): { degree: 'BS
 }
 
 /**
+ * Normalizes batch strings across en-dashes (–), em-dashes (—), hyphens (-), slashes, and whitespace.
+ * e.g., "2023–2027", "2023 - 2027", "2023-2027" -> "2023-2027"
+ */
+export function normalizeBatch(batch: string | null | undefined): string {
+  if (!batch) return '';
+  return batch
+    .trim()
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-')
+    .replace(/\s*-\s*/g, '-')
+    .replace(/\s+/g, '');
+}
+
+/**
  * Normalizes teacher names for matching against teacher profile full names.
  */
-function normalizeTeacherName(name: string | null | undefined): string {
+export function normalizeTeacherName(name: string | null | undefined): string {
   if (!name) return '';
   return name
     .toLowerCase()
@@ -68,25 +81,40 @@ function normalizeTeacherName(name: string | null | undefined): string {
 }
 
 /**
- * Filters the built-in timetable dataset to match the active user's profile.
- * - For Teachers: matches by instructor name.
- * - For Students: strictly matches by Degree Program, Active Semester, Session/Batch, and Section (Self Support 1, Self Support 2, Regular).
- * - Exact equality: selectedSection === lectureSection.
- * - Returns empty array if user is not set or if no authentic classes exist for the profile.
+ * Generates a unique, deterministic profile key signature.
+ * e.g. "student:bs_informationtechnology:sem6:batch2024-2028:secself support 2"
  */
-export function getBuiltinClassesForUser(user: UserProfile | null | undefined): ClassLecture[] {
-  if (!user) return [];
+export function getScheduleProfileKey(user: UserProfile | null | undefined): string {
+  if (!user) return 'anonymous';
+  if (user.role === 'teacher') {
+    const normTeacher = normalizeTeacherName(user.fullName);
+    return `teacher:${normTeacher || 'unknown'}`;
+  }
+  const prog = normalizeProgramKey(user.program);
+  const progKey = prog ? `${prog.degree}_${prog.key}` : (user.program || '').trim().toLowerCase();
+  const sem = Number(user.semester) || 0;
+  const batch = normalizeBatch(user.batch);
+  const section = normalizeSection(user.type, user.section);
+  return `student:${progKey}:sem${sem}:batch${batch}:sec${section}`.toLowerCase();
+}
 
-  const master = getBuiltinMasterClasses();
+/**
+ * Filters any arbitrary class list (including server response or custom uploaded schedules)
+ * to strictly match the active user's academic parameters.
+ */
+export function filterClassesForUserProfile(
+  classes: ClassLecture[] | null | undefined,
+  user: UserProfile | null | undefined
+): ClassLecture[] {
+  if (!classes || !Array.isArray(classes) || classes.length === 0 || !user) {
+    return [];
+  }
 
-  // 1. Teacher Profile Filtering
+  // Teacher Profile Filtering
   if (user.role === 'teacher') {
     const normUserTeacher = normalizeTeacherName(user.fullName);
-    if (!normUserTeacher || normUserTeacher.length < 3) {
-      return [];
-    }
-
-    return master.filter((c) => {
+    if (!normUserTeacher || normUserTeacher.length < 3) return [];
+    return classes.filter((c) => {
       const normClsTeacher = normalizeTeacherName(c.teacher);
       return (
         normClsTeacher.includes(normUserTeacher) ||
@@ -95,41 +123,55 @@ export function getBuiltinClassesForUser(user: UserProfile | null | undefined): 
     });
   }
 
-  // 2. Student Profile Filtering
+  // Student Profile Filtering
   const userProg = normalizeProgramKey(user.program);
   const userSem = Number(user.semester) || 0;
-  const userBatch = (user.batch || '').trim();
+  const userBatch = normalizeBatch(user.batch);
   const userSection: CanonicalSection = normalizeSection(user.type, user.section);
 
-  const matched = master.filter((c) => {
+  return classes.filter((c) => {
     // A. Degree Program Strict Match
-    if (userProg) {
+    if (userProg && c.program) {
       const clsProg = normalizeProgramKey(c.program);
       if (!clsProg || clsProg.degree !== userProg.degree || clsProg.key !== userProg.key) {
         return false;
       }
-    } else {
+    }
+
+    // B. Semester Strict Match (Must match exact semester)
+    if (userSem > 0 && c.semester !== undefined && Number(c.semester) !== userSem) {
       return false;
     }
 
-    // B. Semester Strict Match
-    if (userSem > 0 && c.semester !== userSem) {
-      return false;
+    // C. Batch Strict Match (Timetable MUST match BOTH Batch AND Semester together)
+    if (userBatch && c.batch) {
+      const clsBatch = normalizeBatch(c.batch);
+      if (!clsBatch || clsBatch !== userBatch) {
+        return false;
+      }
     }
 
-    // C. Batch Strict Match (if specified and present in dataset)
-    if (userBatch && c.batch && c.batch.trim() && c.batch.trim() !== userBatch) {
-      return false;
-    }
-
-    // D. Exact Section Match (selectedSection === lectureSection)
-    const clsSection = normalizeSection(c.type, c.section);
-    if (clsSection !== userSection) {
-      return false;
+    // D. Exact Section Match
+    if (c.section || c.type) {
+      const clsSection = normalizeSection(c.type, c.section);
+      if (clsSection !== userSection) {
+        return false;
+      }
     }
 
     return true;
   });
+}
 
-  return matched;
+/**
+ * Filters the built-in timetable dataset to match the active user's profile.
+ * - For Teachers: matches by instructor name.
+ * - For Students: strictly matches by Degree Program, Active Semester, Session/Batch, and Section.
+ * - Timetable MUST be filtered by BOTH Batch and Semester together.
+ * - Returns empty array if user is not set or if no authentic classes exist for the profile.
+ */
+export function getBuiltinClassesForUser(user: UserProfile | null | undefined): ClassLecture[] {
+  if (!user) return [];
+  const master = getBuiltinMasterClasses();
+  return filterClassesForUserProfile(master, user);
 }

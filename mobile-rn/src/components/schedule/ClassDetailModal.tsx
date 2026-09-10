@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ClassLecture } from '../../models/Schedule';
 import { format12HourTime } from '../../utils/timeUtils';
 import { getClassSectionDisplay } from '../../utils/sectionUtils';
+import { parseLocation } from '../../utils/locationUtils';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
@@ -68,7 +69,19 @@ export default function ClassDetailModal({ visible, item, onClose }: ClassDetail
 
             <View style={styles.detailRow}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>Room / Location:</Text>
-              <Text style={[styles.value, { color: colors.textPrimary }]}>{item.room || 'TBA'}</Text>
+              {(() => {
+                const loc = parseLocation(item.room);
+                return (
+                  <View style={styles.valueContainer}>
+                    <Text style={[styles.value, { color: colors.textPrimary }]}>{loc.department}</Text>
+                    {loc.roomNumber ? (
+                      <Text style={[styles.value, { color: colors.primary, marginTop: 2, fontWeight: '700' }]}>
+                        {loc.roomNumber}
+                      </Text>
+                    ) : null}
+                  </View>
+                );
+              })()}
             </View>
 
             <View style={styles.detailRow}>
@@ -169,6 +182,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: Typography.sizes.sm,
     marginRight: 12,
+  },
+  valueContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   value: {
     fontSize: Typography.sizes.sm,

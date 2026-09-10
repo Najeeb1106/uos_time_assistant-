@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from './appStorage';
 import { ClassLecture } from '../models/Schedule';
 
 const GLOBAL_CACHE_KEY = 'sheduos_global_schedule_cache';
@@ -11,7 +11,7 @@ export interface CachedGlobalPayload {
 }
 
 /**
- * Save global master timetable to AsyncStorage cache
+ * Save global master timetable to cache
  */
 export async function saveGlobalScheduleCache(payload: {
   classes: ClassLecture[];
@@ -27,22 +27,26 @@ export async function saveGlobalScheduleCache(payload: {
       uploadedAt: payload.uploadedAt || null,
       cachedAt: new Date().toISOString(),
     };
-    await AsyncStorage.setItem(GLOBAL_CACHE_KEY, JSON.stringify(cacheData));
+    await appStorage.setItem(GLOBAL_CACHE_KEY, JSON.stringify(cacheData));
   } catch (error) {
-    console.error('[FreeRoomCache] Error saving global schedule cache:', error);
+    if (__DEV__) {
+      console.warn('[FreeRoomCache] Error saving global schedule cache:', error);
+    }
   }
 }
 
 /**
- * Retrieve cached global master timetable from AsyncStorage
+ * Retrieve cached global master timetable from cache
  */
 export async function loadGlobalScheduleCache(): Promise<CachedGlobalPayload | null> {
   try {
-    const raw = await AsyncStorage.getItem(GLOBAL_CACHE_KEY);
+    const raw = await appStorage.getItem(GLOBAL_CACHE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as CachedGlobalPayload;
   } catch (error) {
-    console.error('[FreeRoomCache] Error loading global schedule cache:', error);
+    if (__DEV__) {
+      console.warn('[FreeRoomCache] Error loading global schedule cache:', error);
+    }
     return null;
   }
 }
@@ -52,8 +56,11 @@ export async function loadGlobalScheduleCache(): Promise<CachedGlobalPayload | n
  */
 export async function clearGlobalScheduleCache(): Promise<void> {
   try {
-    await AsyncStorage.removeItem(GLOBAL_CACHE_KEY);
+    await appStorage.removeItem(GLOBAL_CACHE_KEY);
   } catch (error) {
-    console.error('[FreeRoomCache] Error clearing global schedule cache:', error);
+    if (__DEV__) {
+      console.warn('[FreeRoomCache] Error clearing global schedule cache:', error);
+    }
   }
 }
+

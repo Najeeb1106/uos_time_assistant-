@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../constants/Colors';
+import { useTheme, ThemeColors } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
 interface SelectTriggerProps {
@@ -10,6 +10,7 @@ interface SelectTriggerProps {
   iconName?: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   placeholder?: string;
+  colors?: ThemeColors;
 }
 
 export default function SelectTrigger({
@@ -18,8 +19,10 @@ export default function SelectTrigger({
   iconName = 'chevron-down-outline',
   onPress,
   placeholder = 'Select option',
+  colors: customColors,
 }: SelectTriggerProps) {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const colors = customColors || theme.colors;
 
   return (
     <View style={styles.container}>

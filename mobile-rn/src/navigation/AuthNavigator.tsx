@@ -4,18 +4,16 @@ import { AuthStackParamList } from './types';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
-import { useTheme } from '../constants/Colors';
+import { lightColors } from '../constants/Colors';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function AuthNavigator() {
-  const { colors } = useTheme();
-
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
+        contentStyle: { backgroundColor: lightColors.background },
         animation: 'slide_from_right',
       }}
     >
@@ -25,3 +23,4 @@ export default function AuthNavigator() {
     </Stack.Navigator>
   );
 }
+

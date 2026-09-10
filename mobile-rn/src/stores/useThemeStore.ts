@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Appearance, ColorSchemeName } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from '../utils/appStorage';
 import { darkColors, lightColors, ThemeColors } from '../theme/colors';
 import { ThemeMode } from '../theme/theme';
 
@@ -45,7 +45,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
 
     initializeTheme: async () => {
       try {
-        const savedMode = await AsyncStorage.getItem(STORAGE_KEY);
+        const savedMode = await appStorage.getItem(STORAGE_KEY);
         const mode: ThemeMode = (savedMode as ThemeMode) || 'dark';
         const currentSystem = Appearance.getColorScheme();
         const isDark = getIsDark(mode, currentSystem);
@@ -69,7 +69,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
         isDark,
         colors: isDark ? darkColors : lightColors,
       });
-      AsyncStorage.setItem(STORAGE_KEY, nextMode).catch(() => {});
+      appStorage.setItem(STORAGE_KEY, nextMode).catch(() => {});
     },
 
     setThemeMode: (mode: ThemeMode) => {
@@ -79,7 +79,8 @@ export const useThemeStore = create<ThemeState>((set, get) => {
         isDark,
         colors: isDark ? darkColors : lightColors,
       });
-      AsyncStorage.setItem(STORAGE_KEY, mode).catch(() => {});
+      appStorage.setItem(STORAGE_KEY, mode).catch(() => {});
     },
   };
 });
+

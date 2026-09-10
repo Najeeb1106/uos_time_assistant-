@@ -34,7 +34,13 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Handle HTTP 401 Unauthorized globally
+let onUnauthorizedCallback: (() => void) | null = null;
+
+export function setOnUnauthorizedCallback(cb: (() => void) | null) {
+  onUnauthorizedCallback = cb;
+}
+
+// Response Interceptor: Handle HTTP 401/403 Unauthorized globally
 apiClient.interceptors.response.use(
   (response) => {
     if (__DEV__) {
@@ -49,9 +55,12 @@ apiClient.interceptors.response.use(
         `[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.baseURL || ''}${error.config?.url} -> Status: ${error.response?.status} | Code: ${error.code} | Message: ${error.message}${serverMsg ? ` | Server: ${serverMsg}` : ''}`
       );
     }
-    if (error.response && error.response.status === 401) {
-      console.warn('[API Client] Session expired or invalid token (HTTP 401). Clearing auth token.');
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      console.warn(`[API Client] Session expired or invalid token (HTTP ${error.response.status}). Clearing auth session.`);
       await removeToken();
+      if (onUnauthorizedCallback) {
+        onUnauthorizedCallback();
+      }
     }
     return Promise.reject(error);
   }

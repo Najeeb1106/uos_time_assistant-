@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import staticTimetableClasses from '../assets/parsed_timetable.json';
 import { 
   Search, 
   Clock, 
@@ -34,7 +33,7 @@ export default function FreeRooms() {
   const [expandedRoom, setExpandedRoom] = useState(null);
 
   // Dynamic Global Timetable State
-  const [allClasses, setAllClasses] = useState(staticTimetableClasses);
+  const [allClasses, setAllClasses] = useState([]);
   const [globalPdfName, setGlobalPdfName] = useState(null);
   const [globalUploadedAt, setGlobalUploadedAt] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +73,7 @@ export default function FreeRooms() {
           console.log(`[FreeRooms] Successfully loaded dynamic global timetable with ${data.classes.length} classes.`);
         }
       } catch (err) {
-        console.error('[FreeRooms] Failed to fetch dynamic global timetable, using static fallback:', err);
+        console.error('[FreeRooms] Failed to fetch dynamic global timetable:', err);
       } finally {
         setIsLoading(false);
       }
@@ -445,11 +444,23 @@ export default function FreeRooms() {
       {/* Grid listing rooms */}
       {displayedRooms.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--glass-bg)' }}>
-          <Search size={40} style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }} />
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No rooms matched your criteria</h3>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto' }}>
-            Try adjusting your search keywords or setting the status/type filters to 'All' to explore more spaces.
-          </p>
+          {allClasses.length === 0 ? (
+            <>
+              <Layers size={40} style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }} />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No Global Timetable Data</h3>
+              <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto' }}>
+                Master university timetable dataset is not available yet. Please check back after a timetable is uploaded.
+              </p>
+            </>
+          ) : (
+            <>
+              <Search size={40} style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }} />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No rooms matched your criteria</h3>
+              <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto' }}>
+                Try adjusting your search keywords or setting the status/type filters to 'All' to explore more spaces.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div style={{
