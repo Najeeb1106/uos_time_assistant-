@@ -58,7 +58,7 @@ exports.uploadSchedule = async (req, res) => {
       success: true,
       message: isScannedFallback 
         ? `Notice: The Noon Business School PDF is scanned (no selectable text). To save you time, we have preloaded your program's authentic schedule, which you can customize manually!`
-        : `Parsed ${parsedClasses.length} matching schedule lectures successfully.`,
+        : (parsedClasses.length === 0 ? 'No scheduled classes found for your profile in this timetable.' : `Parsed ${parsedClasses.length} matching schedule lectures successfully.`),
       classes: parsedClasses,
       pdfFileName: req.file.originalname,
       isScannedFallback

@@ -22,6 +22,7 @@ import { format12HourTime, getTodayDayName } from '../../utils/timeUtils';
 import { getClassSectionDisplay } from '../../utils/sectionUtils';
 import { parseLocation } from '../../utils/locationUtils';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
+import AppLoader from '../../components/ui/AppLoader';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
@@ -83,7 +84,8 @@ export default function UploadScreen() {
       );
 
       if (!response.success || !response.classes || response.classes.length === 0) {
-        throw new Error(response.message || 'No matching lectures found for your registered profile in this PDF.');
+        const fallbackMsg = (response.message && !response.message.includes('Parsed 0')) ? response.message : 'No scheduled classes found for your profile in this timetable.';
+        throw new Error(fallbackMsg);
       }
 
       setParsedClasses(response.classes);
@@ -97,6 +99,9 @@ export default function UploadScreen() {
         msg = err.response?.data?.message || err.message || msg;
       } else if (err instanceof Error) {
         msg = err.message;
+      }
+      if (msg && (msg.includes('Parsed 0 matching schedule lectures') || msg.includes('No matching lectures found'))) {
+        msg = 'No scheduled classes found for your profile in this timetable.';
       }
       setErrorMessage(msg);
     }
@@ -248,10 +253,12 @@ export default function UploadScreen() {
             ) : null}
 
             {step === 'uploading' ? (
-              <View style={styles.loadingBox}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={[styles.statusText, { color: colors.textSecondary }]}>{statusMessage}</Text>
-              </View>
+              <AppLoader
+                size="small"
+                message={statusMessage || 'Uploading & parsing timetable...'}
+                subtitle="Extracting academic schedules"
+                style={{ paddingVertical: 12 }}
+              />
             ) : (
               <Pressable
                 style={[
@@ -387,10 +394,12 @@ export default function UploadScreen() {
 
             {/* Final Save Confirm Button */}
             {step === 'saving' ? (
-              <View style={styles.loadingBox}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={[styles.statusText, { color: colors.textSecondary }]}>{statusMessage}</Text>
-              </View>
+              <AppLoader
+                size="small"
+                message={statusMessage || 'Saving schedule to your profile...'}
+                subtitle="Applying timetable configuration"
+                style={{ paddingVertical: 12 }}
+              />
             ) : step === 'success' ? (
               <View style={[styles.successBox, { backgroundColor: colors.successBg }]}>
                 <Text style={[styles.successBoxText, { color: colors.success }]}>✓ Schedule Saved Successfully</Text>

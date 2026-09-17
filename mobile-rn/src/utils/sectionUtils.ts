@@ -81,7 +81,16 @@ export function getClassSectionDisplay(cls?: {
     return `Self Support ${normalizeSecVal(ssTypeMatch[1])}`;
   }
 
-  // 2. Generic Self Support type + explicit section digit/Roman
+  // 2. Weekend Self Support
+  if (/weekend[\s\-_]*self[\s\-_]*support/i.test(cleanType)) {
+    const secDigitMatch = cleanSec.match(/^(0*\d+|i{1,3})$/i);
+    if (secDigitMatch) {
+      return `Weekend Self Support ${normalizeSecVal(secDigitMatch[1])}`;
+    }
+    return 'Weekend Self Support';
+  }
+
+  // 3. Generic Self Support type + explicit section digit/Roman
   if (/self[\s\-_]*support/i.test(cleanType) || /^self$/i.test(cleanType)) {
     const secDigitMatch = cleanSec.match(/^(0*\d+|i{1,3})$/i);
     if (secDigitMatch) {
@@ -95,15 +104,6 @@ export function getClassSectionDisplay(cls?: {
       return `Self Support ${cleanSec}`;
     }
     return 'Self Support';
-  }
-
-  // 3. Weekend Self Support
-  if (/weekend[\s\-_]*self[\s\-_]*support/i.test(cleanType)) {
-    const secDigitMatch = cleanSec.match(/^(0*\d+|i{1,3})$/i);
-    if (secDigitMatch) {
-      return `Weekend Self Support ${normalizeSecVal(secDigitMatch[1])}`;
-    }
-    return 'Weekend Self Support';
   }
 
   // 4. Regular

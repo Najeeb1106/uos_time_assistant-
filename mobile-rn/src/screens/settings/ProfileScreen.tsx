@@ -21,10 +21,18 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useMobileStore } from '../../stores/useMobileStore';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
+import { Config } from '../../constants/Config';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
 import SelectBottomSheet from '../../components/common/SelectBottomSheet';
 import { DEGREE_PROGRAMS } from '../../constants/degreePrograms';
 import { normalizeBatch } from '../../utils/builtinScheduleUtils';
+import {
+  getSuggestedBatch,
+  getValidBatches,
+  parseBatch,
+  START_YEAR_OPTIONS,
+  getEndYearOptions,
+} from '../../utils/batchUtils';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -51,7 +59,11 @@ export default function ProfileScreen() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Active Dropdown state inside Modal
-  const [activeDropdown, setActiveDropdown] = useState<'program' | 'semester' | 'section' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<
+    'program' | 'semester' | 'section' | 'batchStart' | 'batchEnd' | null
+  >(null);
+
+  const { startYear, endYear } = parseBatch(batch);
 
   // Fixed heights for header and footer in Edit Profile modal
   const EDIT_DRAG_HANDLE_HEIGHT = 15; // 3px bar + 8 marginTop + 2 marginBottom + 2 extra
@@ -98,6 +110,41 @@ export default function ProfileScreen() {
       resetFormToUser(user);
     }
   }, [isEditModalOpen]);
+
+  // When program or semester changes inside the modal, auto-derive the batch
+  // if there is exactly one valid batch for that combination.
+  // Guarded: only update if the suggested batch differs from the current value
+  // to avoid overwriting an in-progress manual edit.
+  useEffect(() => {
+    if (!isEditModalOpen) return;
+    const suggested = getSuggestedBatch(program, semester);
+    if (suggested !== null && suggested !== batch) {
+      setBatch(suggested);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [program, semester, isEditModalOpen]);
+
+  const handleSelectStartYear = (val: string) => {
+    let newEnd = endYear;
+    if (!newEnd || Number(newEnd) <= Number(val)) {
+      const isPostGrad = program.includes('MS') || program.includes('PhD');
+      newEnd = String(Number(val) + (isPostGrad ? 2 : 4));
+    }
+    setBatch(`${val}-${newEnd}`);
+    setActiveDropdown(null);
+    setFeedback(null);
+  };
+
+  const handleSelectEndYear = (val: string) => {
+    let newStart = startYear;
+    if (!newStart || Number(newStart) >= Number(val)) {
+      const isPostGrad = program.includes('MS') || program.includes('PhD');
+      newStart = String(Number(val) - (isPostGrad ? 2 : 4));
+    }
+    setBatch(`${newStart}-${val}`);
+    setActiveDropdown(null);
+    setFeedback(null);
+  };
 
   const handlePickAvatar = async () => {
     try {
@@ -153,6 +200,16 @@ export default function ProfileScreen() {
         setFeedback({
           type: 'error',
           message: 'Batch must be in YYYY-YYYY format (e.g. 2024-2028).',
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      const { startYear: sY, endYear: eY } = parseBatch(normalizedInputBatch);
+      if (Number(eY) <= Number(sY)) {
+        setFeedback({
+          type: 'error',
+          message: 'Batch End Year must be later than Start Year.',
         });
         setIsSaving(false);
         return;
@@ -456,7 +513,7 @@ export default function ProfileScreen() {
               <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Version</Text>
                 <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
-                  Version 1.0.0
+                  Version {Config.VERSION}
                 </Text>
               </View>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -688,23 +745,57 @@ export default function ProfileScreen() {
                 </Pressable>
               </View>
 
-              {/* Session / Batch Input */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Session / Batch</Text>
-                <TextInput
-                  style={[
-                    styles.modalInput,
-                    {
-                      backgroundColor: colors.surfaceElevated,
-                      borderColor: colors.border,
-                      color: colors.textPrimary,
-                    },
-                  ]}
-                  value={batch}
-                  onChangeText={setBatch}
-                  placeholder="2024-2028"
-                  placeholderTextColor={colors.textMuted}
-                />
+              {/* Batch Start Year & End Year Dropdowns */}
+              <View style={styles.batchRow}>
+                <View style={styles.batchCol}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Start Year</Text>
+                  <Pressable
+                    style={[
+                      styles.dropdownTrigger,
+                      {
+                        backgroundColor: colors.surfaceElevated,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => setActiveDropdown('batchStart')}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownTriggerText,
+                        { color: startYear ? colors.textPrimary : colors.textMuted },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {startYear || 'Start Year'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                  </Pressable>
+                </View>
+
+                <View style={styles.batchCol}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>End Year</Text>
+                  <Pressable
+                    style={[
+                      styles.dropdownTrigger,
+                      {
+                        backgroundColor: colors.surfaceElevated,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => setActiveDropdown('batchEnd')}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownTriggerText,
+                        { color: endYear ? colors.textPrimary : colors.textMuted },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {endYear || 'End Year'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                  </Pressable>
+                </View>
               </View>
 
               {/* Section Dropdown Field */}
@@ -773,6 +864,32 @@ export default function ProfileScreen() {
         onSelect={(val) => setProgram(val)}
         onClose={() => setActiveDropdown(null)}
         searchable
+        colors={colors}
+        isDark={isDark}
+      />
+
+      {/* Batch Start Year Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'batchStart'}
+        title="Select Start Year"
+        options={START_YEAR_OPTIONS}
+        selectedValue={startYear}
+        onSelect={(val) => handleSelectStartYear(String(val))}
+        onClose={() => setActiveDropdown(null)}
+        colors={colors}
+        isDark={isDark}
+      />
+
+      {/* Batch End Year Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'batchEnd'}
+        title="Select End Year"
+        options={getEndYearOptions(startYear)}
+        selectedValue={endYear}
+        onSelect={(val) => handleSelectEndYear(String(val))}
+        onClose={() => setActiveDropdown(null)}
+        colors={colors}
+        isDark={isDark}
       />
 
       {/* Semester Bottom Sheet Picker */}
@@ -1315,6 +1432,14 @@ const styles = StyleSheet.create({
   dropdownTriggerText: {
     fontSize: Typography.sizes.sm,
     fontWeight: Typography.weights.medium,
+  },
+  batchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 6,
+  },
+  batchCol: {
+    flex: 1,
   },
   modalActionRow: {
     flexDirection: 'row',

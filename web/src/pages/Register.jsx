@@ -22,6 +22,7 @@ export default function Register() {
   
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   
   const register = useStore((state) => state.register);
   const themeMode = useStore((state) => state.themeMode);
@@ -131,24 +132,40 @@ export default function Register() {
       overflow: 'hidden'
     }}>
       {/* Background Video with Dark/Light Ambient Filter Overlay */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: 0,
-          pointerEvents: 'none'
-        }}
-      >
-        <source src="/uos.mp4" type="video/mp4" />
-      </video>
+      {isVideoLoaded ? (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            pointerEvents: 'none'
+          }}
+        >
+          <source src="/uos.mp4" type="video/mp4" />
+        </video>
+      ) : (
+        <div
+          onClick={() => setIsVideoLoaded(true)}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#1e293b',
+            zIndex: 0,
+            cursor: 'pointer'
+          }}
+        />
+      )}
       <div style={{
         position: 'absolute',
         top: 0,

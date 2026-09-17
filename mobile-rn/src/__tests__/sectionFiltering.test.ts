@@ -6,6 +6,13 @@ import {
 } from '../utils/builtinScheduleUtils';
 import { normalizeSection, getClassSectionDisplay } from '../utils/sectionUtils';
 import { UserProfile } from '../models/User';
+import {
+  getValidBatches,
+  getSuggestedBatch,
+  parseBatch,
+  formatBatch,
+  getEndYearOptions,
+} from '../utils/batchUtils';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -329,5 +336,180 @@ export function runSectionFilterTests() {
     assert(c.semester === 7, 'Scenario 14: Restored classes belong to Sem 7');
   });
 
+  // =========================================================================
+  // Scenarios 15-19: BS Artificial Intelligence batch derivation & filtering
+  // =========================================================================
+
+  // Scenario 15: getValidBatches / getSuggestedBatch for BS AI Sem 1
+  const aiBatchesSem1 = getValidBatches('BS in Artificial Intelligence', 1);
+  assert(
+    aiBatchesSem1.length === 1 && aiBatchesSem1[0] === '2026-2030',
+    `Scenario 15: BS AI Sem 1 must have exactly one valid batch [2026-2030], got ${JSON.stringify(aiBatchesSem1)}`
+  );
+  const aiSuggestedSem1 = getSuggestedBatch('BS in Artificial Intelligence', 1);
+  assert(
+    aiSuggestedSem1 === '2026-2030',
+    `Scenario 15: getSuggestedBatch(BS AI, 1) must return '2026-2030', got '${aiSuggestedSem1}'`
+  );
+
+  // Scenario 16: BS AI Sem 1, Regular, correct batch → 17 classes
+  const aiSem1RegularProfile: UserProfile = {
+    uid: 'test_ai_sem1',
+    email: 'ai@uos.edu.pk',
+    fullName: 'AI Student',
+    role: 'student',
+    program: 'BS in Artificial Intelligence',
+    semester: 1,
+    batch: '2026-2030',
+    type: 'Regular',
+  };
+  const aiSem1Classes = getBuiltinClassesForUser(aiSem1RegularProfile);
+  assert(
+    aiSem1Classes.length === 17,
+    `Scenario 16: BS AI Sem 1 Regular must return 17 classes, got ${aiSem1Classes.length}`
+  );
+  aiSem1Classes.forEach((c) => {
+    assert(c.semester === 1, `Scenario 16: Expected Sem 1, got ${c.semester}`);
+    assert(c.batch === '2026-2030', `Scenario 16: Expected batch 2026-2030, got ${c.batch}`);
+  });
+
+  // Scenario 17: BS AI Sem 2, Regular, correct batch → 37 classes
+  const aiBatchesSem2 = getValidBatches('BS in Artificial Intelligence', 2);
+  assert(
+    aiBatchesSem2.length === 1 && aiBatchesSem2[0] === '2025-2029',
+    `Scenario 17: BS AI Sem 2 must have exactly one valid batch [2025-2029], got ${JSON.stringify(aiBatchesSem2)}`
+  );
+  const aiSem2RegularProfile: UserProfile = {
+    uid: 'test_ai_sem2_reg',
+    email: 'ai2@uos.edu.pk',
+    fullName: 'AI Student 2',
+    role: 'student',
+    program: 'BS in Artificial Intelligence',
+    semester: 2,
+    batch: '2025-2029',
+    type: 'Regular',
+  };
+  const aiSem2RegularClasses = getBuiltinClassesForUser(aiSem2RegularProfile);
+  assert(
+    aiSem2RegularClasses.length === 37,
+    `Scenario 17: BS AI Sem 2 Regular must return 37 classes, got ${aiSem2RegularClasses.length}`
+  );
+
+  // Scenario 18: BS AI Sem 2, Self Support 1, correct batch → 18 classes
+  const aiSem2SS1Profile: UserProfile = {
+    ...aiSem2RegularProfile,
+    uid: 'test_ai_sem2_ss1',
+    type: 'Self Support 1',
+    section: '1',
+  };
+  const aiSem2SS1Classes = getBuiltinClassesForUser(aiSem2SS1Profile);
+  assert(
+    aiSem2SS1Classes.length === 18,
+    `Scenario 18: BS AI Sem 2 Self Support 1 must return 18 classes, got ${aiSem2SS1Classes.length}`
+  );
+
+  // Scenario 19: BS AI, stale batch 2024-2028 (the old hardcoded default) → 0 classes
+  // This is the root cause scenario — confirms the bug is not present with the fix in place
+  const aiStaleBatchProfile: UserProfile = {
+    uid: 'test_ai_stale',
+    email: 'ai_stale@uos.edu.pk',
+    fullName: 'AI Stale Student',
+    role: 'student',
+    program: 'BS in Artificial Intelligence',
+    semester: 1,
+    batch: '2024-2028', // wrong batch — old hardcoded default
+    type: 'Regular',
+  };
+  const aiStaleClasses = getBuiltinClassesForUser(aiStaleBatchProfile);
+  assert(
+    aiStaleClasses.length === 0,
+    `Scenario 19: BS AI with stale batch 2024-2028 must return 0 classes (bug reproduction check), got ${aiStaleClasses.length}`
+  );
+  // Confirm getSuggestedBatch would have correctly derived the right batch
+  const aiStaleSuggested = getSuggestedBatch('BS in Artificial Intelligence', 1);
+  assert(
+    aiStaleSuggested === '2026-2030',
+    `Scenario 19: getSuggestedBatch should have auto-filled 2026-2030 instead of 2024-2028`
+  );
+
+  // Scenario 20: BS AI Sem 1 batch split & composition for Start/End Year dropdowns
+  const ai1Batch = getSuggestedBatch('BS in Artificial Intelligence', 1);
+  const ai1Parsed = parseBatch(ai1Batch);
+  assert(
+    ai1Parsed.startYear === '2026' && ai1Parsed.endYear === '2030',
+    `Scenario 20: BS AI Sem 1 batch must split to Start 2026 and End 2030, got ${JSON.stringify(ai1Parsed)}`
+  );
+  assert(
+    formatBatch(ai1Parsed.startYear, ai1Parsed.endYear) === '2026-2030',
+    'Scenario 20: Recomposed batch must match 2026-2030'
+  );
+
+  // Scenario 21: BS AI Sem 2 batch split & composition for Start/End Year dropdowns
+  const ai2Batch = getSuggestedBatch('BS in Artificial Intelligence', 2);
+  const ai2Parsed = parseBatch(ai2Batch);
+  assert(
+    ai2Parsed.startYear === '2025' && ai2Parsed.endYear === '2029',
+    `Scenario 21: BS AI Sem 2 batch must split to Start 2025 and End 2029, got ${JSON.stringify(ai2Parsed)}`
+  );
+  assert(
+    formatBatch(ai2Parsed.startYear, ai2Parsed.endYear) === '2025-2029',
+    'Scenario 21: Recomposed batch must match 2025-2029'
+  );
+
+  // Scenario 22: BS Software Engineering batches split & format correctly
+  const seBatches = ['2023-2027', '2024-2028', '2025-2029', '2026-2030'];
+  seBatches.forEach((b) => {
+    const { startYear, endYear } = parseBatch(b);
+    assert(
+      Number(endYear) > Number(startYear),
+      `Scenario 22: End year ${endYear} must be greater than start year ${startYear}`
+    );
+    assert(
+      formatBatch(startYear, endYear) === b,
+      `Scenario 22: formatBatch(${startYear}, ${endYear}) must equal '${b}'`
+    );
+  });
+
+  // Scenario 23: Editing profile parses existing batch string into start and end years
+  const existingUserProfile: UserProfile = {
+    uid: 'test_edit_profile',
+    email: 'edit@uos.edu.pk',
+    fullName: 'Existing Student',
+    role: 'student',
+    program: 'BS in Artificial Intelligence',
+    semester: 1,
+    batch: '2025-2029',
+    type: 'Regular',
+  };
+  const profileBatchParts = parseBatch(existingUserProfile.batch);
+  assert(
+    profileBatchParts.startYear === '2025' && profileBatchParts.endYear === '2029',
+    'Scenario 23: Existing profile batch must parse into Start 2025 and End 2029'
+  );
+  // User changes Start Year to 2026 and End Year to 2030
+  const updatedBatch = formatBatch('2026', '2030');
+  const updatedProfile: UserProfile = { ...existingUserProfile, batch: updatedBatch };
+  const updatedClasses = getBuiltinClassesForUser(updatedProfile);
+  assert(
+    updatedClasses.length > 0,
+    'Scenario 23: Updated batch produces filtered timetable classes'
+  );
+
+  // Scenario 24: getEndYearOptions prevents invalid intervals (end year <= start year)
+  const endYearsFor2026 = getEndYearOptions('2026');
+  assert(
+    endYearsFor2026.every((y) => Number(y) > 2026),
+    `Scenario 24: All end year options for 2026 must be strictly > 2026, got ${JSON.stringify(endYearsFor2026)}`
+  );
+  assert(
+    !endYearsFor2026.includes('2026') && !endYearsFor2026.includes('2025'),
+    'Scenario 24: End years must NOT include 2026 or 2025 when start year is 2026'
+  );
+  assert(
+    endYearsFor2026.includes('2030'),
+    'Scenario 24: End years must include 2030 when start year is 2026'
+  );
+
   return true;
 }
+

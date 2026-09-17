@@ -36,6 +36,7 @@ import ClassDetailModal from '../../components/schedule/ClassDetailModal';
 import OfflineBanner from '../../components/schedule/OfflineBanner';
 import ScheduleEmptyState from '../../components/schedule/ScheduleEmptyState';
 import NextClassAlertCard from '../../components/schedule/NextClassAlertCard';
+import ScheduleSkeleton from '../../components/ui/ScheduleSkeleton';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
 
 export default function DashboardScreen() {
@@ -171,10 +172,7 @@ export default function DashboardScreen() {
 
         {/* 3. Main Dashboard Body States */}
         {isLoading && classes.length === 0 ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: textSub }]}>Loading your schedule...</Text>
-          </View>
+          <ScheduleSkeleton count={2} style={{ paddingHorizontal: 0 }} />
         ) : classes.length === 0 ? (
           <ScheduleEmptyState onUploadPress={() => navigation.navigate('UploadTab')} />
         ) : (

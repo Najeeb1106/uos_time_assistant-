@@ -1,0 +1,21 @@
+# Robots.txt for UOS Schedule Portal
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /schedule
+Allow: /free-rooms
+Disallow: /reset-password
+
+# AI Search Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Sitemap Location
+Sitemap: https://uos-schedule.vercel.app/sitemap.xml

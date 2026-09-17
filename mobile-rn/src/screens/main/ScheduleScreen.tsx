@@ -20,6 +20,7 @@ import ClassDetailModal from '../../components/schedule/ClassDetailModal';
 import OfflineBanner from '../../components/schedule/OfflineBanner';
 import ScheduleEmptyState from '../../components/schedule/ScheduleEmptyState';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
+import ScheduleSkeleton from '../../components/ui/ScheduleSkeleton';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
 
@@ -63,9 +64,15 @@ export default function ScheduleScreen() {
       {isOffline ? <OfflineBanner lastUpdated={lastUpdated} /> : null}
 
       {isLoading && classes.length === 0 ? (
-        <View style={[styles.loaderContainer, { paddingTop: headerTotalHeight + 40 }]}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loaderText, { color: colors.textSecondary }]}>Loading weekly timetable...</Text>
+        <View style={{ paddingTop: headerTotalHeight + 4, flex: 1 }}>
+          <View style={styles.daySelectorWrapper}>
+            <DaySelector
+              selectedDay={selectedDay}
+              onSelectDay={(day) => setSelectedDay(day)}
+              activeTodayName={todayName}
+            />
+          </View>
+          <ScheduleSkeleton count={3} />
         </View>
       ) : classes.length === 0 ? (
         <View style={{ paddingTop: headerTotalHeight, flex: 1 }}>

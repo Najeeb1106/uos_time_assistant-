@@ -31,6 +31,7 @@ import RoomDetailModal from '../../components/freerooms/RoomDetailModal';
 import RoomFilter from '../../components/freerooms/RoomFilter';
 import FreeRoomEmptyState from '../../components/freerooms/FreeRoomEmptyState';
 import OfflineBanner from '../../components/schedule/OfflineBanner';
+import ScheduleSkeleton from '../../components/ui/ScheduleSkeleton';
 import { RoomStatus } from '../../utils/freeRoomUtils';
 import { useTheme } from '../../constants/Colors';
 import { Typography } from '../../constants/Typography';
@@ -464,10 +465,7 @@ export default function FreeRoomsScreen() {
         )}
         ListEmptyComponent={
           isLoading ? (
-            <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading timetable...</Text>
-            </View>
+            <ScheduleSkeleton count={3} style={{ paddingHorizontal: 0, paddingTop: 4 }} />
           ) : masterClasses.length === 0 ? (
             <FreeRoomEmptyState type="no_master_data" onRetry={fetchGlobalSchedule} />
           ) : (

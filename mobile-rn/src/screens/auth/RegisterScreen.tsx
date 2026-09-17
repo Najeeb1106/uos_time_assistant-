@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,13 @@ import SelectBottomSheet from '../../components/common/SelectBottomSheet';
 import SelectTrigger from '../../components/common/SelectTrigger';
 
 import { DEGREE_PROGRAMS } from '../../constants/degreePrograms';
+import {
+  getSuggestedBatch,
+  getValidBatches,
+  parseBatch,
+  START_YEAR_OPTIONS,
+  getEndYearOptions,
+} from '../../utils/batchUtils';
 
 const SECTION_OPTIONS = [
   'Regular',
@@ -81,8 +88,50 @@ export default function RegisterScreen() {
   // Student fields
   const [program, setProgram] = useState('BS in Software Engineering');
   const [type, setType] = useState('Regular');
-  const [batch, setBatch] = useState('2024-2028');
+  const [batch, setBatch] = useState(() => getSuggestedBatch('BS in Software Engineering', 1) ?? '');
   const [semester, setSemester] = useState<number>(1);
+
+  const { startYear, endYear } = parseBatch(batch);
+
+  // Auto-derive the batch whenever program or semester changes.
+  // If exactly one valid batch exists for the combination, fill it automatically.
+  // If multiple valid batches exist, clear the field so the user enters it explicitly.
+  useEffect(() => {
+    const suggested = getSuggestedBatch(program, semester);
+    if (suggested !== null) {
+      // Exactly one valid batch — auto-fill
+      setBatch(suggested);
+    } else {
+      // Zero or multiple batches — clear so user enters correct value
+      setBatch('');
+    }
+    // Clear any previous validation error when academic info changes
+    setLocalError('');
+  }, [program, semester]);
+
+  const handleSelectStartYear = (val: string) => {
+    let newEnd = endYear;
+    if (!newEnd || Number(newEnd) <= Number(val)) {
+      const isPostGrad = program.includes('MS') || program.includes('PhD');
+      newEnd = String(Number(val) + (isPostGrad ? 2 : 4));
+    }
+    setBatch(`${val}-${newEnd}`);
+    setActivePicker(null);
+    setLocalError('');
+    clearError();
+  };
+
+  const handleSelectEndYear = (val: string) => {
+    let newStart = startYear;
+    if (!newStart || Number(newStart) >= Number(val)) {
+      const isPostGrad = program.includes('MS') || program.includes('PhD');
+      newStart = String(Number(val) - (isPostGrad ? 2 : 4));
+    }
+    setBatch(`${newStart}-${val}`);
+    setActivePicker(null);
+    setLocalError('');
+    clearError();
+  };
 
   // Teacher fields
   const [department, setDepartment] = useState('Software Engineering');
@@ -92,7 +141,7 @@ export default function RegisterScreen() {
 
   // Dropdown Picker Modal active state
   const [activePicker, setActivePicker] = useState<
-    'program' | 'section' | 'semester' | 'department' | 'designation' | null
+    'program' | 'section' | 'semester' | 'department' | 'designation' | 'batchStart' | 'batchEnd' | null
   >(null);
 
   // Password strength calculation
@@ -153,6 +202,15 @@ export default function RegisterScreen() {
       };
 
       if (role === 'student') {
+        if (!batch.trim() || !/^\d{4}-\d{4}$/.test(batch.trim())) {
+          setLocalError('Please select both Start Year and End Year for your session / batch.');
+          return;
+        }
+        const parsed = parseBatch(batch);
+        if (Number(parsed.endYear) <= Number(parsed.startYear)) {
+          setLocalError('Batch End Year must be later than Start Year.');
+          return;
+        }
         payload.program = program;
         payload.type = type;
         payload.batch = batch.trim();
@@ -479,44 +537,26 @@ export default function RegisterScreen() {
                       colors={colors}
                     />
 
-                    {/* 3. Session / Batch Manual Text Input */}
-                    <View style={styles.inputGroup}>
-                      <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>SESSION / BATCH</Text>
-                      <View
-                        style={[
-                          styles.inputWrapper,
-                          {
-                            backgroundColor: colors.surfaceElevated,
-                            borderColor: colors.border,
-                          },
-                          focusedField === 'batch' && {
-                            borderColor: colors.primary,
-                            backgroundColor: colors.badgeBg,
-                          },
-                        ]}
-                      >
-                        <Ionicons
-                          name="calendar-outline"
-                          size={15}
-                          color={focusedField === 'batch' ? colors.primary : colors.textMuted}
-                          style={styles.inputIcon}
+                    {/* 3. Batch Start Year & End Year Dropdowns */}
+                    <View style={styles.batchRow}>
+                      <View style={styles.batchCol}>
+                        <SelectTrigger
+                          label="Start Year"
+                          value={startYear}
+                          placeholder="Start Year"
+                          iconName="calendar-outline"
+                          onPress={() => setActivePicker('batchStart')}
+                          colors={colors}
                         />
-                        <TextInput
-                          style={[styles.input, { color: colors.textPrimary }]}
-                          placeholder="Enter your session / batch"
-                          placeholderTextColor={colors.textMuted}
-                          value={batch}
-                          onChangeText={(text) => {
-                            setBatch(text);
-                            if (localError || storeError) {
-                              setLocalError('');
-                              clearError();
-                            }
-                          }}
-                          onFocus={() => setFocusedField('batch')}
-                          onBlur={() => setFocusedField(null)}
-                          autoCapitalize="none"
-                          autoCorrect={false}
+                      </View>
+                      <View style={styles.batchCol}>
+                        <SelectTrigger
+                          label="End Year"
+                          value={endYear}
+                          placeholder="End Year"
+                          iconName="calendar-outline"
+                          onPress={() => setActivePicker('batchEnd')}
+                          colors={colors}
                         />
                       </View>
                     </View>
@@ -738,6 +778,30 @@ export default function RegisterScreen() {
           colors={colors}
           isDark={isDark}
         />
+
+        {/* 6. Batch Start Year Bottom Sheet */}
+        <SelectBottomSheet
+          visible={activePicker === 'batchStart'}
+          title="Select Start Year"
+          options={START_YEAR_OPTIONS}
+          selectedValue={startYear}
+          onSelect={(val) => handleSelectStartYear(String(val))}
+          onClose={() => setActivePicker(null)}
+          colors={colors}
+          isDark={isDark}
+        />
+
+        {/* 7. Batch End Year Bottom Sheet */}
+        <SelectBottomSheet
+          visible={activePicker === 'batchEnd'}
+          title="Select End Year"
+          options={getEndYearOptions(startYear)}
+          selectedValue={endYear}
+          onSelect={(val) => handleSelectEndYear(String(val))}
+          onClose={() => setActivePicker(null)}
+          colors={colors}
+          isDark={isDark}
+        />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -745,6 +809,13 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  batchRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  batchCol: {
     flex: 1,
   },
   topNavBar: {

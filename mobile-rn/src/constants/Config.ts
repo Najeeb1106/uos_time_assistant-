@@ -15,4 +15,5 @@ export const Config = {
   APP_NAME: 'ShedUOS',
   API_URL: getApiUrl(),
   TIMEOUT: 15000,
+  VERSION: '1.1.5',
 };

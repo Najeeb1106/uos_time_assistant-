@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShedUOS",
     "slug": "sheduos-mobile",
-    "version": "1.1.1",
+    "version": "1.1.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -22,8 +22,7 @@
         "backgroundColor": "#06143b"
       },
       "package": "pk.edu.uos.schedule",
-      "versionCode": 6,
-      "usesCleartextTraffic": true
+      "versionCode": 10
     },
     "web": {
       "favicon": "./assets/favicon.png"

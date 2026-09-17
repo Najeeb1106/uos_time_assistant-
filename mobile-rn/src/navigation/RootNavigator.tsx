@@ -9,6 +9,8 @@ import OnboardingScreen, { ONBOARDING_STORAGE_KEY } from '../screens/onboarding/
 import { useMobileStore } from '../stores/useMobileStore';
 import { useTheme } from '../constants/Colors';
 
+import AppLoader from '../components/ui/AppLoader';
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
@@ -35,9 +37,11 @@ export default function RootNavigator() {
 
   if (!authInitialized || hasSeenOnboarding === null) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <AppLoader
+        fullScreen
+        message="Getting things ready..."
+        subtitle="SchedUOS Smart Campus"
+      />
     );
   }
 
