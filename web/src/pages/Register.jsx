@@ -131,7 +131,7 @@ export default function Register() {
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Background Video with Dark/Light Ambient Filter Overlay */}
+      {/* Background Image / Video with Dark/Light Ambient Filter Overlay */}
       {isVideoLoaded ? (
         <video
           autoPlay
@@ -160,6 +160,9 @@ export default function Register() {
             left: 0,
             width: '100%',
             height: '100%',
+            backgroundImage: 'url("/uos_bg.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             backgroundColor: '#1e293b',
             zIndex: 0,
             cursor: 'pointer'
