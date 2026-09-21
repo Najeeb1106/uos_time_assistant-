@@ -119,7 +119,8 @@ exports.register = async (req, res) => {
       });
     }
 
-    if (role === 'student' && !/^\d{4}-\d{4}$/.test(batch)) {
+    const cleanBatch = role === 'student' ? String(batch || '').replace(/\s+/g, '') : '';
+    if (role === 'student' && !/^\d{4}-\d{4}$/.test(cleanBatch)) {
       return res.status(400).json({
         success: false,
         message: 'Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).'
@@ -163,7 +164,7 @@ exports.register = async (req, res) => {
     if (role === 'student') {
       userProfile.program = program;
       userProfile.type = type;
-      userProfile.batch = batch;
+      userProfile.batch = cleanBatch;
       userProfile.semester = Number(semester);
     } else {
       userProfile.department = department;
@@ -383,7 +384,8 @@ exports.updateProfile = async (req, res) => {
         });
       }
 
-      if (!/^\d{4}-\d{4}$/.test(batch)) {
+      const cleanBatch = String(batch || '').replace(/\s+/g, '');
+      if (!/^\d{4}-\d{4}$/.test(cleanBatch)) {
         return res.status(400).json({
           success: false,
           message: 'Session / Batch must be in YYYY-YYYY format (e.g., 2024-2028).'
@@ -426,7 +428,7 @@ exports.updateProfile = async (req, res) => {
     if (role === 'student') {
       updateData.program = program;
       updateData.type = type;
-      updateData.batch = batch;
+      updateData.batch = String(batch || '').replace(/\s+/g, '');
       updateData.semester = Number(semester);
     }
 

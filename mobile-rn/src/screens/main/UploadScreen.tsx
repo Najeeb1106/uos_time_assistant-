@@ -15,8 +15,10 @@ import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import { MainTabNavigationProp } from '../../navigation/types';
 import { uploadScheduleApi, saveScheduleApi } from '../../api/scheduleUploadApi';
+import { updateProfileApi } from '../../api/profileApi';
 import { ClassLecture } from '../../models/Schedule';
 import { useScheduleStore } from '../../stores/useScheduleStore';
+import { useMobileStore } from '../../stores/useMobileStore';
 import { saveScheduleCache } from '../../utils/scheduleCache';
 import { format12HourTime, getTodayDayName } from '../../utils/timeUtils';
 import { getClassSectionDisplay } from '../../utils/sectionUtils';
@@ -33,6 +35,7 @@ export default function UploadScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { colors, isDark } = useTheme();
+  const user = useMobileStore((state) => state.user);
   const headerTotalHeight = TOOLBAR_HEIGHT + insets.top;
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -75,6 +78,21 @@ export default function UploadScreen() {
     setErrorMessage('');
     setStep('uploading');
     setStatusMessage('Uploading and parsing timetable PDF...');
+
+    // Authoritative Pre-Sync: Ensure the active user profile is saved to Firestore before parsing
+    if (user && user.role !== 'teacher' && user.program && user.semester && user.batch) {
+      try {
+        await updateProfileApi({
+          fullName: user.fullName || 'Student',
+          program: user.program,
+          semester: Number(user.semester),
+          batch: user.batch,
+          type: user.type as any,
+        });
+      } catch {
+        // Continue to upload with existing server profile if network glitch
+      }
+    }
 
     try {
       const response = await uploadScheduleApi(
@@ -219,6 +237,15 @@ export default function UploadScreen() {
         {step === 'idle' || step === 'uploading' ? (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>PDF Document Picker</Text>
+
+            {user && user.role !== 'teacher' && user.program ? (
+              <View style={[styles.profileInfoBar, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+                <Text style={[styles.profileInfoLabel, { color: colors.textMuted }]}>Matching Schedule For:</Text>
+                <Text style={[styles.profileInfoText, { color: colors.textPrimary }]}>
+                  {user.program} • Semester {user.semester} • {user.batch} • {user.type || 'Regular'}
+                </Text>
+              </View>
+            ) : null}
 
             <Pressable
               style={[
@@ -477,6 +504,23 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.md,
     fontWeight: Typography.weights.bold,
     marginBottom: 10,
+  },
+  profileInfoBar: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12,
+  },
+  profileInfoLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  profileInfoText: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: '700',
   },
   pickerBox: {
     borderWidth: 2,

@@ -26,7 +26,7 @@ exports.uploadSchedule = async (req, res) => {
 
     const user = userDoc.data();
     const role = user.role || 'student';
-    console.log(`Parsing PDF for ${role} profile: ${user.fullName}`);
+    console.log(`[ScheduleController] Parsing PDF for ${role} profile: ${user.fullName} (uid: ${uid}, program: "${user.program}", semester: ${user.semester}, batch: "${user.batch}", type: "${user.type}")`);
 
     // Call our coordinate-based parser
     const parsedClasses = await extractSchedule(
