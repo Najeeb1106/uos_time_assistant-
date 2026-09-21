@@ -5,7 +5,10 @@ const { extractSchedule } = require('../src/utils/pdfParser');
 async function testCSParsing() {
   console.log('🧪 Testing CS PDF Parsing...');
   try {
-    const pdfPath = path.join(__dirname, '..', 'Class Timetable CS.pdf');
+    let pdfPath = path.join(__dirname, '..', '..', 'Class Timetable CS.pdf');
+    if (!fs.existsSync(pdfPath)) {
+      pdfPath = path.join(__dirname, '..', 'Class Timetable CS.pdf');
+    }
     if (!fs.existsSync(pdfPath)) {
       console.error(`❌ PDF not found at ${pdfPath}`);
       return;

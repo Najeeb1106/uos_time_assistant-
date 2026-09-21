@@ -5,7 +5,10 @@ const { extractSchedule } = require('../src/utils/pdfParser');
 async function testSelfSupportIsolation() {
   console.log('🧪 Testing E2E Self Support Isolation (Self Support 1 vs 2)...');
   try {
-    const pdfPath = path.join(__dirname, '..', 'Class Timetable SE.pdf');
+    let pdfPath = path.join(__dirname, '..', '..', 'Class Timetable SE.pdf');
+    if (!fs.existsSync(pdfPath)) {
+      pdfPath = path.join(__dirname, '..', 'Class Timetable SE.pdf');
+    }
     if (!fs.existsSync(pdfPath)) {
       console.error(`❌ PDF not found at ${pdfPath}`);
       return;

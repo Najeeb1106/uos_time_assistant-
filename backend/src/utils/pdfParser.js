@@ -94,8 +94,8 @@ function getDayFromBoundaries(x, boundaries) {
 }
 
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
-const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
-const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*\(?(Weekend)?\)?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(\d{4}\s*-\s*\d{4})\s*\)\s*Semester#(\d+)/i;
+const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*\(?(Weekend)?\)?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(\d{4}\s*-\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 const RE_SEMESTER = /Semester#(\d+)/i;
 const RE_TIME = /\((\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\)/;
 
@@ -132,14 +132,14 @@ function parseEntry(text) {
     type = bsMatch[2].trim();
     if (type.toLowerCase() === 'self') type = 'Self Support';
     section = bsMatch[3].trim();
-    batch = bsMatch[4].trim();
+    batch = bsMatch[4].replace(/\s+/g, '');
     semester = parseInt(bsMatch[5]);
   } else if (msMatch) {
     program = msMatch[1].trim() + " in " + msMatch[2].trim();
     type = msMatch[3] ? 'Weekend Self Support' : (msMatch[4] ? msMatch[4].trim() : 'Regular');
     if (type.toLowerCase() === 'self') type = 'Self Support';
     section = msMatch[5].trim();
-    batch = msMatch[6] ? msMatch[6].trim() : '';
+    batch = msMatch[6] ? msMatch[6].replace(/\s+/g, '') : '';
     semester = msMatch[7] && msMatch[7].length > 0 ? parseInt(msMatch[7]) : 0;
     if (semester === 0 && (text.includes('MS ') || text.includes('PhD '))) {
       const msSemMatch = text.match(/Semester#(\d+)/i);
@@ -251,7 +251,13 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
           isPageRelevant = true;
         }
       } else {
-        const hasBatch = userBatch ? pageText.includes(userBatch) : true;
+        let hasBatch = true;
+        if (userBatch) {
+          const normUserBatch = String(userBatch).replace(/\s+/g, '');
+          const normPageText = pageText.replace(/\s+/g, '');
+          hasBatch = normPageText.includes(normUserBatch);
+        }
+
         let hasProgram = true;
         if (userProgram) {
           const progKeywords = userProgram.toLowerCase()
@@ -407,7 +413,11 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
     }
 
     // Filter results specifically for the user
-    const targetSemester = Number(userSemester);
+    let targetSemester = 0;
+    if (userSemester !== null && userSemester !== undefined && String(userSemester).trim() !== '') {
+      const semMatch = String(userSemester).match(/\d+/);
+      targetSemester = semMatch ? parseInt(semMatch[0], 10) : Number(userSemester);
+    }
     const rawUserType = (userType || 'Regular').trim();
     
     // Strict normalizer for program names
