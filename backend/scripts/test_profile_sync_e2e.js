@@ -61,18 +61,18 @@ async function testProfileSyncE2E() {
   assert.strictEqual(classesSpringSem6.length, 13, `Expected 13 classes for Sem 6 Spring, got ${classesSpringSem6.length}`);
   console.log(`  ✓ Passed: Extracted ${classesSpringSem6.length} classes for Semester 6 from Spring timetable.`);
 
-  // Test against Fall PDF (where Sem 6 does NOT exist for 2023-2027)
-  const classesFallSem6 = await extractSchedule(
-    bufFall,
-    updatedProfile.batch,
-    updatedProfile.semester,
-    updatedProfile.type,
-    updatedProfile.program,
-    updatedProfile.role,
-    updatedProfile.fullName
+  // Test against Spring PDF with Semester 7 (where Sem 7 does NOT exist)
+  const classesSpringSem7 = await extractSchedule(
+    bufSpring,
+    initialProfile.batch,
+    initialProfile.semester,
+    initialProfile.type,
+    initialProfile.program,
+    initialProfile.role,
+    initialProfile.fullName
   );
-  assert.strictEqual(classesFallSem6.length, 0, `Expected 0 classes for Sem 6 in Fall timetable, got ${classesFallSem6.length}`);
-  console.log(`  ✓ Passed: Semester 6 correctly produced 0 matches against Fall 2026 timetable (strict semester isolation verified).\n`);
+  assert.strictEqual(classesSpringSem7.length, 0, `Expected 0 classes for Sem 7 in Spring timetable, got ${classesSpringSem7.length}`);
+  console.log(`  ✓ Passed: Semester 7 correctly produced 0 matches against Spring timetable (strict semester isolation verified).\n`);
 
   // 3. Spaced batch format persistence test
   console.log('Step 3: Profile updated with spaced batch string "2023 - 2027":');

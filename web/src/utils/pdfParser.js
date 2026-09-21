@@ -108,9 +108,8 @@ const LECTURE_BLOCK_DY = 12;
 // Code must be at least 4 chars to avoid truncated PDF artifacts like "#U…"
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
 
-const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
-
-const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*\(?(Weekend)?\)?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*Semester#(\d+)/i;
+const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*(?:\((Weekend)\))?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 
 const RE_SEMESTER = /Semester#(\d+)/i;
 

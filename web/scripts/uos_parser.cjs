@@ -44,8 +44,8 @@ const ROOM_GROUP_DY = 8;
 const LECTURE_BLOCK_DY = 12;
 
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
-const RE_BATCH_BSSE = /BS\s+in\s+Software\s+Engineering\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support)\s*(\d*)\s*\(\s*(\d{4}-\d{4})\s*\)\s*Semester#(\d+)/i;
-const RE_BATCH_MS = /MS\s+Software\s+Engineering\s*\(?(Weekend)?\)?\s*(Self\s+Support)?\s*\d*\s*\(\s*(\d{4}-\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_BSSE = /BS\s+in\s+Software\s+Engineering\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support)\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*Semester#(\d+)/i;
+const RE_BATCH_MS = /MS\s+Software\s+Engineering\s*(?:\((Weekend)\))?\s*(Self\s+Support)?\s*\d*\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 const RE_SEMESTER = /Semester#(\d+)/i;
 const RE_TIME = /\((\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\)/;
 
