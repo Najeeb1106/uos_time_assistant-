@@ -87,10 +87,41 @@ const verifyFirebasePassword = (email, password, apiKey) => {
  */
 exports.register = async (req, res) => {
   try {
-    const { email, password, fullName, program, type, batch, semester, role = 'student', department, designation, employeeId, teachingId } = req.body;
+    const {
+      email,
+      password,
+      fullName,
+      program,
+      type,
+      batch,
+      semester,
+      role = 'student',
+      department,
+      designation,
+      employeeId,
+      teachingId,
+      // Additive academic registry fields
+      departmentId,
+      degreeLevel,
+      programId,
+      intakeTerm,
+      studyShift,
+      sectionNumber
+    } = req.body;
+
+    let effectiveType = type;
+    if (!effectiveType && studyShift) {
+      if (studyShift === 'Weekend Self Support') {
+        effectiveType = 'Weekend Self Support';
+      } else if (studyShift === 'Self Support') {
+        effectiveType = sectionNumber === '0' ? 'Self Support 0' : (sectionNumber === '2' ? 'Self Support 2' : 'Self Support 1');
+      } else {
+        effectiveType = sectionNumber === '0' ? 'Regular 0' : (sectionNumber === '2' ? 'Regular 2' : 'Regular');
+      }
+    }
 
     if (role === 'student') {
-      if (!email || !password || !fullName || !program || !type || !batch || !semester) {
+      if (!email || !password || !fullName || !program || !effectiveType || !batch || !semester) {
         return res.status(400).json({
           success: false,
           message: 'Please fill in all required fields.'
@@ -163,9 +194,15 @@ exports.register = async (req, res) => {
 
     if (role === 'student') {
       userProfile.program = program;
-      userProfile.type = type;
+      userProfile.type = effectiveType;
       userProfile.batch = cleanBatch;
       userProfile.semester = Number(semester);
+      if (departmentId) userProfile.departmentId = departmentId;
+      if (degreeLevel) userProfile.degreeLevel = degreeLevel;
+      if (programId) userProfile.programId = programId;
+      if (intakeTerm) userProfile.intakeTerm = intakeTerm;
+      if (studyShift) userProfile.studyShift = studyShift;
+      if (sectionNumber !== undefined) userProfile.sectionNumber = String(sectionNumber);
     } else {
       userProfile.department = department;
       userProfile.designation = designation;
@@ -363,7 +400,21 @@ exports.getMe = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const uid = req.user.uid;
-    const { fullName, program, type, batch, semester, password } = req.body;
+    const {
+      fullName,
+      program,
+      type,
+      batch,
+      semester,
+      password,
+      avatarUri,
+      departmentId,
+      degreeLevel,
+      programId,
+      intakeTerm,
+      studyShift,
+      sectionNumber
+    } = req.body;
 
     const userDoc = await db.collection('users').doc(uid).get();
     if (!userDoc.exists) {
@@ -376,15 +427,31 @@ exports.updateProfile = async (req, res) => {
     const existingUser = userDoc.data();
     const role = existingUser.role || 'student';
 
+    let effectiveType = type;
+    if (!effectiveType && studyShift) {
+      if (studyShift === 'Weekend Self Support') {
+        effectiveType = 'Weekend Self Support';
+      } else if (studyShift === 'Self Support') {
+        effectiveType = sectionNumber === '0' ? 'Self Support 0' : (sectionNumber === '2' ? 'Self Support 2' : 'Self Support 1');
+      } else {
+        effectiveType = sectionNumber === '0' ? 'Regular 0' : (sectionNumber === '2' ? 'Regular 2' : 'Regular');
+      }
+    }
+
     if (role === 'student') {
-      if (!fullName || !program || !type || !batch || !semester) {
+      const progToVerify = program || existingUser.program;
+      const typeToVerify = effectiveType || existingUser.type;
+      const batchToVerify = batch || existingUser.batch;
+      const semToVerify = semester !== undefined ? semester : existingUser.semester;
+
+      if (!fullName || !progToVerify || !typeToVerify || !batchToVerify || semToVerify === undefined) {
         return res.status(400).json({
           success: false,
           message: 'Please fill in all required academic parameters.'
         });
       }
 
-      const cleanBatch = String(batch || '').replace(/\s+/g, '');
+      const cleanBatch = String(batchToVerify || '').replace(/\s+/g, '');
       if (!/^\d{4}-\d{4}$/.test(cleanBatch)) {
         return res.status(400).json({
           success: false,
@@ -426,10 +493,20 @@ exports.updateProfile = async (req, res) => {
     };
 
     if (role === 'student') {
-      updateData.program = program;
-      updateData.type = type;
-      updateData.batch = String(batch || '').replace(/\s+/g, '');
-      updateData.semester = Number(semester);
+      if (program) updateData.program = program;
+      if (effectiveType) updateData.type = effectiveType;
+      if (batch) updateData.batch = String(batch || '').replace(/\s+/g, '');
+      if (semester !== undefined) updateData.semester = Number(semester);
+      if (departmentId) updateData.departmentId = departmentId;
+      if (degreeLevel) updateData.degreeLevel = degreeLevel;
+      if (programId) updateData.programId = programId;
+      if (intakeTerm) updateData.intakeTerm = intakeTerm;
+      if (studyShift) updateData.studyShift = studyShift;
+      if (sectionNumber !== undefined) updateData.sectionNumber = String(sectionNumber);
+    }
+
+    if (avatarUri !== undefined) {
+      updateData.avatarUri = avatarUri;
     }
 
     if (password) {

@@ -8,6 +8,7 @@ export interface UploadScheduleResponse {
   classes?: ClassLecture[];
   pdfFileName?: string;
   isScannedFallback?: boolean;
+  sourceType?: 'pdf' | 'image';
 }
 
 export interface SaveScheduleResponse {
@@ -17,7 +18,7 @@ export interface SaveScheduleResponse {
 }
 
 /**
- * Upload PDF timetable file to backend for server-side parsing & coordinate extraction
+ * Upload PDF or image timetable file to backend for server-side parsing & extraction
  */
 export async function uploadScheduleApi(
   fileUri: string,

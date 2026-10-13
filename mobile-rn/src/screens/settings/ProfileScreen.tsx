@@ -24,14 +24,29 @@ import { Typography } from '../../constants/Typography';
 import { Config } from '../../constants/Config';
 import CollapsibleHeader, { TOOLBAR_HEIGHT } from '../../components/common/CollapsibleHeader';
 import SelectBottomSheet from '../../components/common/SelectBottomSheet';
+import {
+  DEPARTMENTS,
+  DEGREE_LEVELS,
+  INTAKE_TERMS,
+  SEMESTER_OPTIONS,
+  getDepartmentById,
+  getProgramsByDepartmentAndLevel,
+  getProgramById,
+  findProgramByOfficialOrLegacyName,
+  getAvailableShiftsForProgram,
+  getAvailableSectionsForShift,
+  generateDynamicBatches,
+  deriveLegacyType,
+  parseLegacyType,
+  DepartmentId,
+  DegreeLevel,
+  IntakeTerm,
+  StudyShift,
+} from '../../constants/academicRegistry';
 import { DEGREE_PROGRAMS } from '../../constants/degreePrograms';
 import { normalizeBatch } from '../../utils/builtinScheduleUtils';
 import {
-  getSuggestedBatch,
-  getValidBatches,
   parseBatch,
-  START_YEAR_OPTIONS,
-  getEndYearOptions,
 } from '../../utils/batchUtils';
 
 export default function ProfileScreen() {
@@ -50,7 +65,13 @@ export default function ProfileScreen() {
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || '');
+  const [departmentId, setDepartmentId] = useState<DepartmentId>((user?.departmentId as DepartmentId) || 'se');
+  const [degreeLevel, setDegreeLevel] = useState<DegreeLevel>((user?.degreeLevel as DegreeLevel) || 'BS');
+  const [programId, setProgramId] = useState<string>(user?.programId || 'bs_se');
   const [program, setProgram] = useState(user?.program || '');
+  const [intakeTerm, setIntakeTerm] = useState<IntakeTerm>((user?.intakeTerm as IntakeTerm) || 'Fall');
+  const [studyShift, setStudyShift] = useState<StudyShift>((user?.studyShift as StudyShift) || 'Regular');
+  const [sectionNumber, setSectionNumber] = useState<string>(user?.sectionNumber ? String(user.sectionNumber) : '1');
   const [semester, setSemester] = useState<number>(user?.semester !== undefined && user?.semester !== null ? Number(user.semester) : 1);
   const [batch, setBatch] = useState(user?.batch || '');
   const [type, setType] = useState(user?.type || 'Regular');
@@ -60,10 +81,24 @@ export default function ProfileScreen() {
 
   // Active Dropdown state inside Modal
   const [activeDropdown, setActiveDropdown] = useState<
-    'program' | 'semester' | 'section' | 'batchStart' | 'batchEnd' | null
+    | 'department'
+    | 'degreeLevel'
+    | 'program'
+    | 'intakeTerm'
+    | 'batch'
+    | 'semester'
+    | 'studyShift'
+    | 'section'
+    | null
   >(null);
 
-  const { startYear, endYear } = parseBatch(batch);
+  // Dynamic program resolution
+  const currentProgramDef =
+    getProgramById(programId) ||
+    findProgramByOfficialOrLegacyName(program) ||
+    getProgramsByDepartmentAndLevel(departmentId, degreeLevel)[0];
+
+  const dynamicBatchOptions = generateDynamicBatches(currentProgramDef);
 
   // Fixed heights for header and footer in Edit Profile modal
   const EDIT_DRAG_HANDLE_HEIGHT = 15; // 3px bar + 8 marginTop + 2 marginBottom + 2 extra
@@ -84,14 +119,34 @@ export default function ProfileScreen() {
     const u = targetUser !== undefined ? targetUser : user;
     if (u) {
       setFullName(u.fullName || '');
-      setProgram(u.program || '');
+      const matchedProg = u.programId ? getProgramById(u.programId) : findProgramByOfficialOrLegacyName(u.program);
+      const dept = (u.departmentId as DepartmentId) || matchedProg?.departmentId || 'se';
+      const degLvl = (u.degreeLevel as DegreeLevel) || matchedProg?.degreeLevel || 'BS';
+      const pId = u.programId || matchedProg?.id || 'bs_se';
+
+      setDepartmentId(dept);
+      setDegreeLevel(degLvl);
+      setProgramId(pId);
+      setProgram(u.program || matchedProg?.officialPdfName || '');
+      setIntakeTerm((u.intakeTerm as IntakeTerm) || 'Fall');
+
+      const parsedLegacy = parseLegacyType(u.type);
+      setStudyShift((u.studyShift as StudyShift) || parsedLegacy.studyShift);
+      setSectionNumber(u.sectionNumber ? String(u.sectionNumber) : parsedLegacy.sectionNumber);
+
       setSemester(u.semester !== undefined && u.semester !== null ? Number(u.semester) : 1);
       setBatch(u.batch || '');
       setType(u.type || 'Regular');
       setAvatarUri(u.avatarUri || null);
     } else {
       setFullName('');
+      setDepartmentId('se');
+      setDegreeLevel('BS');
+      setProgramId('bs_se');
       setProgram('');
+      setIntakeTerm('Fall');
+      setStudyShift('Regular');
+      setSectionNumber('1');
       setSemester(1);
       setBatch('');
       setType('Regular');
@@ -111,37 +166,79 @@ export default function ProfileScreen() {
     }
   }, [isEditModalOpen]);
 
-  // When program or semester changes inside the modal, auto-derive the batch
-  // if there is exactly one valid batch for that combination.
-  // Guarded: only update if the suggested batch differs from the current value
-  // to avoid overwriting an in-progress manual edit.
-  useEffect(() => {
-    if (!isEditModalOpen) return;
-    const suggested = getSuggestedBatch(program, semester);
-    if (suggested !== null && suggested !== batch) {
-      setBatch(suggested);
+  const handleSelectDepartment = (newDeptId: DepartmentId) => {
+    setDepartmentId(newDeptId);
+    const availableProgs = getProgramsByDepartmentAndLevel(newDeptId, degreeLevel);
+    const nextProg = availableProgs[0];
+    if (nextProg) {
+      setProgramId(nextProg.id);
+      setProgram(nextProg.officialPdfName);
+      const shifts = getAvailableShiftsForProgram(nextProg);
+      const nextShift = shifts.includes(studyShift) ? studyShift : shifts[0];
+      setStudyShift(nextShift);
+      const secs = getAvailableSectionsForShift(nextProg, nextShift);
+      if (!secs.includes(sectionNumber)) {
+        setSectionNumber(secs[0] || '1');
+      }
+      const newBatches = generateDynamicBatches(nextProg);
+      if (!newBatches.includes(batch)) {
+        setBatch(newBatches[0] || '2024-2028');
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [program, semester, isEditModalOpen]);
-
-  const handleSelectStartYear = (val: string) => {
-    let newEnd = endYear;
-    if (!newEnd || Number(newEnd) <= Number(val)) {
-      const isPostGrad = program.includes('MS') || program.includes('PhD');
-      newEnd = String(Number(val) + (isPostGrad ? 2 : 4));
-    }
-    setBatch(`${val}-${newEnd}`);
     setActiveDropdown(null);
     setFeedback(null);
   };
 
-  const handleSelectEndYear = (val: string) => {
-    let newStart = startYear;
-    if (!newStart || Number(newStart) >= Number(val)) {
-      const isPostGrad = program.includes('MS') || program.includes('PhD');
-      newStart = String(Number(val) - (isPostGrad ? 2 : 4));
+  const handleSelectDegreeLevel = (newLevel: DegreeLevel) => {
+    setDegreeLevel(newLevel);
+    const availableProgs = getProgramsByDepartmentAndLevel(departmentId, newLevel);
+    const nextProg = availableProgs[0];
+    if (nextProg) {
+      setProgramId(nextProg.id);
+      setProgram(nextProg.officialPdfName);
+      const shifts = getAvailableShiftsForProgram(nextProg);
+      const nextShift = shifts.includes(studyShift) ? studyShift : shifts[0];
+      setStudyShift(nextShift);
+      const secs = getAvailableSectionsForShift(nextProg, nextShift);
+      if (!secs.includes(sectionNumber)) {
+        setSectionNumber(secs[0] || '1');
+      }
+      const newBatches = generateDynamicBatches(nextProg);
+      if (!newBatches.includes(batch)) {
+        setBatch(newBatches[0] || '2024-2028');
+      }
     }
-    setBatch(`${newStart}-${val}`);
+    setActiveDropdown(null);
+    setFeedback(null);
+  };
+
+  const handleSelectProgram = (newProgId: string) => {
+    setProgramId(newProgId);
+    const progDef = getProgramById(newProgId);
+    if (progDef) {
+      setProgram(progDef.officialPdfName);
+      const shifts = getAvailableShiftsForProgram(progDef);
+      const nextShift = shifts.includes(studyShift) ? studyShift : shifts[0];
+      setStudyShift(nextShift);
+      const secs = getAvailableSectionsForShift(progDef, nextShift);
+      if (!secs.includes(sectionNumber)) {
+        setSectionNumber(secs[0] || '1');
+      }
+      const newBatches = generateDynamicBatches(progDef);
+      if (!newBatches.includes(batch)) {
+        setBatch(newBatches[0] || '2024-2028');
+      }
+    }
+    setActiveDropdown(null);
+    setFeedback(null);
+  };
+
+  const handleSelectStudyShift = (newShift: StudyShift) => {
+    setStudyShift(newShift);
+    const secs = getAvailableSectionsForShift(currentProgramDef, newShift);
+    if (!secs.includes(sectionNumber)) {
+      setSectionNumber(secs[0] || '1');
+    }
     setActiveDropdown(null);
     setFeedback(null);
   };
@@ -215,32 +312,35 @@ export default function ProfileScreen() {
         return;
       }
 
-      // Semester-change validation: Batch MUST be changed as well when Semester is changed
-      const prevSem = Number(user.semester);
-      const newSem = Number(semester);
-      const prevBatch = normalizeBatch(user.batch);
-      const newBatch = normalizedInputBatch;
-
-      if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
-        setFeedback({
-          type: 'error',
-          message: 'Please change your batch/session as well when changing the semester.',
-        });
-        setIsSaving(false);
-        return;
-      }
     }
 
     try {
       const finalBatch = user?.role === 'teacher' ? batch.trim() : normalizeBatch(batch);
-      await updateProfile({
+      const progDef = getProgramById(programId);
+      const officialProg = progDef?.officialPdfName || progDef?.label || program.trim();
+      const derivedType = deriveLegacyType(studyShift, sectionNumber);
+
+      const updatePayload: any = {
         fullName: trimmedName,
-        program: program.trim(),
-        semester: Number(semester),
-        batch: finalBatch,
-        type,
         avatarUri: avatarUri || null,
-      });
+      };
+
+      if (user?.role !== 'teacher') {
+        updatePayload.departmentId = departmentId;
+        updatePayload.degreeLevel = degreeLevel;
+        updatePayload.programId = programId;
+        updatePayload.intakeTerm = intakeTerm;
+        updatePayload.studyShift = studyShift;
+        updatePayload.sectionNumber = sectionNumber;
+
+        // Legacy fields
+        updatePayload.program = officialProg;
+        updatePayload.semester = Number(semester);
+        updatePayload.batch = finalBatch;
+        updatePayload.type = derivedType;
+      }
+
+      await updateProfile(updatePayload);
       setFeedback({ type: 'success', message: 'Profile updated successfully!' });
       setTimeout(() => {
         handleCloseModal();
@@ -457,9 +557,36 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Department</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {getDepartmentById(user.departmentId)?.name || 'N/A'}
+                </Text>
+              </View>
+
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Degree Level</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {user.degreeLevel || 'N/A'}
+                </Text>
+              </View>
+
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+              <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Degree Program</Text>
                 <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
                   {user.program || 'N/A'}
+                </Text>
+              </View>
+
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Session / Intake</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {user.intakeTerm || 'Fall'}
                 </Text>
               </View>
 
@@ -475,7 +602,7 @@ export default function ProfileScreen() {
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               <View style={styles.infoRow}>
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Session / Batch</Text>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Batch / Session</Text>
                 <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
                   {user.batch || 'N/A'}
                 </Text>
@@ -484,9 +611,18 @@ export default function ProfileScreen() {
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Study Shift</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {user.studyShift || (user.type?.includes('Self') ? 'Self Support' : 'Regular')}
+                </Text>
+              </View>
+
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+              <View style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Section</Text>
                 <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
-                  {user.type || 'Regular'}
+                  {user.sectionNumber ? `Section ${user.sectionNumber}` : user.type || 'Section 1'}
                 </Text>
               </View>
             </View>
@@ -707,114 +843,163 @@ export default function ProfileScreen() {
                 />
               </View>
 
-              {/* Degree Program Dropdown Field */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Degree Program</Text>
-                <Pressable
-                  style={[
-                    styles.dropdownTrigger,
-                    {
-                      backgroundColor: colors.surfaceElevated,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setActiveDropdown('program')}
-                >
-                  <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
-                    {DEGREE_PROGRAMS.find((p) => p.value === program)?.label || program || 'Select Degree Program'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
-                </Pressable>
-              </View>
-
-              {/* Active Semester Dropdown Field */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Active Semester</Text>
-                <Pressable
-                  style={[
-                    styles.dropdownTrigger,
-                    {
-                      backgroundColor: colors.surfaceElevated,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setActiveDropdown('semester')}
-                >
-                  <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>Semester {semester}</Text>
-                  <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
-                </Pressable>
-              </View>
-
-              {/* Batch Start Year & End Year Dropdowns */}
-              <View style={styles.batchRow}>
-                <View style={styles.batchCol}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Start Year</Text>
-                  <Pressable
-                    style={[
-                      styles.dropdownTrigger,
-                      {
-                        backgroundColor: colors.surfaceElevated,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    onPress={() => setActiveDropdown('batchStart')}
-                  >
-                    <Text
+              {user?.role !== 'teacher' && (
+                <>
+                  {/* 1. Department Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Department</Text>
+                    <Pressable
                       style={[
-                        styles.dropdownTriggerText,
-                        { color: startYear ? colors.textPrimary : colors.textMuted },
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
                       ]}
-                      numberOfLines={1}
+                      onPress={() => setActiveDropdown('department')}
                     >
-                      {startYear || 'Start Year'}
-                    </Text>
-                    <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
-                  </Pressable>
-                </View>
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {DEPARTMENTS.find((d) => d.id === departmentId)?.name || 'Select Department'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
 
-                <View style={styles.batchCol}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>End Year</Text>
-                  <Pressable
-                    style={[
-                      styles.dropdownTrigger,
-                      {
-                        backgroundColor: colors.surfaceElevated,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    onPress={() => setActiveDropdown('batchEnd')}
-                  >
-                    <Text
+                  {/* 2. Degree Level Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Degree Level</Text>
+                    <Pressable
                       style={[
-                        styles.dropdownTriggerText,
-                        { color: endYear ? colors.textPrimary : colors.textMuted },
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
                       ]}
-                      numberOfLines={1}
+                      onPress={() => setActiveDropdown('degreeLevel')}
                     >
-                      {endYear || 'End Year'}
-                    </Text>
-                    <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
-                  </Pressable>
-                </View>
-              </View>
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {degreeLevel}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
 
-              {/* Section Dropdown Field */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Section</Text>
-                <Pressable
-                  style={[
-                    styles.dropdownTrigger,
-                    {
-                      backgroundColor: colors.surfaceElevated,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setActiveDropdown('section')}
-                >
-                  <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>{type}</Text>
-                  <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
-                </Pressable>
-              </View>
+                  {/* 3. Degree Program Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Degree Program</Text>
+                    <Pressable
+                      style={[
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setActiveDropdown('program')}
+                    >
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {currentProgramDef?.label || program || 'Select Degree Program'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+
+                  {/* 4. Session / Intake Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Session / Intake</Text>
+                    <Pressable
+                      style={[
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setActiveDropdown('intakeTerm')}
+                    >
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {intakeTerm}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+
+                  {/* 5. Batch Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Batch / Session</Text>
+                    <Pressable
+                      style={[
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setActiveDropdown('batch')}
+                    >
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {batch || 'Select Batch'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+
+                  {/* 6. Active Semester Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Active Semester</Text>
+                    <Pressable
+                      style={[
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setActiveDropdown('semester')}
+                    >
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>Semester {semester}</Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+
+                  {/* 7. Study Shift Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Study Shift</Text>
+                    <Pressable
+                      style={[
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setActiveDropdown('studyShift')}
+                    >
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>{studyShift}</Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+
+                  {/* 8. Section Dropdown */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Section</Text>
+                    <Pressable
+                      style={[
+                        styles.dropdownTrigger,
+                        {
+                          backgroundColor: colors.surfaceElevated,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setActiveDropdown('section')}
+                    >
+                      <Text style={[styles.dropdownTriggerText, { color: colors.textPrimary }]}>Section {sectionNumber}</Text>
+                      <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+                </>
+              )}
             </ScrollView>
           </View>
 
@@ -855,183 +1040,136 @@ export default function ProfileScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Degree Program Bottom Sheet (Searchable) */}
+      {/* 1. Department Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'department'}
+        title="Select Department"
+        options={DEPARTMENTS.map((d) => ({
+          value: d.id,
+          label: `${d.name} (${d.code})`,
+        }))}
+        selectedValue={departmentId}
+        onSelect={(val) => handleSelectDepartment(val as DepartmentId)}
+        onClose={() => setActiveDropdown(null)}
+        colors={colors}
+        isDark={isDark}
+      />
+
+      {/* 2. Degree Level Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'degreeLevel'}
+        title="Select Degree Level"
+        options={DEGREE_LEVELS.map((lvl) => ({
+          value: lvl,
+          label: lvl,
+        }))}
+        selectedValue={degreeLevel}
+        onSelect={(val) => handleSelectDegreeLevel(val as DegreeLevel)}
+        onClose={() => setActiveDropdown(null)}
+        colors={colors}
+        isDark={isDark}
+      />
+
+      {/* 3. Degree Program Bottom Sheet */}
       <SelectBottomSheet
         visible={activeDropdown === 'program'}
         title="Select Degree Program"
-        options={DEGREE_PROGRAMS}
-        selectedValue={program}
-        onSelect={(val) => setProgram(val)}
+        options={getProgramsByDepartmentAndLevel(departmentId, degreeLevel).map((p) => ({
+          value: p.id,
+          label: p.label,
+        }))}
+        selectedValue={programId}
+        onSelect={(val) => handleSelectProgram(String(val))}
         onClose={() => setActiveDropdown(null)}
         searchable
         colors={colors}
         isDark={isDark}
       />
 
-      {/* Batch Start Year Bottom Sheet */}
+      {/* 4. Session / Intake Bottom Sheet */}
       <SelectBottomSheet
-        visible={activeDropdown === 'batchStart'}
-        title="Select Start Year"
-        options={START_YEAR_OPTIONS}
-        selectedValue={startYear}
-        onSelect={(val) => handleSelectStartYear(String(val))}
+        visible={activeDropdown === 'intakeTerm'}
+        title="Select Session / Intake"
+        options={INTAKE_TERMS.map((term) => ({
+          value: term,
+          label: term,
+        }))}
+        selectedValue={intakeTerm}
+        onSelect={(val) => {
+          setIntakeTerm(val as IntakeTerm);
+          setActiveDropdown(null);
+        }}
         onClose={() => setActiveDropdown(null)}
         colors={colors}
         isDark={isDark}
       />
 
-      {/* Batch End Year Bottom Sheet */}
+      {/* 5. Batch Bottom Sheet */}
       <SelectBottomSheet
-        visible={activeDropdown === 'batchEnd'}
-        title="Select End Year"
-        options={getEndYearOptions(startYear)}
-        selectedValue={endYear}
-        onSelect={(val) => handleSelectEndYear(String(val))}
+        visible={activeDropdown === 'batch'}
+        title="Select Batch / Session"
+        options={dynamicBatchOptions.map((b) => ({
+          value: b,
+          label: b,
+        }))}
+        selectedValue={batch}
+        onSelect={(val) => {
+          setBatch(String(val));
+          setActiveDropdown(null);
+        }}
+        onClose={() => setActiveDropdown(null)}
+        searchable
+        colors={colors}
+        isDark={isDark}
+      />
+
+      {/* 6. Active Semester Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'semester'}
+        title="Select Active Semester"
+        options={SEMESTER_OPTIONS}
+        selectedValue={semester}
+        onSelect={(val) => {
+          setSemester(Number(val));
+          setActiveDropdown(null);
+        }}
         onClose={() => setActiveDropdown(null)}
         colors={colors}
         isDark={isDark}
       />
 
-      {/* Semester Bottom Sheet Picker */}
-      <Modal visible={activeDropdown === 'semester'} animationType="slide" transparent>
-        <View
-          style={[
-            styles.pickerOverlay,
-            {
-              backgroundColor: isDark ? 'rgba(6, 8, 20, 0.75)' : 'rgba(0, 0, 0, 0.45)',
-              paddingTop: insets.top + 20,
-              paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            },
-          ]}
-        >
-          <Pressable style={styles.backdropPressable} onPress={() => setActiveDropdown(null)} />
-          <View
-            style={[
-              styles.pickerSheetContainer,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
-            <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.pickerTitle, { color: colors.textPrimary }]}>Select Active Semester</Text>
-              <Pressable onPress={() => setActiveDropdown(null)} hitSlop={10}>
-                <Ionicons name="close" size={20} color={colors.textMuted} />
-              </Pressable>
-            </View>
-            <ScrollView style={styles.pickerOptionsScroll} showsVerticalScrollIndicator={false}>
-              <View style={styles.pickerOptionsList}>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                  <Pressable
-                    key={s}
-                    style={[
-                      styles.pickerOptionRow,
-                      {
-                        backgroundColor: colors.surfaceElevated,
-                        borderColor: colors.border,
-                      },
-                      semester === s && {
-                        backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(79, 70, 229, 0.08)',
-                        borderColor: colors.primary,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSemester(s);
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.pickerOptionText,
-                        { color: colors.textSecondary },
-                        semester === s && { color: colors.textPrimary, fontWeight: '700' },
-                      ]}
-                    >
-                      Semester {s}
-                    </Text>
-                    {semester === s && <Ionicons name="checkmark-circle" size={18} color={colors.primary} />}
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {/* 7. Study Shift Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'studyShift'}
+        title="Select Study Shift"
+        options={getAvailableShiftsForProgram(currentProgramDef).map((s) => ({
+          value: s,
+          label: s,
+        }))}
+        selectedValue={studyShift}
+        onSelect={(val) => handleSelectStudyShift(val as StudyShift)}
+        onClose={() => setActiveDropdown(null)}
+        colors={colors}
+        isDark={isDark}
+      />
 
-      {/* Section Bottom Sheet Picker */}
-      <Modal visible={activeDropdown === 'section'} animationType="slide" transparent>
-        <View
-          style={[
-            styles.pickerOverlay,
-            {
-              backgroundColor: isDark ? 'rgba(6, 8, 20, 0.75)' : 'rgba(0, 0, 0, 0.45)',
-              paddingTop: insets.top + 20,
-              paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            },
-          ]}
-        >
-          <Pressable style={styles.backdropPressable} onPress={() => setActiveDropdown(null)} />
-          <View
-            style={[
-              styles.pickerSheetContainer,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
-            <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.pickerTitle, { color: colors.textPrimary }]}>Select Section</Text>
-              <Pressable onPress={() => setActiveDropdown(null)} hitSlop={10}>
-                <Ionicons name="close" size={20} color={colors.textMuted} />
-              </Pressable>
-            </View>
-            <ScrollView style={styles.pickerOptionsScroll} showsVerticalScrollIndicator={false}>
-              <View style={styles.pickerOptionsList}>
-                {['Regular', 'Self Support 1', 'Self Support 2'].map((sec) => (
-                  <Pressable
-                    key={sec}
-                    style={[
-                      styles.pickerOptionRow,
-                      {
-                        backgroundColor: colors.surfaceElevated,
-                        borderColor: colors.border,
-                      },
-                      (type === sec) && {
-                        backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(79, 70, 229, 0.08)',
-                        borderColor: colors.primary,
-                      },
-                    ]}
-                    onPress={() => {
-                      setType(sec);
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.pickerOptionText,
-                        { color: colors.textSecondary },
-                        (type === sec) && {
-                          color: colors.textPrimary,
-                          fontWeight: '700',
-                        },
-                      ]}
-                    >
-                      {sec}
-                    </Text>
-                    {(type === sec) && (
-                      <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
-                    )}
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {/* 8. Section Bottom Sheet */}
+      <SelectBottomSheet
+        visible={activeDropdown === 'section'}
+        title="Select Section"
+        options={getAvailableSectionsForShift(currentProgramDef, studyShift).map((sec) => ({
+          value: sec,
+          label: `Section ${sec}`,
+        }))}
+        selectedValue={sectionNumber}
+        onSelect={(val) => {
+          setSectionNumber(String(val));
+          setActiveDropdown(null);
+        }}
+        onClose={() => setActiveDropdown(null)}
+        colors={colors}
+        isDark={isDark}
+      />
     </View>
   );
 }

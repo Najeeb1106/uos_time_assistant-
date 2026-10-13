@@ -1,9 +1,50 @@
 const pdfImport = require('pdf-parse');
 
-// ── Day Column Dynamic Boundaries ──────────────────────────────────────────
-const ROOM_X_THRESHOLD = 45;
-const ROOM_GROUP_DY = 8;
+// ── Day Column Dynamic Boundaries & Room Classification ──────────────────
+const DEFAULT_ROOM_X_THRESHOLD = 45;
 const LECTURE_BLOCK_DY = 12;
+
+const RE_NEW_ROOM_START = /^(Department\s+of|College\s+of|Faculty\s+of|Institute\s+of|Centre\s+for|School\s+of|Physics\b|Pharmacy\b|Education\b|Jinnah\b|MPH\b|Maryam\b|Online\b|Smart\s+Lab)/i;
+const RE_PRIMARY_ROOM_CODE = /\b(CR\s*-\s*(?:NO-)?\s*\d+|L\s*-\s*\d+|Hall\b|CR-VCR|JB-CR|OKM\s+CR|SSB\s+(?:CR|L))/i;
+const RE_BUILDING_PREFIX = /^(NAB|MAB|ARB|IAH|IKM|ALB|ABN|AKM|JBN|SSB|OKM|JB-|SEEC)\b/i;
+
+function groupRooms(roomItems, gridTopY) {
+  roomItems.sort((a, b) => (Math.abs(b.y - a.y) < 2 ? a.x - b.x : b.y - a.y));
+  const rooms = [];
+  let curRoom = null;
+
+  for (const item of roomItems) {
+    if (!curRoom) {
+      curRoom = { parts: [item.str], yMax: item.y, yMin: item.y, hasCode: RE_PRIMARY_ROOM_CODE.test(item.str) };
+      continue;
+    }
+    const dy = curRoom.yMin - item.y;
+    const isNewStart = RE_NEW_ROOM_START.test(item.str);
+    const hasAlreadyCode = curRoom.hasCode && (RE_PRIMARY_ROOM_CODE.test(item.str) || RE_BUILDING_PREFIX.test(item.str));
+    const isIncompletePrefix = /^(Department|College|Faculty|Institute|Centre|School)\s+(of|for)$/i.test(curRoom.parts.join(' '));
+
+    if (dy <= 13.0 && (!isNewStart || isIncompletePrefix) && !hasAlreadyCode) {
+      curRoom.parts.push(item.str);
+      curRoom.yMin = Math.min(curRoom.yMin, item.y);
+      if (RE_PRIMARY_ROOM_CODE.test(item.str)) curRoom.hasCode = true;
+    } else {
+      rooms.push(curRoom);
+      curRoom = { parts: [item.str], yMax: item.y, yMin: item.y, hasCode: RE_PRIMARY_ROOM_CODE.test(item.str) };
+    }
+  }
+  if (curRoom) rooms.push(curRoom);
+
+  for (const r of rooms) {
+    r.name = r.parts.join(' ').replace(/\s+/g, ' ').trim();
+    r.yCenter = (r.yMax + r.yMin) / 2;
+  }
+  for (let i = 0; i < rooms.length; i++) {
+    rooms[i].bandTop = (i === 0) ? gridTopY : (rooms[i - 1].yMin + rooms[i].yMax) / 2;
+    rooms[i].bandBottom = (i === rooms.length - 1) ? 0 : (rooms[i].yMin + rooms[i + 1].yMax) / 2;
+  }
+  return rooms;
+}
+
 
 const DAY_CANONICAL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const DAY_ALIAS_MAP = {
@@ -28,7 +69,7 @@ const DEFAULT_7DAY_COLUMNS = [
 ];
 const DEFAULT_7DAY_BOUNDARIES = [];
 for (let i = 0; i < DEFAULT_7DAY_COLUMNS.length; i++) {
-  const left = i === 0 ? ROOM_X_THRESHOLD : (DEFAULT_7DAY_COLUMNS[i - 1].center + DEFAULT_7DAY_COLUMNS[i].center) / 2;
+  const left = i === 0 ? DEFAULT_ROOM_X_THRESHOLD : (DEFAULT_7DAY_COLUMNS[i - 1].center + DEFAULT_7DAY_COLUMNS[i].center) / 2;
   const right = i === DEFAULT_7DAY_COLUMNS.length - 1 ? 900 : (DEFAULT_7DAY_COLUMNS[i].center + DEFAULT_7DAY_COLUMNS[i + 1].center) / 2;
   DEFAULT_7DAY_BOUNDARIES.push({ day: DEFAULT_7DAY_COLUMNS[i].day, left, right, centerX: DEFAULT_7DAY_COLUMNS[i].center });
 }
@@ -37,7 +78,7 @@ for (let i = 0; i < DEFAULT_7DAY_COLUMNS.length; i++) {
  * Builds dynamic day boundaries by scanning header row text items.
  * Validates exact normalized matching, unique day names, and strict canonical day-of-week ordering.
  */
-function buildDynamicBoundaries(headerRowItems, roomThreshold = ROOM_X_THRESHOLD, pageWidth = 900) {
+function buildDynamicBoundaries(headerRowItems, roomThreshold = DEFAULT_ROOM_X_THRESHOLD, pageWidth = 900) {
   const detected = [];
   for (const item of headerRowItems) {
     const cleanStr = item.str.toLowerCase().replace(/[^a-z]/g, '');
@@ -94,8 +135,8 @@ function getDayFromBoundaries(x, boundaries) {
 }
 
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
-const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*Semester#(\d+)/i;
-const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*(?:\((Weekend)\))?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s\-]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*[-–—]\s*\d{4})\s*\)\s*S(?:emester)?#?(\d+)/i;
+const RE_BATCH_MS = /(MS|PhD)\s+(?:in\s+)?([A-Za-z\s\-]+?)\s*(?:\((Weekend)\))?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*[-–—]\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 const RE_SEMESTER = /Semester#(\d+)/i;
 const RE_TIME = /\((\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\)/;
 
@@ -132,14 +173,19 @@ function parseEntry(text) {
     type = bsMatch[2].trim();
     if (type.toLowerCase() === 'self') type = 'Self Support';
     section = bsMatch[3].trim();
-    batch = bsMatch[4].replace(/\s+/g, '');
+    batch = bsMatch[4].replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-').replace(/\s*-\s*/g, '-').replace(/\s+/g, '');
     semester = parseInt(bsMatch[5]);
   } else if (msMatch) {
-    program = msMatch[1].trim() + " in " + msMatch[2].trim();
+    const deg = msMatch[1].trim();
+    let progPart = msMatch[2].trim();
+    if (progPart.toLowerCase().startsWith('in ')) {
+      progPart = progPart.substring(3).trim();
+    }
+    program = deg + " in " + progPart;
     type = msMatch[3] ? 'Weekend Self Support' : (msMatch[4] ? msMatch[4].trim() : 'Regular');
     if (type.toLowerCase() === 'self') type = 'Self Support';
     section = msMatch[5].trim();
-    batch = msMatch[6] ? msMatch[6].replace(/\s+/g, '') : '';
+    batch = msMatch[6] ? msMatch[6].replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-').replace(/\s*-\s*/g, '-').replace(/\s+/g, '') : '';
     semester = msMatch[7] && msMatch[7].length > 0 ? parseInt(msMatch[7]) : 0;
     if (semester === 0 && (text.includes('MS ') || text.includes('PhD '))) {
       const msSemMatch = text.match(/Semester#(\d+)/i);
@@ -166,8 +212,8 @@ function parseEntry(text) {
     } else {
       teacher = lastSeg;
     }
-    teacher = teacher.replace(/BS\s+in\s+[A-Za-z\s]+.*$/i, '').trim();
-    teacher = teacher.replace(/(MS|PhD)\s+[A-Za-z\s]+.*$/i, '').trim();
+    teacher = teacher.replace(/BS\s+in\s+[A-Za-z\s\-]+.*$/i, '').trim();
+    teacher = teacher.replace(/(MS|PhD)\s+[A-Za-z\s\-]+.*$/i, '').trim();
     teacher = teacher.replace(/Semester#\d+.*/i, '').trim();
     if (teacher.includes('#') || teacher.length === 0) teacher = 'Unknown';
   }
@@ -176,29 +222,42 @@ function parseEntry(text) {
   const hashIdx = text.indexOf('#');
   if (hashIdx !== -1) {
     const beforeHash = text.substring(0, hashIdx).trim();
-    const nameParts = beforeHash.split('\n');
-    name = nameParts[nameParts.length - 1].trim();
+    const rawLines = beforeHash.split('\n').map(l => l.trim()).filter(Boolean);
+    const cleanLines = [];
+    for (const line of rawLines) {
+      const lower = line.toLowerCase();
+      if (DAY_ALIAS_MAP[lower] || lower === 'room / lab' || lower.includes('timetable')) continue;
+      if (/^[^\w\s]+$/.test(line) || line.length <= 1) continue;
+      if (/Semester#\d+/i.test(line) || /\(\d{2}:\d{2}\s*-\s*\d{2}:\d{2}\)/.test(line)) continue;
+      if (/^(BS|MS|PhD)\s+in/i.test(line)) continue;
+      if (/^combined\s+class\s*\(\d+\)/i.test(line)) continue;
+      cleanLines.push(line);
+    }
+    name = cleanLines.join(' ').replace(/^combined\s+class\s*\(\d+\)\s*/i, '').replace(/\s+/g, ' ').trim() || 'Unknown Course';
   } else {
-    name = text.split('\n')[0].trim() || 'Unknown Course';
+    const firstLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    name = firstLines[0] || 'Unknown Course';
   }
 
   if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) {
     const altCode = text.match(/#([A-Z0-9][\w-]+)/i);
     if (altCode) {
       const altIdx = text.indexOf('#' + altCode[1]);
-      const altBefore = text.substring(0, altIdx).trim().split('\n');
-      name = altBefore[altBefore.length - 1].trim();
+      const altBefore = text.substring(0, altIdx).trim().split('\n').map(l => l.trim()).filter(Boolean);
+      name = altBefore.join(' ').replace(/\s+/g, ' ').trim();
     }
     if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) name = 'Unknown Course';
   }
 
-  return { name, code, type, section, batch, semester, startTime, endTime, teacher, program };
+  const isPractical = /\bpractical\b/i.test(text) || /\b\(lab\)\b/i.test(text) || /\b\[lab\]\b/i.test(text);
+
+  return { name, code, type, section, batch, semester, startTime, endTime, teacher, program, isPractical };
 }
 
 function dedup(lectures) {
   const seen = new Set();
   return lectures.filter(l => {
-    const key = `${l.name}|${l.code}|${l.day}|${l.startTime}|${l.endTime}|${l.semester}|${l.type}|${l.section}|${l.teacher}|${l.program}`;
+    const key = `${l.name}|${l.code}|${l.day}|${l.startTime}|${l.endTime}|${l.semester}|${l.type}|${l.section}|${l.teacher}|${l.program}|${l.isPractical}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -253,8 +312,8 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
       } else {
         let hasBatch = true;
         if (userBatch) {
-          const normUserBatch = String(userBatch).replace(/\s+/g, '');
-          const normPageText = pageText.replace(/\s+/g, '');
+          const normUserBatch = String(userBatch).replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-').replace(/\s+/g, '');
+          const normPageText = pageText.replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-').replace(/\s+/g, '');
           hasBatch = normPageText.includes(normUserBatch);
         }
 
@@ -286,43 +345,40 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
 
       // Extract and validate page dynamic day boundaries
       const headerRowItems = items.filter(i => Math.abs(i.y - gridTopY) < 10);
-      const pageBoundaries = buildDynamicBoundaries(headerRowItems);
+      const monItem = headerRowItems.find(i => {
+        const clean = i.str.toLowerCase().replace(/[^a-z]/g, '');
+        return DAY_ALIAS_MAP[clean] === 'Monday';
+      });
+
+      // Filter out header row text from grid items
+      const gridItems = items.filter(i => i.y < gridTopY - 4);
+
+      // Detect leftmost Monday lecture items to establish a position-aware room threshold
+      const lectureMarkers = gridItems.filter(i =>
+        /\(\d{2}:\d{2}\s*-\s*\d{2}:\d{2}\)/.test(i.str) ||
+        /#([A-Z][A-Z0-9\-]{3,})/i.test(i.str) ||
+        /Semester#\d+/i.test(i.str) ||
+        /^(BS|MS|PhD)\s+in/i.test(i.str)
+      );
+      const monLimitX = monItem ? (monItem.x + (monItem.width ? monItem.width : 50) + 15) : 150;
+      const mondayLectures = lectureMarkers.filter(i => i.x < monLimitX);
+      const minMondayLectureX = mondayLectures.length
+        ? Math.min(...mondayLectures.map(i => i.x))
+        : (monItem ? monItem.x - 25 : 70);
+      const pageRoomThreshold = Math.min(Math.max(minMondayLectureX - 4, 45), 75);
+
+      const pageBoundaries = buildDynamicBoundaries(headerRowItems, pageRoomThreshold);
       if (pageBoundaries) {
         docBoundaries = pageBoundaries;
       }
       const activeBoundaries = pageBoundaries || docBoundaries || DEFAULT_7DAY_BOUNDARIES;
 
-      const gridItems = items.filter(i => i.y < gridTopY);
+      // Extract and group room headings
+      const roomItems = gridItems.filter(i => i.x < pageRoomThreshold);
+      const rooms = groupRooms(roomItems, gridTopY);
 
-      // Rooms (x < 45)
-      const roomItems = gridItems.filter(i => i.x < ROOM_X_THRESHOLD).sort((a, b) => b.y - a.y);
-      const rooms = [];
-      let curRoom = null;
-      for (const item of roomItems) {
-        if (!curRoom) {
-          curRoom = { parts: [item.str], yMax: item.y, yMin: item.y };
-        } else if (Math.abs(curRoom.yMin - item.y) < ROOM_GROUP_DY) {
-          curRoom.parts.push(item.str);
-          curRoom.yMin = Math.min(curRoom.yMin, item.y);
-        } else {
-          rooms.push(curRoom);
-          curRoom = { parts: [item.str], yMax: item.y, yMin: item.y };
-        }
-      }
-      if (curRoom) rooms.push(curRoom);
-      for (const r of rooms) {
-        r.name = r.parts.join(' ').replace(/\s+/g, ' ').trim();
-        r.yCenter = (r.yMax + r.yMin) / 2;
-      }
-
-      // Room bands
-      for (let i = 0; i < rooms.length; i++) {
-        rooms[i].bandTop = (i === 0) ? gridTopY : (rooms[i - 1].yMin + rooms[i].yMax) / 2;
-        rooms[i].bandBottom = (i === rooms.length - 1) ? 0 : (rooms[i].yMin + rooms[i + 1].yMax) / 2;
-      }
-
-      // Lecture items (x >= 45)
-      const lectureItems = gridItems.filter(i => i.x >= ROOM_X_THRESHOLD).sort((a, b) => b.y - a.y);
+      // Lecture items (x >= pageRoomThreshold)
+      const lectureItems = gridItems.filter(i => i.x >= pageRoomThreshold).sort((a, b) => b.y - a.y);
       const used = new Set();
       const lectureBlocks = [];
 
@@ -382,7 +438,8 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
             name: parsed.name, code: parsed.code, room: roomName,
             day: block.day, startTime: parsed.startTime, endTime: parsed.endTime,
             teacher: parsed.teacher, batch: parsed.batch, semester: parsed.semester,
-            type: parsed.type, section: parsed.section, program: parsed.program, page: pageNum
+            type: parsed.type, section: parsed.section, program: parsed.program,
+            isPractical: !!parsed.isPractical, page: pageNum
           });
         }
       }
@@ -443,18 +500,32 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
     const targetProgramKey = extractProgramKey(userProgram);
     
     // Target Section & Type matching
+    const isWeekendTarget = /weekend/i.test(rawUserType);
     let targetIsSelf = false;
     let targetSection = null;
-    if (/self\s*support\s*2/i.test(rawUserType)) {
+    if (/self\s*support\s*2/i.test(rawUserType) || /self[\s\-_]*2\b/i.test(rawUserType)) {
       targetIsSelf = true;
       targetSection = '2';
-    } else if (/self\s*support\s*1/i.test(rawUserType)) {
+    } else if (/self\s*support\s*1/i.test(rawUserType) || /self[\s\-_]*1\b/i.test(rawUserType)) {
+      targetIsSelf = true;
+      targetSection = '1';
+    } else if (/self\s*support\s*0/i.test(rawUserType) || /self[\s\-_]*0\b/i.test(rawUserType)) {
+      targetIsSelf = true;
+      targetSection = '0';
+    } else if (isWeekendTarget) {
       targetIsSelf = true;
       targetSection = '1';
     } else if (/self/i.test(rawUserType)) {
       targetIsSelf = true;
     } else {
       targetIsSelf = false;
+      if (/regular[\s\-_]*0\b/i.test(rawUserType)) {
+        targetSection = '0';
+      } else if (/regular[\s\-_]*2\b/i.test(rawUserType)) {
+        targetSection = '2';
+      } else if (/regular[\s\-_]*1\b/i.test(rawUserType)) {
+        targetSection = '1';
+      }
     }
 
     const filtered = final.filter(cls => {
@@ -475,15 +546,32 @@ async function extractSchedule(pdfBuffer, userBatch, userSemester, userType, use
       }
       
       // 3. Support Type Match
+      const clsIsWeekend = clsType.includes('weekend');
+      if (isWeekendTarget !== clsIsWeekend) {
+        return false;
+      }
       const clsIsSelf = clsType.includes('self');
-      if (clsIsSelf !== targetIsSelf) {
+      if (!isWeekendTarget && (clsIsSelf !== targetIsSelf)) {
         return false;
       }
 
-      // 4. Section Match for Self Support
-      if (targetIsSelf && targetSection) {
+      // 4. Section Match
+      if (targetSection) {
         const clsSection = String(cls.section || '').trim();
         if (clsSection && clsSection !== targetSection) {
+          if (!targetIsSelf && targetSection === '1' && (clsSection === '1' || clsSection === '')) {
+            // match
+          } else {
+            return false;
+          }
+        }
+      }
+
+      // 5. Batch Strict Match (if user supplied a batch and class has a batch)
+      if (userBatch && cls.batch) {
+        const normUserB = String(userBatch).replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-').replace(/\s+/g, '');
+        const normClsB = String(cls.batch).replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\/\\_]/g, '-').replace(/\s+/g, '');
+        if (normUserB && normClsB && normUserB !== normClsB) {
           return false;
         }
       }

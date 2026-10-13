@@ -48,12 +48,12 @@ export default function UploadScreen() {
   const [isScanned, setIsScanned] = useState(false);
   const [previewDay, setPreviewDay] = useState<string>(getTodayDayName());
 
-  // Document Picker Handler
+  // Document / Image Picker Handler
   const handlePickDocument = async () => {
     setErrorMessage('');
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
+        type: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
         copyToCacheDirectory: true,
       });
 
@@ -68,16 +68,27 @@ export default function UploadScreen() {
     }
   };
 
-  // Upload and Parse PDF
+  // Upload and Parse PDF or Image
   const handleUploadAndParse = async () => {
     if (!selectedFile) {
-      setErrorMessage('Please select a PDF file first.');
+      setErrorMessage('Please select a timetable PDF or image first.');
       return;
     }
 
     setErrorMessage('');
     setStep('uploading');
-    setStatusMessage('Uploading and parsing timetable PDF...');
+
+    let mime = selectedFile.mimeType;
+    if (!mime || mime === 'application/octet-stream') {
+      if (/\.jpe?g$/i.test(selectedFile.name)) mime = 'image/jpeg';
+      else if (/\.png$/i.test(selectedFile.name)) mime = 'image/png';
+      else if (/\.webp$/i.test(selectedFile.name)) mime = 'image/webp';
+      else if (/\.pdf$/i.test(selectedFile.name)) mime = 'application/pdf';
+      else mime = 'application/pdf';
+    }
+
+    const isImage = mime.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(selectedFile.name);
+    setStatusMessage(isImage ? 'Uploading & extracting timetable schedule...' : 'Uploading and parsing timetable PDF...');
 
     // Authoritative Pre-Sync: Ensure the active user profile is saved to Firestore before parsing
     if (user && user.role !== 'teacher' && user.program && user.semester && user.batch) {
@@ -98,7 +109,7 @@ export default function UploadScreen() {
       const response = await uploadScheduleApi(
         selectedFile.uri,
         selectedFile.name,
-        selectedFile.mimeType || 'application/pdf'
+        mime
       );
 
       if (!response.success || !response.classes || response.classes.length === 0) {
@@ -112,7 +123,7 @@ export default function UploadScreen() {
       setStatusMessage('');
     } catch (err: any) {
       setStep('idle');
-      let msg = 'An error occurred while uploading and parsing the PDF.';
+      let msg = 'An error occurred while uploading and parsing the timetable.';
       if (axios.isAxiosError(err)) {
         msg = err.response?.data?.message || err.message || msg;
       } else if (err instanceof Error) {
@@ -209,7 +220,7 @@ export default function UploadScreen() {
       >
         <View style={styles.headerContainer}>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Upload your department timetable PDF to import your schedule.
+            Upload your department timetable PDF or schedule image to import your schedule.
           </Text>
         </View>
 
@@ -236,7 +247,7 @@ export default function UploadScreen() {
         {/* Step 1: File Selection Container */}
         {step === 'idle' || step === 'uploading' ? (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>PDF Document Picker</Text>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>PDF / Image Timetable Picker</Text>
 
             {user && user.role !== 'teacher' && user.program ? (
               <View style={[styles.profileInfoBar, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
@@ -258,11 +269,15 @@ export default function UploadScreen() {
               onPress={handlePickDocument}
               disabled={step === 'uploading'}
             >
-              <Text style={styles.pickerIcon}>📄</Text>
-              <Text style={[styles.pickerTitle, { color: colors.textPrimary }]}>
-                {selectedFile ? selectedFile.name : 'Tap to select Timetable PDF'}
+              <Text style={styles.pickerIcon}>
+                {selectedFile && (selectedFile.mimeType?.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(selectedFile.name)) ? '🖼️' : '📄'}
               </Text>
-              <Text style={[styles.pickerSub, { color: colors.textMuted }]}>Only official PDF files supported</Text>
+              <Text style={[styles.pickerTitle, { color: colors.textPrimary }]}>
+                {selectedFile ? selectedFile.name : 'Tap to select Timetable PDF or Image'}
+              </Text>
+              <Text style={[styles.pickerSub, { color: colors.textMuted }]}>
+                Official PDF or clear image (JPEG, PNG, WebP) supported
+              </Text>
             </Pressable>
 
             {selectedFile ? (
@@ -296,7 +311,11 @@ export default function UploadScreen() {
                 onPress={handleUploadAndParse}
                 disabled={!selectedFile}
               >
-                <Text style={styles.actionButtonText}>Upload & Parse Timetable</Text>
+                <Text style={styles.actionButtonText}>
+                  {selectedFile && (selectedFile.mimeType?.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(selectedFile.name))
+                    ? 'Upload & Extract Schedule Image'
+                    : 'Upload & Parse Timetable'}
+                </Text>
               </Pressable>
             )}
           </View>
@@ -306,10 +325,10 @@ export default function UploadScreen() {
         {(step === 'preview' || step === 'saving' || step === 'success') && parsedClasses.length > 0 ? (
           <View style={styles.previewContainer}>
             <View style={styles.previewHeader}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={[styles.previewTitle, { color: colors.textPrimary }]}>Parsed Schedule Preview</Text>
                 <Text style={[styles.previewSubtitle, { color: colors.textSecondary }]}>
-                  {parsedClasses.length} matching lectures extracted from PDF
+                  {parsedClasses.length} matching lectures extracted • Review & verify
                 </Text>
               </View>
               <Pressable
@@ -324,7 +343,7 @@ export default function UploadScreen() {
                 }}
                 disabled={step === 'saving'}
               >
-                <Text style={[styles.replaceButtonText, { color: colors.textSecondary }]}>Replace PDF</Text>
+                <Text style={[styles.replaceButtonText, { color: colors.textSecondary }]}>Replace File</Text>
               </Pressable>
             </View>
 
@@ -367,12 +386,13 @@ export default function UploadScreen() {
             {previewClassesForDay.length === 0 ? (
               <View style={[styles.noClassesCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Text style={[styles.noClassesText, { color: colors.textSecondary }]}>
-                  No lectures for {previewDay} in parsed PDF
+                  No lectures for {previewDay} in timetable
                 </Text>
               </View>
             ) : (
               previewClassesForDay.map((cls, idx) => {
                 const loc = parseLocation(cls.room);
+                const hasUncertainty = !!cls.uncertainFields?.length || cls.room === 'To be announced' || cls.teacher === 'To be allocated';
                 return (
                   <View
                     key={cls.classId || idx}
@@ -380,15 +400,33 @@ export default function UploadScreen() {
                       styles.previewClassCard,
                       {
                         backgroundColor: colors.surface,
-                        borderColor: colors.border,
+                        borderColor: hasUncertainty ? colors.warningBorder : colors.border,
                       },
                     ]}
                   >
                     <View style={styles.previewCardHeader}>
-                      <Text style={[styles.previewClassCode, { color: colors.primary }]}>{cls.code}</Text>
-                      <Text style={[styles.previewClassTime, { color: colors.textSecondary }]}>
-                        {format12HourTime(cls.startTime)} - {format12HourTime(cls.endTime)}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.previewClassCode, { color: colors.primary }]}>{cls.code}</Text>
+                        {cls.isPractical ? (
+                          <Text style={[styles.previewTag, { backgroundColor: colors.badgeBg, color: colors.primary }]}>
+                            Lab
+                          </Text>
+                        ) : null}
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Text style={[styles.previewClassTime, { color: colors.textSecondary }]}>
+                          {format12HourTime(cls.startTime)} - {format12HourTime(cls.endTime)}
+                        </Text>
+                        <Pressable
+                          style={styles.removeEntryButton}
+                          onPress={() => {
+                            setParsedClasses(prev => prev.filter(c => c.classId !== cls.classId));
+                          }}
+                          hitSlop={6}
+                        >
+                          <Text style={[styles.removeEntryText, { color: colors.error }]}>✕</Text>
+                        </Pressable>
+                      </View>
                     </View>
                     <Text style={[styles.previewClassName, { color: colors.textPrimary }]}>{cls.name}</Text>
                     <View style={styles.previewLocationRow}>
@@ -414,6 +452,14 @@ export default function UploadScreen() {
                         </Text>
                       ) : null}
                     </View>
+
+                    {hasUncertainty ? (
+                      <View style={[styles.uncertainBadge, { backgroundColor: colors.warningBg }]}>
+                        <Text style={[styles.uncertainBadgeText, { color: colors.warning }]}>
+                          ⚠️ Review Needed: {cls.uncertainFields ? cls.uncertainFields.join(', ') : 'Details unconfirmed'}
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
                 );
               })
@@ -436,7 +482,9 @@ export default function UploadScreen() {
                 style={[styles.saveButton, { backgroundColor: colors.success }]}
                 onPress={handleSaveSchedule}
               >
-                <Text style={styles.saveButtonText}>Confirm & Apply This Schedule</Text>
+                <Text style={styles.saveButtonText}>
+                  Confirm & Apply This Schedule ({parsedClasses.length} Lectures)
+                </Text>
               </Pressable>
             )}
           </View>
@@ -722,6 +770,26 @@ const styles = StyleSheet.create({
   },
   successBoxText: {
     fontSize: Typography.sizes.md,
+    fontWeight: Typography.weights.bold,
+  },
+  uncertainBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  uncertainBadgeText: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: '600',
+  },
+  removeEntryButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  removeEntryText: {
+    fontSize: Typography.sizes.xs,
     fontWeight: Typography.weights.bold,
   },
 });

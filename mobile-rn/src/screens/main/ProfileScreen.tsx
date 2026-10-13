@@ -139,16 +139,6 @@ export default function ProfileScreen() {
         return;
       }
 
-      // Semester-change validation: Batch MUST be changed as well when Semester is changed
-      const prevSem = Number(user?.semester);
-      const newSem = Number(semester);
-      const prevBatch = normalizeBatch(user?.batch);
-      const newBatch = normalizedInputBatch;
-
-      if (prevSem > 0 && newSem > 0 && newSem !== prevSem && newBatch === prevBatch) {
-        setErrorMsg('Please change your batch/session as well when changing the semester.');
-        return;
-      }
     }
 
     setIsLoading(true);
@@ -164,6 +154,12 @@ export default function ProfileScreen() {
         payload.type = type;
         payload.batch = finalBatch;
         payload.semester = Number(semester);
+        if (user?.departmentId) payload.departmentId = user.departmentId;
+        if (user?.degreeLevel) payload.degreeLevel = user.degreeLevel;
+        if (user?.programId) payload.programId = user.programId;
+        if (user?.intakeTerm) payload.intakeTerm = user.intakeTerm;
+        if (user?.studyShift) payload.studyShift = user.studyShift;
+        if (user?.sectionNumber) payload.sectionNumber = user.sectionNumber;
       }
 
       await updateProfile(payload);

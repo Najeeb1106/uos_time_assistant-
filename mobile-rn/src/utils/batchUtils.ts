@@ -1,46 +1,60 @@
 import builtinData from '../constants/builtinTimetable.json';
 import { normalizeProgramKey, normalizeBatch } from './builtinScheduleUtils';
+import {
+  findProgramByOfficialOrLegacyName,
+  generateDynamicBatches as registryGenerateBatches,
+} from '../constants/academicRegistry';
+
+const CURRENT_CALENDAR_YEAR = new Date().getFullYear();
+const MAX_FUTURE_START_YEAR = Math.max(CURRENT_CALENDAR_YEAR + 12, 2038);
 
 /**
- * Standard selectable start years for university cohorts.
+ * Standard selectable start years for university cohorts (2018 up to at least 10 years beyond current year).
  */
-export const START_YEAR_OPTIONS: string[] = [
-  '2018',
-  '2019',
-  '2020',
-  '2021',
-  '2022',
-  '2023',
-  '2024',
-  '2025',
-  '2026',
-  '2027',
-  '2028',
-  '2029',
-  '2030',
-];
+export const START_YEAR_OPTIONS: string[] = (() => {
+  const years: string[] = [];
+  for (let y = 2018; y <= MAX_FUTURE_START_YEAR; y++) {
+    years.push(String(y));
+  }
+  return years;
+})();
 
 /**
- * Standard selectable end years.
+ * Standard selectable end years (up to 2045).
  */
-export const ALL_END_YEARS: string[] = [
-  '2020',
-  '2021',
-  '2022',
-  '2023',
-  '2024',
-  '2025',
-  '2026',
-  '2027',
-  '2028',
-  '2029',
-  '2030',
-  '2031',
-  '2032',
-  '2033',
-  '2034',
-  '2035',
-];
+export const ALL_END_YEARS: string[] = (() => {
+  const years: string[] = [];
+  for (let y = 2020; y <= MAX_FUTURE_START_YEAR + 6; y++) {
+    years.push(String(y));
+  }
+  return years;
+})();
+
+/**
+ * Dynamically generates a descending list of valid YYYY-YYYY batches for a program.
+ * Accommodates 4-year BS, 2-year/3-year MS, and 3-year PhD cohorts.
+ * Generates batches for at least 10 years beyond the current year plus historical batches back to 2018.
+ */
+export function getDynamicProgramBatches(program?: string | null, degreeLevel?: string | null): string[] {
+  const pDef = findProgramByOfficialOrLegacyName(program);
+  if (pDef) {
+    return registryGenerateBatches(pDef, 2018, 10);
+  }
+
+  // Fallback based on degreeLevel or heuristic
+  const isPostGrad = (degreeLevel === 'MS' || degreeLevel === 'PhD') ||
+    (program && (program.includes('MS') || program.includes('PhD')));
+  const duration = isPostGrad ? 2 : 4;
+
+  const batches = new Set<string>();
+  for (let s = MAX_FUTURE_START_YEAR; s >= 2018; s--) {
+    batches.add(`${s}-${s + duration}`);
+    if (isPostGrad) {
+      batches.add(`${s}-${s + 3}`); // Support 3-year MS cohorts like MS AI
+    }
+  }
+  return Array.from(batches).sort((a, b) => b.localeCompare(a));
+}
 
 /**
  * Returns available end year options for a given start year.

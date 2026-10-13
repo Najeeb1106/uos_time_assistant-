@@ -94,8 +94,9 @@ export function getScheduleProfileKey(user: UserProfile | null | undefined): str
   const progKey = prog ? `${prog.degree}_${prog.key}` : (user.program || '').trim().toLowerCase();
   const sem = Number(user.semester) || 0;
   const batch = normalizeBatch(user.batch);
-  const section = normalizeSection(user.type, user.section);
-  return `student:${progKey}:sem${sem}:batch${batch}:sec${section}`.toLowerCase();
+  const section = normalizeSection(user.type, user.section || user.sectionNumber);
+  const intake = user.intakeTerm ? `:${user.intakeTerm.toLowerCase()}` : '';
+  return `student:${progKey}:sem${sem}:batch${batch}:sec${section}${intake}`.toLowerCase();
 }
 
 /**
@@ -127,7 +128,7 @@ export function filterClassesForUserProfile(
   const userProg = normalizeProgramKey(user.program);
   const userSem = Number(user.semester) || 0;
   const userBatch = normalizeBatch(user.batch);
-  const userSection: CanonicalSection = normalizeSection(user.type, user.section);
+  const userSection: CanonicalSection = normalizeSection(user.type, user.section || user.sectionNumber);
 
   return classes.filter((c) => {
     // A. Degree Program Strict Match
@@ -151,11 +152,15 @@ export function filterClassesForUserProfile(
       }
     }
 
-    // D. Exact Section Match
+    // D. Exact Section Match with tolerance for Regular vs Regular 1
     if (c.section || c.type) {
       const clsSection = normalizeSection(c.type, c.section);
       if (clsSection !== userSection) {
-        return false;
+        const isRegCls = clsSection === 'Regular' || clsSection === 'Regular 1';
+        const isRegUser = userSection === 'Regular' || userSection === 'Regular 1';
+        if (!(isRegCls && isRegUser)) {
+          return false;
+        }
       }
     }
 

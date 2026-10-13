@@ -1,7 +1,11 @@
 function getApiUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
-  // Fallback: confirmed production HTTPS endpoint (no private IPs)
-  const rawUrl = envUrl || 'https://uos-time-assistant.onrender.com/api';
+  // On physical Android devices in release mode, localhost is unreachable without USB reverse port forwarding.
+  // Fallback to confirmed production HTTPS endpoint when localhost is passed into release build or when unset.
+  const isLocalHost = envUrl && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1'));
+  const rawUrl = (!__DEV__ && isLocalHost) || !envUrl
+    ? 'https://uos-time-assistant.onrender.com/api'
+    : envUrl;
   // Strip trailing slashes
   const cleanUrl = rawUrl.replace(/\/+$/, '');
   // If caller provided a bare host without /api suffix, append it
@@ -14,6 +18,7 @@ function getApiUrl(): string {
 export const Config = {
   APP_NAME: 'ShedUOS',
   API_URL: getApiUrl(),
-  TIMEOUT: 15000,
-  VERSION: '1.1.5',
+  TIMEOUT: 45000,
+  VERSION: '1.1.6',
 };
+

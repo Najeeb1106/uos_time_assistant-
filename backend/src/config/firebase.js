@@ -59,6 +59,7 @@ if (hasFirebaseKey || hasEnvConfig) {
     });
 
     db = admin.firestore();
+    db.settings({ ignoreUndefinedProperties: true });
     auth = admin.auth();
     bucket = admin.storage().bucket();
     isFirebaseMode = true;

@@ -53,4 +53,11 @@ yarn-error.log*
 # Video files
 /uos .mp4
 
+# Test artifacts and temporary media
+*.png
+*.jpeg
+*.traineddata
+mobile-rn/*.png
+
+
 

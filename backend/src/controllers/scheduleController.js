@@ -1,15 +1,16 @@
 const { db } = require('../config/firebase');
 const { extractSchedule } = require('../utils/pdfParser');
+const { parseTimetableImage, filterClassesByProfile } = require('../services/imageParserService');
 
 /**
- * Handle PDF Timetable upload and parse it server-side
+ * Handle PDF and Image Timetable upload and parse it server-side
  */
 exports.uploadSchedule = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No PDF file uploaded.'
+        message: 'No timetable file uploaded.'
       });
     }
 
@@ -26,6 +27,47 @@ exports.uploadSchedule = async (req, res) => {
 
     const user = userDoc.data();
     const role = user.role || 'student';
+    const isImage = /^(image\/(jpeg|png|webp))$/i.test(req.file.mimetype) || /\.(jpe?g|png|webp)$/i.test(req.file.originalname);
+
+    if (isImage) {
+      console.log(`[ScheduleController] Parsing image timetable for ${role} profile: ${user.fullName} (uid: ${uid}, file: "${req.file.originalname}")`);
+
+      // Single-pass extraction: parse all lectures once from image
+      const allImageLectures = await parseTimetableImage(
+        req.file.buffer,
+        req.file.mimetype || 'image/jpeg',
+        { role: 'global' },
+        { fileName: req.file.originalname }
+      );
+
+      // Save global schedule if possible
+      try {
+        if (allImageLectures.length > 0) {
+          await db.collection('global_timetable').doc('latest').set({
+            pdfFileName: req.file.originalname,
+            classes: allImageLectures,
+            uploadedAt: new Date().toISOString(),
+            sourceType: 'image'
+          });
+        }
+      } catch (globalErr) {
+        console.error('[ScheduleController] Failed to save global image timetable:', globalErr);
+      }
+
+      const parsedClasses = role === 'global' ? allImageLectures : filterClassesByProfile(allImageLectures, user);
+
+      return res.status(200).json({
+        success: true,
+        message: parsedClasses.length === 0
+          ? 'No scheduled classes found for your profile in this timetable image.'
+          : `Parsed ${parsedClasses.length} matching schedule lectures successfully from image.`,
+        classes: parsedClasses,
+        pdfFileName: req.file.originalname,
+        sourceType: 'image'
+      });
+    }
+
+    // Default: PDF parsing
     console.log(`[ScheduleController] Parsing PDF for ${role} profile: ${user.fullName} (uid: ${uid}, program: "${user.program}", semester: ${user.semester}, batch: "${user.batch}", type: "${user.type}")`);
 
     // Call our coordinate-based parser
@@ -47,7 +89,8 @@ exports.uploadSchedule = async (req, res) => {
       await db.collection('global_timetable').doc('latest').set({
         pdfFileName: req.file.originalname,
         classes: allLectures,
-        uploadedAt: new Date().toISOString()
+        uploadedAt: new Date().toISOString(),
+        sourceType: 'pdf'
       });
       console.log(`[ScheduleController] Saved global timetable of ${allLectures.length} classes to Firestore.`);
     } catch (globalErr) {
@@ -61,14 +104,15 @@ exports.uploadSchedule = async (req, res) => {
         : (parsedClasses.length === 0 ? 'No scheduled classes found for your profile in this timetable.' : `Parsed ${parsedClasses.length} matching schedule lectures successfully.`),
       classes: parsedClasses,
       pdfFileName: req.file.originalname,
-      isScannedFallback
+      isScannedFallback,
+      sourceType: 'pdf'
     });
 
   } catch (error) {
     console.error('Upload & Parsing Controller Error:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'An error occurred while parsing the timetable PDF.'
+      message: error.message || 'An error occurred while parsing the timetable.'
     });
   }
 };

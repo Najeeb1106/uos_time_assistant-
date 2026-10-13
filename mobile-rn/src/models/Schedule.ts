@@ -14,6 +14,9 @@ export interface ClassLecture {
   program?: string;
   isPractical?: boolean;
   page?: number;
+  uncertainFields?: string[];
+  confidence?: number;
+  source?: string;
 }
 
 export interface UserSchedule {

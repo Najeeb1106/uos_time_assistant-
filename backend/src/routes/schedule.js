@@ -4,17 +4,20 @@ const multer = require('multer');
 const scheduleController = require('../controllers/scheduleController');
 const authMiddleware = require('../middleware/auth');
 
-// Multer memory storage configuration for PDF files
+// Multer memory storage configuration for PDF and image timetable uploads
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 25 * 1024 * 1024 // 25MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf' || file.originalname.endsWith('.pdf')) {
+    const isPdf = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname);
+    const isImage = /^(image\/(jpeg|png|webp))$/i.test(file.mimetype) || /\.(jpe?g|png|webp)$/i.test(file.originalname);
+
+    if (isPdf || isImage) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF files are supported!'), false);
+      cb(new Error('Unsupported file format. Only PDF, JPEG, PNG, and WebP files are supported!'), false);
     }
   }
 });

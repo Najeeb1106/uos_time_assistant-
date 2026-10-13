@@ -39,6 +39,19 @@ function formatApiError(err: any, fallbackMessage: string): string {
     if (err.response?.data?.error) {
       return err.response.data.error;
     }
+    if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
+      return 'Request timed out. The server took too long to respond. Please try again.';
+    }
+    if (err.response?.status) {
+      const status = err.response.status;
+      if (status >= 500) {
+        return `Server temporarily unavailable (${status}). Please try again later.`;
+      }
+      if (status === 400 || status === 422) {
+        return 'Invalid registration data. Please verify your details.';
+      }
+      return `Server error (${status}). Please try again.`;
+    }
     if (err.code === 'ERR_NETWORK' || !err.response) {
       return 'Unable to connect to server. Please check your internet connection and try again.';
     }

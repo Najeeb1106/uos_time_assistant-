@@ -1,8 +1,17 @@
-export type CanonicalSection = 'Regular' | 'Self Support 1' | 'Self Support 2';
+export type CanonicalSection =
+  | 'Regular'
+  | 'Regular 0'
+  | 'Regular 1'
+  | 'Regular 2'
+  | 'Self Support 0'
+  | 'Self Support 1'
+  | 'Self Support 2'
+  | 'Weekend Self Support'
+  | 'Weekend Self Support 1';
 
 /**
- * Normalizes any section/type representation to one of the 3 canonical sections:
- * 'Regular', 'Self Support 1', or 'Self Support 2'.
+ * Normalizes any section/type representation to a canonical section string.
+ * Supports Regular (0, 1, 2), Self Support (0, 1, 2), and Weekend Self Support.
  * Strict exact matching with harmless whitespace, dash, roman numeral, and casing tolerance.
  */
 export function normalizeSection(
@@ -12,43 +21,61 @@ export function normalizeSection(
   const cleanType = String(type || '').trim();
   const cleanSec = String(section || '').trim();
 
-  // 1. Explicit 'Self Support 2' or 'Self Support II' in the type string or section (highest priority)
+  // 1. Weekend Self Support (highest priority for weekend classes)
+  if (/weekend/i.test(cleanType) || /weekend/i.test(cleanSec)) {
+    if (cleanSec === '1' || cleanSec === '01' || /^i$/i.test(cleanSec) || /weekend[\s\-_]*self[\s\-_]*support[\s\-_]*1\b/i.test(cleanType)) {
+      return 'Weekend Self Support 1';
+    }
+    return 'Weekend Self Support';
+  }
+
+  // 2. Explicit Self Support 2 / II
   if (
     /self[\s\-_]*support[\s\-_]*(2|ii)\b/i.test(cleanType) ||
-    /self[\s\-_]*support[\s\-_]*(2|ii)\b/i.test(cleanSec)
+    /self[\s\-_]*support[\s\-_]*(2|ii)\b/i.test(cleanSec) ||
+    (/self/i.test(cleanType) && (cleanSec === '2' || cleanSec === '02' || /^ii$/i.test(cleanSec)))
   ) {
     return 'Self Support 2';
   }
 
-  // 2. Explicit 'Self Support 1' or 'Self Support I' in the type string or section
+  // 3. Explicit Self Support 0
+  if (
+    /self[\s\-_]*support[\s\-_]*0\b/i.test(cleanType) ||
+    /self[\s\-_]*support[\s\-_]*0\b/i.test(cleanSec) ||
+    (/self/i.test(cleanType) && cleanSec === '0')
+  ) {
+    return 'Self Support 0';
+  }
+
+  // 4. Explicit Self Support 1 / I
   if (
     /self[\s\-_]*support[\s\-_]*(1|i)\b/i.test(cleanType) ||
-    /self[\s\-_]*support[\s\-_]*(1|i)\b/i.test(cleanSec)
+    /self[\s\-_]*support[\s\-_]*(1|i)\b/i.test(cleanSec) ||
+    (/self/i.test(cleanType) && (cleanSec === '1' || cleanSec === '01' || /^i$/i.test(cleanSec)))
   ) {
     return 'Self Support 1';
   }
 
-  // 3. Generic 'Self Support' type + explicit section digit/numeral in the section field
-  if (
-    /self/i.test(cleanType) &&
-    (cleanSec === '2' || cleanSec === '02' || /^ii$/i.test(cleanSec))
-  ) {
-    return 'Self Support 2';
-  }
-  if (
-    /self/i.test(cleanType) &&
-    (cleanSec === '1' || cleanSec === '01' || /^i$/i.test(cleanSec))
-  ) {
+  // 5. Bare Self Support with no usable section -> default to Self Support 1
+  if (/self/i.test(cleanType) || /self/i.test(cleanSec)) {
     return 'Self Support 1';
   }
 
-  // 4. Bare 'Self Support' with no usable section number — cannot determine which section.
-  //    Return Regular to avoid a silent wrong-section match rather than guessing.
-  if (/self/i.test(cleanType)) {
-    return 'Regular';
+  // 6. Regular Section 0
+  if (/regular[\s\-_]*0\b/i.test(cleanType) || (cleanSec === '0' && /regular/i.test(cleanType))) {
+    return 'Regular 0';
   }
 
-  // 5. Everything else is Regular
+  // 7. Regular Section 2
+  if (/regular[\s\-_]*2\b/i.test(cleanType) || (cleanSec === '2' && /regular/i.test(cleanType))) {
+    return 'Regular 2';
+  }
+
+  // 8. Regular Section 1 or Default Regular
+  if (/regular[\s\-_]*1\b/i.test(cleanType) || (cleanSec === '1' && /regular/i.test(cleanType))) {
+    return 'Regular 1';
+  }
+
   return 'Regular';
 }
 

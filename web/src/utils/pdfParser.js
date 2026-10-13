@@ -85,31 +85,58 @@ function getDay(x) {
   return best;
 }
 
-// ── Room X threshold ───────────────────────────────────────────────────────
-// Real room labels only appear at x < 45. Everything at x >= 45 is lecture content.
-const ROOM_X_THRESHOLD = 45;
-
-// ── Room Label Grouping Threshold ──────────────────────────────────────────
-// Adjacent room text fragments with Δy < 8 are merged into one room name.
-// This is tight enough to avoid merging separate rooms (gap between rooms on
-// densest page is ~17 units) but loose enough to merge multi-line room names
-// (typical room label spans ~13 units vertically).
-const ROOM_GROUP_DY = 8;
-
-// ── Lecture Block Grouping Threshold ───────────────────────────────────────
-// Items in the same day column within Δy < 12 form a single 3-line lecture block.
-// 3-line blocks typically span ~8-10 units. We use 12 for safety but not so
-// large that we merge separate lecture entries (minimum gap between consecutive
-// entries in the same column is ~14 units).
+// ── Room Extraction Constants & Rules ──────────────────────────────────────
+const DEFAULT_ROOM_X_THRESHOLD = 45;
 const LECTURE_BLOCK_DY = 12;
+
+const RE_NEW_ROOM_START = /^(Department\s+of|College\s+of|Faculty\s+of|Institute\s+of|Centre\s+for|School\s+of|Physics\b|Pharmacy\b|Education\b|Jinnah\b|MPH\b|Maryam\b|Online\b|Smart\s+Lab)/i;
+const RE_PRIMARY_ROOM_CODE = /\b(CR\s*-\s*(?:NO-)?\s*\d+|L\s*-\s*\d+|Hall\b|CR-VCR|JB-CR|OKM\s+CR|SSB\s+(?:CR|L))/i;
+const RE_BUILDING_PREFIX = /^(NAB|MAB|ARB|IAH|IKM|ALB|ABN|AKM|JBN|SSB|OKM|JB-|SEEC)\b/i;
+
+function groupRooms(roomItems, gridTopY) {
+  roomItems.sort((a, b) => (Math.abs(b.y - a.y) < 2 ? a.x - b.x : b.y - a.y));
+  const rooms = [];
+  let curRoom = null;
+
+  for (const item of roomItems) {
+    if (!curRoom) {
+      curRoom = { parts: [item.str], yMax: item.y, yMin: item.y, hasCode: RE_PRIMARY_ROOM_CODE.test(item.str) };
+      continue;
+    }
+    const dy = curRoom.yMin - item.y;
+    const isNewStart = RE_NEW_ROOM_START.test(item.str);
+    const hasAlreadyCode = curRoom.hasCode && (RE_PRIMARY_ROOM_CODE.test(item.str) || RE_BUILDING_PREFIX.test(item.str));
+    const isIncompletePrefix = /^(Department|College|Faculty|Institute|Centre|School)\s+(of|for)$/i.test(curRoom.parts.join(' '));
+
+    if (dy <= 13.0 && (!isNewStart || isIncompletePrefix) && !hasAlreadyCode) {
+      curRoom.parts.push(item.str);
+      curRoom.yMin = Math.min(curRoom.yMin, item.y);
+      if (RE_PRIMARY_ROOM_CODE.test(item.str)) curRoom.hasCode = true;
+    } else {
+      rooms.push(curRoom);
+      curRoom = { parts: [item.str], yMax: item.y, yMin: item.y, hasCode: RE_PRIMARY_ROOM_CODE.test(item.str) };
+    }
+  }
+  if (curRoom) rooms.push(curRoom);
+
+  for (const r of rooms) {
+    r.name = r.parts.join(' ').replace(/\s+/g, ' ').trim();
+    r.yCenter = (r.yMax + r.yMin) / 2;
+  }
+  for (let i = 0; i < rooms.length; i++) {
+    rooms[i].bandTop = (i === 0) ? gridTopY : (rooms[i - 1].yMin + rooms[i].yMax) / 2;
+    rooms[i].bandBottom = (i === rooms.length - 1) ? 0 : (rooms[i].yMin + rooms[i + 1].yMax) / 2;
+  }
+  return rooms;
+}
 
 // ── Regex Patterns ─────────────────────────────────────────────────────────
 
 // Code must be at least 4 chars to avoid truncated PDF artifacts like "#U…"
 const RE_CODE = /#([A-Z][A-Z0-9\-]{3,})/i;
 
-const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*Semester#(\d+)/i;
-const RE_BATCH_MS = /(MS|PhD)\s+([A-Za-z\s]+?)\s*(?:\((Weekend)\))?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*-\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
+const RE_BATCH_BS = /BS\s+in\s+([A-Za-z\s\-]+?)\s+(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*[-–—]\s*\d{4})\s*\)\s*S(?:emester)?#?(\d+)/i;
+const RE_BATCH_MS = /(MS|PhD)\s+(?:in\s+)?([A-Za-z\s\-]+?)\s*(?:\((Weekend)\))?\s*(Regular|Self\s+Support|Weekend\s+Self\s+Support|Self)?\s*(\d*)\s*\(\s*(?:(?:Fall|Spring|Summer|Autumn)\s+)?(\d{4}\s*[-–—]\s*\d{4})\s*\)\s*S(?:emester)?#?(\d*)/i;
 
 const RE_SEMESTER = /Semester#(\d+)/i;
 
@@ -158,47 +185,30 @@ export async function parseTimetablePdf(arrayBuffer, onProgress = () => {}) {
     }
     const gridTopY = headerItem.y;
 
-    // Everything below the header line is the grid body
-    const gridItems = items.filter(i => i.y < gridTopY);
+    // Filter out header row text from grid items
+    const gridItems = items.filter(i => i.y < gridTopY - 4);
 
-    // ── 2. Extract room labels (x < 45 only) ──────────────────────────
-    const roomItems = gridItems
-      .filter(i => i.x < ROOM_X_THRESHOLD)
-      .sort((a, b) => b.y - a.y); // top-to-bottom (descending Y)
+    const monItem = items.find(i => Math.abs(i.y - gridTopY) < 10 && i.str.toLowerCase().replace(/[^a-z]/g, '') === 'monday');
+    const lectureMarkers = gridItems.filter(i =>
+      /\(\d{2}:\d{2}\s*-\s*\d{2}:\d{2}\)/.test(i.str) ||
+      /#([A-Z][A-Z0-9\-]{3,})/i.test(i.str) ||
+      /Semester#\d+/i.test(i.str) ||
+      /^(BS|MS|PhD)\s+in/i.test(i.str)
+    );
+    const monLimitX = monItem ? (monItem.x + (monItem.width ? monItem.width : 50) + 15) : 150;
+    const mondayLectures = lectureMarkers.filter(i => i.x < monLimitX);
+    const minMondayLectureX = mondayLectures.length
+      ? Math.min(...mondayLectures.map(i => i.x))
+      : (monItem ? monItem.x - 25 : 70);
+    const pageRoomThreshold = Math.min(Math.max(minMondayLectureX - 4, 45), 75);
 
-    const rooms = [];
-    let curRoom = null;
-    for (const item of roomItems) {
-      if (!curRoom) {
-        curRoom = { parts: [item.str], yMax: item.y, yMin: item.y };
-      } else if (Math.abs(curRoom.yMin - item.y) < ROOM_GROUP_DY) {
-        curRoom.parts.push(item.str);
-        curRoom.yMin = Math.min(curRoom.yMin, item.y);
-      } else {
-        rooms.push(curRoom);
-        curRoom = { parts: [item.str], yMax: item.y, yMin: item.y };
-      }
-    }
-    if (curRoom) rooms.push(curRoom);
+    // ── 2. Extract room labels ────────────────────────────────────────
+    const roomItems = gridItems.filter(i => i.x < pageRoomThreshold);
+    const rooms = groupRooms(roomItems, gridTopY);
 
-    // Build clean room name strings
-    for (const room of rooms) {
-      room.name = room.parts.join(' ').replace(/\s+/g, ' ').trim();
-      room.yCenter = (room.yMax + room.yMin) / 2;
-    }
-
-    // ── 3. Compute room Y-bands for assignment ─────────────────────────
-    // Each room "owns" the vertical band from its top to the midpoint
-    // between it and the next room below. The lowest room extends to y=0.
-    // Rooms are sorted top-to-bottom (descending Y).
-    for (let i = 0; i < rooms.length; i++) {
-      rooms[i].bandTop = (i === 0) ? gridTopY : (rooms[i - 1].yMin + rooms[i].yMax) / 2;
-      rooms[i].bandBottom = (i === rooms.length - 1) ? 0 : (rooms[i].yMin + rooms[i + 1].yMax) / 2;
-    }
-
-    // ── 4. Extract lecture items (x >= 45) ─────────────────────────────
+    // ── 4. Extract lecture items ──────────────────────────────────────
     const lectureItems = gridItems
-      .filter(i => i.x >= ROOM_X_THRESHOLD)
+      .filter(i => i.x >= pageRoomThreshold)
       .sort((a, b) => b.y - a.y); // top-to-bottom
 
     // ── 5. Group into 3-line lecture blocks ─────────────────────────────
@@ -397,23 +407,36 @@ function parseEntry(text) {
   const hashIdx = text.indexOf('#');
   if (hashIdx !== -1) {
     const beforeHash = text.substring(0, hashIdx).trim();
-    const nameParts = beforeHash.split('\n');
-    name = nameParts[nameParts.length - 1].trim();
+    const rawLines = beforeHash.split('\n').map(l => l.trim()).filter(Boolean);
+    const cleanLines = [];
+    const DAY_SET = new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+    for (const line of rawLines) {
+      const lower = line.toLowerCase();
+      if (DAY_SET.has(lower) || lower === 'room / lab' || lower.includes('timetable')) continue;
+      if (/^[^\w\s]+$/.test(line) || line.length <= 1) continue;
+      if (/Semester#\d+/i.test(line) || /\(\d{2}:\d{2}\s*-\s*\d{2}:\d{2}\)/.test(line)) continue;
+      if (/^(BS|MS|PhD)\s+in/i.test(line)) continue;
+      cleanLines.push(line);
+    }
+    name = cleanLines.join(' ').replace(/\s+/g, ' ').trim() || 'Unknown Course';
   } else {
-    name = text.split('\n')[0].trim() || 'Unknown Course';
+    const firstLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    name = firstLines[0] || 'Unknown Course';
   }
 
   if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) {
     const altCode = text.match(/#([A-Z0-9][\w-]+)/i);
     if (altCode) {
       const altIdx = text.indexOf('#' + altCode[1]);
-      const altBefore = text.substring(0, altIdx).trim().split('\n');
-      name = altBefore[altBefore.length - 1].trim();
+      const altBefore = text.substring(0, altIdx).trim().split('\n').map(l => l.trim()).filter(Boolean);
+      name = altBefore.join(' ').replace(/\s+/g, ' ').trim();
     }
     if (name.match(/^\w[\w\s.]+\(\d{2}:\d{2}/)) name = 'Unknown Course';
   }
 
-  return { name, code, type, section, batch, semester, startTime, endTime, teacher, program };
+  const isPractical = /\bpractical\b/i.test(text) || /\b\(lab\)\b/i.test(text) || /\b\[lab\]\b/i.test(text);
+
+  return { name, code, type, section, batch, semester, startTime, endTime, teacher, program, isPractical };
 }
 
 // ── Deduplication ──────────────────────────────────────────────────────────

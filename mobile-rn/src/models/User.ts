@@ -14,6 +14,12 @@ export interface UserProfile {
   teachingId?: string;
   avatarUri?: string;
   createdAt?: string;
+  departmentId?: string;
+  degreeLevel?: 'BS' | 'MS' | 'PhD' | string;
+  programId?: string;
+  intakeTerm?: 'Fall' | 'Spring' | string;
+  studyShift?: 'Regular' | 'Self Support' | 'Weekend Self Support' | string;
+  sectionNumber?: string;
 }
 
 export interface AuthState {
